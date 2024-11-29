@@ -9,6 +9,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.limelight.structures.LimelightData;
 import frc.robot.limelight.structures.LimelightResults;
+import frc.robot.limelight.structures.LimelightSettings;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -30,6 +31,10 @@ public class Limelight
    * Limelight data from NetworkTables.
    */
   private LimelightData limelightData;
+  /**
+   * Limelight settings that we apply.
+   */
+  private LimelightSettings settings;
 
 
   /**
@@ -43,9 +48,21 @@ public class Limelight
     limelightData = new LimelightData(this);
   }
 
+  /**
+   * Apply {@link LimelightConfig} to {@link LimelightSettings}
+   * @param config Config to apply.
+   */
   public void apply(LimelightConfig config)
   {
 
+  }
+
+  /**
+   * Get the {@link LimelightConfig} with current selections.
+   */
+  public LimelightConfig refresh()
+  {
+    return settings.getConfig();
   }
 
   /**
@@ -92,6 +109,15 @@ public class Limelight
   public Optional<LimelightResults> getLatestResults(String limelightName)
   {
     return limelightData.getResults();
+  }
+
+
+  /**
+   * Flush the NetworkTable data to server.
+   */
+  public void flush()
+  {
+    NetworkTableInstance.getDefault().flush();
   }
 
   /**
