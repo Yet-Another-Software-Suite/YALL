@@ -18,6 +18,9 @@ import limelight.Limelight;
 import limelight.results.RawDetection;
 import limelight.results.RawFiducial;
 
+/**
+ * Data retrieval class for {@link Limelight}
+ */
 public class LimelightData
 {
 

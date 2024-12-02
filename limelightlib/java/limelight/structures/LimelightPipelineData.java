@@ -5,6 +5,9 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import limelight.Limelight;
 
+/**
+ * Pipeline data for {@link Limelight}.
+ */
 public class LimelightPipelineData
 {
 
@@ -64,7 +67,7 @@ public class LimelightPipelineData
    *
    * @return Capture latency in milliseconds
    */
-  public double getCaptureLatency(String limelightName)
+  public double getCaptureLatency()
   {
     return captureLatency.getDouble(0.0);
   }

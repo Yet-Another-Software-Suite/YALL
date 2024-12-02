@@ -76,7 +76,6 @@ public class PoseEstimate
    * @param camera    {@link Limelight} to fetch the data from.
    * @param entryName Pose estimation entry we are interested in.
    * @param megaTag2  Is the data MegaTag2
-   * @return {@link PoseEstimate}
    */
   public PoseEstimate(Limelight camera, String entryName, boolean megaTag2)
   {

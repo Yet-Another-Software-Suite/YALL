@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
@@ -25,7 +26,9 @@ import java.util.Optional;
 import limelight.Limelight;
 import limelight.estimator.LimelightPoseEstimator;
 import limelight.estimator.PoseEstimate;
+import limelight.structures.AngularVelocity3d;
 import limelight.structures.LimelightSettings.LEDMode;
+import limelight.structures.Orientation3d;
 
 public class DrivebaseSubsystem extends SubsystemBase
 {
@@ -97,6 +100,12 @@ public class DrivebaseSubsystem extends SubsystemBase
   public void periodic()
   {
     differentialDrivePoseEstimator.update(navx.getRotation2d(), getWheelPositions());
+
+    limelight.getSettings()
+             .withRobotOrientation(new Orientation3d(navx.getRotation3d(),
+                                                     new AngularVelocity3d(DegreesPerSecond.of(0),
+                                                                           DegreesPerSecond.of(0),
+                                                                           DegreesPerSecond.of(0))));
     // Get the vision estimate.
     Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate(); // BotPose.BLUE_MEGATAG2.get(limelight);
     visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {

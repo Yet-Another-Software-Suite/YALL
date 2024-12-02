@@ -16,6 +16,9 @@ import limelight.structures.LimelightData;
 import limelight.structures.LimelightResults;
 import limelight.structures.LimelightSettings;
 
+/**
+ * Limelight Camera class.
+ */
 public class Limelight
 {
 
@@ -23,10 +26,6 @@ public class Limelight
    * {@link Limelight} name.
    */
   public final String            limelightName;
-  /**
-   * Object mapper for the {@link LimelightResults} class.
-   */
-  private      ObjectMapper      resultsObjectMapper;
   /**
    * {@link Limelight} data from NetworkTables.
    */
@@ -44,7 +43,6 @@ public class Limelight
    */
   public Limelight(String name)
   {
-    LimelightResults results = new LimelightResults();
     limelightName = name;
     limelightData = new LimelightData(this);
     settings = new LimelightSettings(this);

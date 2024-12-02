@@ -9,6 +9,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import java.util.Optional;
 import limelight.Limelight;
 
+/**
+ * Pose estimator for {@link Limelight}.
+ */
 public class LimelightPoseEstimator
 {
 

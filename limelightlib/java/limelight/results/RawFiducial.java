@@ -1,5 +1,7 @@
 package limelight.results;
 
+import limelight.Limelight;
+
 /**
  * Represents a {@link Limelight} Raw Fiducial result from {@link Limelight}'s NetworkTables output.
  */

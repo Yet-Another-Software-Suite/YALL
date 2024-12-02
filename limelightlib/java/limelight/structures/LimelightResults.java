@@ -15,6 +15,7 @@ import limelight.structures.target.Barcode;
 import limelight.structures.target.RetroreflectiveTape;
 import limelight.structures.target.pipeline.NeuralClassifier;
 import limelight.structures.target.pipeline.NeuralDetector;
+import limelight.Limelight;
 
 /**
  * {@link Limelight} Results object, parsed from a {@link Limelight}'s JSON limelight.results output.
