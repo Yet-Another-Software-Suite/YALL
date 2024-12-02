@@ -108,7 +108,7 @@ public class DrivebaseSubsystem extends SubsystemBase
   public Command drive(DoubleSupplier left, DoubleSupplier right)
   {
     return run(() -> {
-      differentialDrive.tankDrive(left.getAsDouble(), right.getAsDouble());
+      differentialDrive.tankDrive(left.getAsDouble() * 0.8, right.getAsDouble() * 0.8);
     });
   }
 
