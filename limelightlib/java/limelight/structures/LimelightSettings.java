@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.List;
 import limelight.Limelight;
 
@@ -220,6 +221,14 @@ public class LimelightSettings
   {
     cameraToRobot.set(pose3dToArray(offset));
     return this;
+  }
+
+  /**
+   * Push all local changes to the {@link NetworkTable} instance immediately.
+   */
+  public void save()
+  {
+    NetworkTableInstance.getDefault().flush();
   }
 
 
