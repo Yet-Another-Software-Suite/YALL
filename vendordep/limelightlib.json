@@ -1,0 +1,18 @@
+{
+    "fileName": "limelightlib.json",
+    "name": "LimelightLib",
+    "version": "${version}",
+    "frcYear": "2025",
+    "uuid": "29aa8c8f-05ae-40aa-96f9-552a5c8a0347",
+    "mavenUrls": [
+        "https://broncbotz3481.github.io/LimelightLib/vendordep/repo"
+    ],
+    "jsonUrl": "https://broncbotz3481.github.io/LimelightLib/vendordep/repo/limelightlib.json",
+    "javaDependencies": [
+        {
+            "groupId": "${groupId}",
+            "artifactId": "${artifactId}-java",
+            "version": "${version}"
+        }
+    ]
+}

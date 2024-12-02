@@ -1,0 +1,79 @@
+plugins {
+    id 'cpp'
+    id 'java'
+    id 'google-test'
+    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2020.2'
+    id 'edu.wpi.first.NativeUtils' version '2025.3.0'
+    id 'edu.wpi.first.GradleJni' version '1.1.0'
+    id 'edu.wpi.first.GradleVsCode' version '2.1.0'
+    id "edu.wpi.first.GradleRIO" version "2025.1.1-beta-2"
+}
+
+// WPILib Version
+ext.wpilibVersion = "2025.1.1-beta-2"
+
+// Copy limelightlib source over.
+delete "src/main/java/limelight"
+copy {
+    from "../limelightlib/java/limelight"
+    into "src/main/java/limelight"
+}
+
+repositories {
+    mavenCentral()
+}
+if (project.hasProperty('releaseMode')) {
+    wpilibRepositories.addAllReleaseRepositories(project)
+} else {
+    wpilibRepositories.addAllDevelopmentRepositories(project)
+}
+
+// Apply C++ configuration
+apply from: 'config.gradle'
+
+// Apply Java configuration
+dependencies {
+    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
+    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
+    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
+    implementation "org.ejml:ejml-simple:0.43.1"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
+    implementation 'edu.wpi.first.thirdparty.frc2024.opencv:opencv-java:4.8.0-4'
+}
+
+javadoc {
+    destinationDir = file("../docs")
+
+    options {
+        links 'https://docs.oracle.com/en/java/javase/17/docs/api/', 'https://github.wpilib.org/allwpilib/docs/release/java/'
+    }
+}
+
+// Set up exports properly
+nativeUtils {
+    exportsConfigs {
+        // Main library is just default empty. This will export everything
+        Vendor {
+        }
+    }
+}
+
+model {
+    components {
+    }
+    testSuites {
+    }
+}
+
+apply from: 'publish.gradle'
+
+wrapper {
+    gradleVersion '8.10.2'
+}

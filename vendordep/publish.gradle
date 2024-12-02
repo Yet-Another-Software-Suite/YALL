@@ -1,0 +1,215 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply plugin: 'maven-publish'
+
+ext.licenseFile = files("$rootDir/../LICENSE")
+def templateVendorFile = "limelightlib.json"
+
+def pubVersion = '0.0.1'
+
+def outputsFolder = file("$buildDir/outputs")
+def releasesRepoUrl = "yagsl/repos/"
+
+def versionFile = file("$outputsFolder/version.txt")
+
+task outputVersions() {
+    description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
+    group = 'Build'
+    outputs.files(versionFile)
+
+    doFirst {
+        buildDir.mkdir()
+        outputsFolder.mkdir()
+    }
+
+    doLast {
+        versionFile.write pubVersion
+    }
+}
+
+task libraryBuild() {}
+
+build.dependsOn outputVersions
+
+task copyAllOutputs(type: Copy) {
+    destinationDir file("$buildDir/allOutputs")
+    from versionFile
+    dependsOn outputVersions
+}
+
+build.dependsOn copyAllOutputs
+copyAllOutputs.dependsOn outputVersions
+
+ext.addTaskToCopyAllOutputs = { task ->
+    copyAllOutputs.dependsOn task
+    copyAllOutputs.inputs.file task.archiveFile
+    copyAllOutputs.from task.archiveFile
+}
+
+def artifactGroupId = 'limelightlib'
+def baseArtifactId = 'LimelightLib'
+def driverZipBaseName = "_GROUP_limelightlib_ID_${baseArtifactId}-driver_CLS"
+def zipBaseName = "_GROUP_limelightlib_ID_${baseArtifactId}-cpp_CLS"
+def javaBaseName = "_GROUP_limelightlib_ID_${baseArtifactId}-java_CLS"
+
+task cppHeadersZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "headers"
+
+    from(licenseFile) {
+        into '/'
+    }
+
+    from('src/main/native/include') {
+        into '/'
+    }
+}
+
+task cppSourceZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "sources"
+
+    from(licenseFile) {
+        into '/'
+    }
+
+    from('src/main/native/cpp') {
+        into '/'
+    }
+}
+
+task cppDriverHeadersZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = driverZipBaseName
+    archiveClassifier = "headers"
+
+    from(licenseFile) {
+        into '/'
+    }
+
+    from('src/main/driver/include') {
+        into '/'
+    }
+}
+
+build.dependsOn cppHeadersZip
+addTaskToCopyAllOutputs(cppHeadersZip)
+build.dependsOn cppSourceZip
+addTaskToCopyAllOutputs(cppSourceZip)
+build.dependsOn cppDriverHeadersZip
+addTaskToCopyAllOutputs(cppDriverHeadersZip)
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// Apply template variables from the vendordep file.
+// Replaces ${VARIABLE} with VARIABLE: value in expand()
+task vendordepJson() {
+    description = 'Builds the vendordep json file.'
+    group = 'Build'
+    outputs.file("$buildDir/repos/$templateVendorFile")
+
+    copy {
+        from templateVendorFile
+        into "repo/"
+        expand(version: pubVersion,
+                groupId: artifactGroupId,
+                artifactId: baseArtifactId)
+    }
+}
+
+task vendordepJsonZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = templateVendorFile
+    archiveClassifier = "sources"
+
+    from("$buildDir/repos/$templateVendorFile") {
+        into '/'
+    }
+    dependsOn vendordepJson
+}
+
+task outputJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    from sourceSets.main.output
+}
+
+task outputSourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives outputJar
+    archives outputSourcesJar
+    archives outputJavadocJar
+}
+
+addTaskToCopyAllOutputs(outputSourcesJar)
+addTaskToCopyAllOutputs(outputJavadocJar)
+addTaskToCopyAllOutputs(outputJar)
+
+build.dependsOn outputSourcesJar
+build.dependsOn outputJavadocJar
+build.dependsOn outputJar
+
+libraryBuild.dependsOn build
+
+
+publishing {
+    repositories {
+        maven {
+
+            url = "repo/"
+        }
+    }
+}
+
+model {
+    publishing {
+        def taskList = createComponentZipTasks($.components, ['LimelightLib'], zipBaseName, Zip, project, includeStandardZipFormat)
+
+
+        publications {
+            java(MavenPublication) {
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
+
+                artifactId = "${baseArtifactId}-java"
+                groupId artifactGroupId
+                version pubVersion
+            }
+			
+			vendordep(MavenPublication) {
+                artifact vendordepJsonZip
+
+                artifactId = "${baseArtifactId}-vendordep"
+                groupId artifactGroupId
+                version pubVersion
+            }
+        }
+    }
+}
