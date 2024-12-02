@@ -1,5 +1,3 @@
-> WARNING: The following was made by ChatGPT to look pretty, it probably isn't accurate
-
 # LimelightLib
 
 **LimelightLib** is an improved version of the [LimelightHelpers](https://github.com/LimelightVision/limelightlib-wpijava) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
