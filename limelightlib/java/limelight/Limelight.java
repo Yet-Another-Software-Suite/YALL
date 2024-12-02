@@ -3,7 +3,6 @@ package limelight;
 
 import static limelight.structures.LimelightUtils.getLimelightURLString;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.io.IOException;
@@ -69,6 +68,16 @@ public class Limelight
   }
 
   /**
+   * Get the {@link LimelightData} object for the {@link Limelight}
+   *
+   * @return {@link LimelightData} object.
+   */
+  public LimelightData getData()
+  {
+    return limelightData;
+  }
+
+  /**
    * Asynchronously take a snapshot in limelight.
    *
    * @param snapshotname Snapshot name to save.
@@ -106,10 +115,9 @@ public class Limelight
   /**
    * Gets the latest JSON {@link LimelightResults} output and returns a LimelightResults object.
    *
-   * @param limelightName Name of the {@link Limelight} camera
    * @return LimelightResults object containing all current target data
    */
-  public Optional<LimelightResults> getLatestResults(String limelightName)
+  public Optional<LimelightResults> getLatestResults()
   {
     return limelightData.getResults();
   }

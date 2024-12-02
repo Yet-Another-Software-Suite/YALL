@@ -2,15 +2,12 @@
 
 # LimelightLib
 
-**LimelightLib** is an improved version of the [LimelightHelpers](https://github.com/limelightvision/limelight-helpers) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
+**LimelightLib** is an improved version of the [LimelightHelpers](https://github.com/LimelightVision/limelightlib-wpijava) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
 
 ## Features
 
 - **Improved API**: Simplified and intuitive API for controlling the Limelight camera and retrieving vision data.
-- **Automatic Target Detection**: Built-in functionality for detecting and tracking targets, including field of view and distance estimations.
-- **Smoothing & Filtering**: Advanced methods to smooth target data, reducing noise in vision processing.
-- **Distance Calculation**: Methods for calculating accurate robot-to-target distances based on Limelight's angle data.
-- **Customizable Target Processing**: Easy-to-use configuration options to fine-tune the vision system according to your robot’s needs.
+- **Easy Configuration**: Easy-to-use configuration options to fine-tune the vision system according to your robot’s needs.
 
 ## Table of Contents
 
@@ -34,44 +31,70 @@ If you prefer to install the library manually, download the latest version from 
 Once installed, you can begin using LimelightLib in your code by importing it:
 
 ```java
-import com.example.limelightlib.Limelight;
+import limelightlib.Limelight;
 ```
 
 ### Basic Setup
 
 ```java
-Limelight limelight = new Limelight();
+Limelight limelight = new Limelight("limelight");
 
-// Set the default camera mode (Driver or Vision)
-limelight.setCameraMode(Limelight.CameraMode.VISION);
+// Set the limelight to use Pipeline LED control, with the Camera offset of 0, and save.
+limelight.getSettings()
+         .withLimelightLEDMode(LEDMode.PipelineControl)
+         .withCameraOffset(Pose3d.kZero)
+         .save();
 
 // Get target data
-boolean hasTarget = limelight.hasTarget();
-double targetX = limelight.getTargetX();  // Horizontal angle offset
-double targetY = limelight.getTargetY();  // Vertical angle offset
-double targetArea = limelight.getTargetArea();  // Area of the target
-double distance = limelight.calculateDistance(targetY);  // Calculate distance from target
+limelight.getLatestResults().ifPresent((LimelightResults result) -> {
+    for (NeuralClassifier object : result.targets_Classifier)
+    {
+        // Classifier says its a note.
+        if (object.className.equals("note"))
+        {
+            // Check pixel location of note.
+            if (object.ty > 2 && object.ty < 1)
+            {
+              // Nte is valid! do stuff!
+            }
+        }
+    }
+});
+
+// Get MegaTag2 pose
+Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate();
+// If the pose is present
+visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
+  // Add it to the pose estimator.
+  poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
+});
+
+// Alternatively you can do
+Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
+// If the pose is present
+visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
+    // Add it to the pose estimator.
+    poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
+    });
 ```
 
 ### Advanced Features
 
-- **Smoothing**: To reduce noise and smooth the values of target detection:
+- **Settings**: To easily configure settings you can chain options:
 
 ```java
-limelight.setSmoothing(0.1); // Set smoothing factor for target data
+// Set the limelight to use Pipeline LED control, with the Camera offset of 0, and save.
+limelight.getSettings()
+         .withLimelightLEDMode(LEDMode.PipelineControl)
+         .withCameraOffset(Pose3d.kZero);
 ```
 
-- **Distance Calculation**: Estimate distance to the target based on the vertical angle using a pre-configured equation:
+- **Pose Estimates**: To fetch `PoseEstimate` objects you can use this enum:
 
 ```java
-double distance = limelight.calculateDistance(targetY);
+Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
 ```
 
-- **Custom Target Processing**: Fine-tune the filtering for detection:
-
-```java
-limelight.setTargetProcessingThreshold(5); // Set the threshold for target detection
-```
 
 ## API Documentation
 
@@ -83,70 +106,40 @@ limelight.setTargetProcessingThreshold(5); // Set the threshold for target detec
 
 Constructor for initializing the Limelight object.
 
-#### `void setCameraMode(CameraMode mode)`
-
-Sets the camera mode of the Limelight (either `VISION` or `DRIVER`).
-
-#### `boolean hasTarget()`
-
-Returns whether or not the Limelight is currently detecting a target.
-
-#### `double getTargetX()`
-
-Gets the horizontal angle offset to the target.
-
-#### `double getTargetY()`
-
-Gets the vertical angle offset to the target.
-
-#### `double getTargetArea()`
-
-Gets the area of the target detected by the Limelight.
-
-#### `double calculateDistance(double targetY)`
-
-Calculates the distance to the target based on the vertical angle.
-
-#### `void setSmoothing(double factor)`
-
-Sets the smoothing factor for the target data. A lower value means smoother data.
-
-#### `void setTargetProcessingThreshold(int threshold)`
-
-Sets the target processing threshold for filtering false positives in detection.
-
-### CameraMode Enum
-
-- **VISION**: Limelight will be in vision processing mode.
-- **DRIVER**: Limelight will be in driver camera mode (for field of view).
-
 ## Examples
 
-### Example 1: Simple Target Tracking
+### Example 1: Classifier Target Tracking
 
 ```java
-Limelight limelight = new Limelight();
-limelight.setCameraMode(Limelight.CameraMode.VISION);
-
-if (limelight.hasTarget()) {
-    double targetX = limelight.getTargetX();
-    double targetY = limelight.getTargetY();
-    double distance = limelight.calculateDistance(targetY);
-    System.out.println("Target X: " + targetX + " Target Y: " + targetY + " Distance: " + distance);
-}
+Limelight limelight = new Limelight("limelight");
+// Get the results
+limelight.getLatestResults().ifPresent((LimelightResults result) -> {
+    for (NeuralClassifier object : result.targets_Classifier)
+    {
+        // Classifier says its a note.
+        if (object.className.equals("note"))
+        {
+            // Check pixel location of note.
+            if (object.ty > 2 && object.ty < 1)
+            {
+            // Note is valid! do stuff!
+            }
+        }
+    }
+});
 ```
 
-### Example 2: Smoothing Target Data
+### Example 2: Vision Pose Estimation with MegaTag2
 
 ```java
-Limelight limelight = new Limelight();
-limelight.setCameraMode(Limelight.CameraMode.VISION);
-limelight.setSmoothing(0.2);  // Apply smoothing to reduce jitter
-
-if (limelight.hasTarget()) {
-    double targetX = limelight.getTargetX();
-    System.out.println("Smoothed Target X: " + targetX);
-}
+Limelight limelight = new Limelight("limelight");
+// Get MegaTag2 pose
+Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate();
+// If the pose is present
+visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
+    // Add it to the pose estimator.
+    poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
+});
 ```
 
 ## Contributing

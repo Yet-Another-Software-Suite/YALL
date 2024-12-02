@@ -29,8 +29,10 @@ import limelight.Limelight;
 import limelight.estimator.LimelightPoseEstimator;
 import limelight.estimator.PoseEstimate;
 import limelight.structures.AngularVelocity3d;
+import limelight.structures.LimelightResults;
 import limelight.structures.LimelightSettings.LEDMode;
 import limelight.structures.Orientation3d;
+import limelight.structures.target.pipeline.NeuralClassifier;
 
 public class DrivebaseSubsystem extends SubsystemBase
 {
@@ -127,6 +129,20 @@ public class DrivebaseSubsystem extends SubsystemBase
     Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate(); // BotPose.BLUE_MEGATAG2.get(limelight);
     visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
       differentialDrivePoseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
+    });
+
+    limelight.getLatestResults().ifPresent((LimelightResults result) -> {
+      for (NeuralClassifier object : result.targets_Classifier)
+      {
+        // Classifier says its a note.
+        if (object.className.equals("note"))
+        {
+          if (object.ty > 2 && object.ty < 1)
+          {
+            // do stuff
+          }
+        }
+      }
     });
   }
 }
