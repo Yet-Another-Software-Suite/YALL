@@ -1,6 +1,9 @@
 package frc.robot.limelight.structures;
 
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -37,8 +40,8 @@ public class LimelightUtils
 
 
   /**
-   * Takes a 6-length array of {@link Pose2d} data and converts it to a {@link Pose2d} object. Uses only x, y, and yaw components,
-   * ignoring z, roll, and pitch. Array format: [x, y, z, roll, pitch, yaw] where angles are in degrees.
+   * Takes a 6-length array of {@link Pose2d} data and converts it to a {@link Pose2d} object. Uses only x, y, and yaw
+   * components, ignoring z, roll, and pitch. Array format: [x, y, z, roll, pitch, yaw] where angles are in degrees.
    *
    * @param inData Array containing pose data [x, y, z, roll, pitch, yaw]
    * @return {@link Pose2d} object representing the pose, or empty {@link Pose2d} if invalid data
@@ -56,7 +59,8 @@ public class LimelightUtils
   }
 
   /**
-   * Takes a 3-length array of {@link Translation3d} data and converts it into a {@link Translation3d}. Array format: [x, y, z]
+   * Takes a 3-length array of {@link Translation3d} data and converts it into a {@link Translation3d}. Array format:
+   * [x, y, z]
    *
    * @param translation Array containing translation data [x, y, z] in Meters.
    * @return {@link Translation3d} to set.
@@ -64,6 +68,33 @@ public class LimelightUtils
   public static Translation3d toTranslation3d(double[] translation)
   {
     return new Translation3d(translation[0], translation[1], translation[2]);
+  }
+
+  /**
+   * Takes a 6-length array of {@link Orientation3d} data and converts it into a {@link Orientation3d}. Array format:
+   * [yaw,yawrate,pitch,pitchrate,roll,rollrate]
+   *
+   * @param orientation Array containing {@link Orientation3d} [yaw,yawrate,pitch,pitchrate,roll,rollrate] in Degrees.
+   * @return {@link Orientation3d}
+   */
+  public static Orientation3d toOrientation(double[] orientation)
+  {
+    return new Orientation3d(new Rotation3d(Degrees.of(orientation[4]), Degrees.of(orientation[2]), Degrees.of(orientation[0])),
+                             DegreesPerSecond.of(orientation[1]),
+                             DegreesPerSecond.of(orientation[3]),
+                             DegreesPerSecond.of(orientation[5]));
+  }
+
+  /**
+   * Converts an {@link Orientation3d} to a 6-length array of [yaw,yawrate,pitch,pitchrate,roll,rollrate] in Degrees.
+   * @param orientation {@link Orientation3d} to convert.
+   * @return Array [yaw,yawrate,pitch,pitchrate,roll,rollrate] in Degrees.
+   */
+  public static double[] orientation3dToArray(Orientation3d orientation)
+  {
+    return new double[] {orientation.orientation.getMeasureZ().in(Degrees), orientation.angularVelocity.yaw.in(DegreesPerSecond),
+                         orientation.orientation.getMeasureY().in(Degrees), orientation.angularVelocity.pitch.in(DegreesPerSecond),
+                         orientation.orientation.getMeasureX().in(Degrees), orientation.angularVelocity.roll.in(DegreesPerSecond)};
   }
 
   /**

@@ -48,21 +48,13 @@ public class Limelight
     limelightData = new LimelightData(this);
   }
 
-  /**
-   * Apply {@link LimelightConfig} to {@link LimelightSettings}
-   * @param config Config to apply.
-   */
-  public void apply(LimelightConfig config)
-  {
-
-  }
 
   /**
-   * Get the {@link LimelightConfig} with current selections.
+   * Get the {@link LimelightSettings} with current selections.
    */
-  public LimelightConfig refresh()
+  public LimelightSettings getSettings()
   {
-    return settings.getConfig();
+    return settings;
   }
 
   /**
