@@ -19,6 +19,9 @@
 ## Installation
 
 ### 1. Install the Library via WPILib Vendordep
+```
+https://broncbotz3481.github.io/LimelightLib/vendordep/repo/limelightlib.json
+```
 
 ### 2. Manual Installation
 
