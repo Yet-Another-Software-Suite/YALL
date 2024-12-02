@@ -1,13 +1,13 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
 
-import static frc.robot.limelight.structures.LimelightUtils.toPose3D;
+import static limelight.structures.LimelightUtils.toPose3D;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import frc.robot.limelight.Limelight;
+import limelight.Limelight;
 
 public class LimelightTargetData
 {
@@ -56,8 +56,7 @@ public class LimelightTargetData
    */
   private DoubleArrayEntry  targetMetrics;
   /**
-   * {@link edu.wpi.first.math.geometry.Pose3d} object representing the target's position and orientation relative to
-   * the robot
+   * {@link Pose3d} object representing the target's position and orientation relative to the robot
    */
   private DoubleArrayEntry  target2RobotPose;
   /**
@@ -178,7 +177,7 @@ public class LimelightTargetData
   }
 
   /**
-   * Does the Limelight have a valid target?
+   * Does the {@link Limelight} have a valid target?
    *
    * @return True if a valid target is present, false otherwise
    */

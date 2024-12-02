@@ -1,7 +1,7 @@
-package frc.robot.limelight.results;
+package limelight.results;
 
 /**
- * Represents a Limelight Raw Neural Detector result from Limelight's NetworkTables output.
+ * Represents a {@link Limelight} Raw Neural Detector result from {@link Limelight}'s NetworkTables output.
  */
 public class RawDetection
 {

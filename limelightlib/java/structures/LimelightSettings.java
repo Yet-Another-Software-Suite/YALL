@@ -1,16 +1,16 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
-import static frc.robot.limelight.structures.LimelightUtils.orientation3dToArray;
-import static frc.robot.limelight.structures.LimelightUtils.pose3dToArray;
-import static frc.robot.limelight.structures.LimelightUtils.translation3dToArray;
+import static limelight.structures.LimelightUtils.orientation3dToArray;
+import static limelight.structures.LimelightUtils.pose3dToArray;
+import static limelight.structures.LimelightUtils.translation3dToArray;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import frc.robot.limelight.Limelight;
 import java.util.List;
+import limelight.Limelight;
 
 /**
  * Settings class to apply configurable options to the {@link Limelight}
@@ -31,7 +31,7 @@ public class LimelightSettings
    */
   private NetworkTableEntry ledMode;
   /**
-   * Limelight PipelineIndex to use.
+   * {@link Limelight} PipelineIndex to use.
    */
   private NetworkTableEntry pipelineIndex;
   /**
@@ -212,7 +212,8 @@ public class LimelightSettings
   /**
    * Set the {@link Limelight} offset.
    *
-   * @param offset {@link Pose3d} of the {@link Limelight} with the {@link edu.wpi.first.math.geometry.Rotation3d} set.
+   * @param offset {@link Pose3d} of the {@link Limelight} with the {@link edu.wpi.first.math.geometry.Rotation3d} set
+   *               in Meters.
    * @return {@link LimelightSettings} for chaining.
    */
   public LimelightSettings withCameraOffset(Pose3d offset)

@@ -1,8 +1,7 @@
-package frc.robot.limelight.structures.target;
+package limelight.structures.target;
 
-import static frc.robot.limelight.structures.LimelightUtils.toPose3D;
-import static frc.robot.limelight.structures.LimelightUtils.toPose2D;
-
+import static limelight.structures.LimelightUtils.toPose2D;
+import static limelight.structures.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,20 +13,41 @@ import edu.wpi.first.math.geometry.Pose3d;
 public class RetroreflectiveTape
 {
 
+  @JsonProperty("ta")
+  public  double   ta;
+  @JsonProperty("tx")
+  public  double   tx;
+  @JsonProperty("ty")
+  public  double   ty;
+  @JsonProperty("txp")
+  public  double   tx_pixels;
+  @JsonProperty("typ")
+  public  double   ty_pixels;
+  @JsonProperty("tx_nocross")
+  public  double   tx_nocrosshair;
+  @JsonProperty("ty_nocross")
+  public  double   ty_nocrosshair;
+  @JsonProperty("ts")
+  public  double   ts;
   @JsonProperty("t6c_ts")
   private double[] cameraPose_TargetSpace;
-
   @JsonProperty("t6r_fs")
   private double[] robotPose_FieldSpace;
-
   @JsonProperty("t6r_ts")
   private double[] robotPose_TargetSpace;
-
   @JsonProperty("t6t_cs")
   private double[] targetPose_CameraSpace;
-
   @JsonProperty("t6t_rs")
   private double[] targetPose_RobotSpace;
+
+  public RetroreflectiveTape()
+  {
+    cameraPose_TargetSpace = new double[6];
+    robotPose_FieldSpace = new double[6];
+    robotPose_TargetSpace = new double[6];
+    targetPose_CameraSpace = new double[6];
+    targetPose_RobotSpace = new double[6];
+  }
 
   public Pose3d getCameraPose_TargetSpace()
   {
@@ -77,39 +97,6 @@ public class RetroreflectiveTape
   public Pose2d getTargetPose_RobotSpace2D()
   {
     return toPose2D(targetPose_RobotSpace);
-  }
-
-  @JsonProperty("ta")
-  public double ta;
-
-  @JsonProperty("tx")
-  public double tx;
-
-  @JsonProperty("ty")
-  public double ty;
-
-  @JsonProperty("txp")
-  public double tx_pixels;
-
-  @JsonProperty("typ")
-  public double ty_pixels;
-
-  @JsonProperty("tx_nocross")
-  public double tx_nocrosshair;
-
-  @JsonProperty("ty_nocross")
-  public double ty_nocrosshair;
-
-  @JsonProperty("ts")
-  public double ts;
-
-  public RetroreflectiveTape()
-  {
-    cameraPose_TargetSpace = new double[6];
-    robotPose_FieldSpace = new double[6];
-    robotPose_TargetSpace = new double[6];
-    targetPose_CameraSpace = new double[6];
-    targetPose_RobotSpace = new double[6];
   }
 
 }

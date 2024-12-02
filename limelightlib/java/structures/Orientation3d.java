@@ -1,10 +1,10 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 /**
- * Orientation3d of the robot for {@link frc.robot.limelight.Limelight}
+ * Orientation3d of the robot for {@link limelight.Limelight}
  */
 public class Orientation3d
 {

@@ -1,7 +1,8 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
-import static frc.robot.limelight.structures.LimelightUtils.extractArrayEntry;
-import static frc.robot.limelight.structures.LimelightUtils.toPose3D;
+
+import static limelight.structures.LimelightUtils.extractArrayEntry;
+import static limelight.structures.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -12,22 +13,14 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.StringArrayEntry;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.limelight.Limelight;
-import frc.robot.limelight.results.RawDetection;
-import frc.robot.limelight.results.RawFiducial;
 import java.util.Optional;
+import limelight.Limelight;
+import limelight.results.RawDetection;
+import limelight.results.RawFiducial;
 
 public class LimelightData
 {
 
-  /**
-   * {@link NetworkTable} for the {@link Limelight}
-   */
-  private NetworkTable          limelightTable;
-  /**
-   * {@link Limelight} to fetch data for.
-   */
-  private Limelight             limelight;
   /**
    * Target data from limelight.
    */
@@ -37,7 +30,15 @@ public class LimelightData
    */
   public  LimelightPipelineData pipelineData;
   /**
-   * The results {@link LimelightResults} JSON data
+   * {@link NetworkTable} for the {@link Limelight}
+   */
+  private NetworkTable          limelightTable;
+  /**
+   * {@link Limelight} to fetch data for.
+   */
+  private Limelight             limelight;
+  /**
+   * The limelight.results {@link LimelightResults} JSON data
    */
   private NetworkTableEntry     results;
   /**
@@ -45,7 +46,7 @@ public class LimelightData
    */
   private NetworkTableEntry     rawfiducials;
   /**
-   * Raw Neural Detector results from NetworkTables.
+   * Raw Neural Detector limelight.results from NetworkTables.
    */
   private NetworkTableEntry     rawDetections;
   /**
@@ -57,8 +58,7 @@ public class LimelightData
    */
   private NetworkTableEntry     detectorClass;
   /**
-   * {@link edu.wpi.first.math.geometry.Pose3d} object representing the camera's position and orientation relative to
-   * the robot.
+   * {@link Pose3d} object representing the camera's position and orientation relative to the robot.
    */
   private DoubleArrayEntry      camera2RobotPose3d;
   /**
@@ -74,7 +74,7 @@ public class LimelightData
    */
   private DoubleArrayEntry      pythonScriptData;
   /**
-   * Object mapper for results JSON.
+   * Object mapper for limelight.results JSON.
    */
   private ObjectMapper          resultsObjectMapper;
 
@@ -182,7 +182,7 @@ public class LimelightData
   }
 
   /**
-   * Gets the latest raw fiducial/AprilTag detection results from NetworkTables.
+   * Gets the latest raw fiducial/AprilTag detection limelight.results from NetworkTables.
    *
    * @return Array of RawFiducial objects containing detection details
    */
@@ -216,7 +216,7 @@ public class LimelightData
   }
 
   /**
-   * Gets the latest raw neural detector results from NetworkTables
+   * Gets the latest raw neural detector limelight.results from NetworkTables
    *
    * @return Array of RawDetection objects containing detection details
    */

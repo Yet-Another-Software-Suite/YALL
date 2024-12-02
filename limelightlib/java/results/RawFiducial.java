@@ -1,7 +1,7 @@
-package frc.robot.limelight.results;
+package limelight.results;
 
 /**
- * Represents a Limelight Raw Fiducial result from Limelight's NetworkTables output.
+ * Represents a {@link Limelight} Raw Fiducial result from {@link Limelight}'s NetworkTables output.
  */
 public class RawFiducial
 {

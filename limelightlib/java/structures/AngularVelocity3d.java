@@ -1,4 +1,4 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 

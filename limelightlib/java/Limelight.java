@@ -1,40 +1,40 @@
-package frc.robot.limelight;
+package limelight;
 
-import static frc.robot.limelight.LimelightHelpers.getLimelightURLString;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import static limelight.structures.LimelightUtils.getLimelightURLString;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import frc.robot.limelight.structures.LimelightData;
-import frc.robot.limelight.structures.LimelightResults;
-import frc.robot.limelight.structures.LimelightSettings;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import limelight.estimator.LimelightPoseEstimator;
+import limelight.structures.LimelightData;
+import limelight.structures.LimelightResults;
+import limelight.structures.LimelightSettings;
 
 public class Limelight
 {
 
   /**
-   * Limelight name.
+   * {@link Limelight} name.
    */
-  public final String       limelightName;
+  public final String            limelightName;
   /**
    * Object mapper for the {@link LimelightResults} class.
    */
-  private      ObjectMapper resultsObjectMapper;
+  private      ObjectMapper      resultsObjectMapper;
   /**
-   * Limelight data from NetworkTables.
+   * {@link Limelight} data from NetworkTables.
    */
-  private LimelightData limelightData;
+  private      LimelightData     limelightData;
   /**
-   * Limelight settings that we apply.
+   * {@link Limelight} settings that we apply.
    */
-  private LimelightSettings settings;
+  private      LimelightSettings settings;
 
 
   /**
@@ -44,8 +44,21 @@ public class Limelight
    */
   public Limelight(String name)
   {
+    LimelightResults results = new LimelightResults();
     limelightName = name;
     limelightData = new LimelightData(this);
+    settings = new LimelightSettings(this);
+  }
+
+  /**
+   * Create a {@link LimelightPoseEstimator} for the {@link Limelight}.
+   *
+   * @param megatag2 Use MegaTag2.
+   * @return {@link LimelightPoseEstimator}
+   */
+  public LimelightPoseEstimator getPoseEstimator(boolean megatag2)
+  {
+    return new LimelightPoseEstimator(this, megatag2);
   }
 
 
@@ -93,9 +106,9 @@ public class Limelight
 
 
   /**
-   * Gets the latest JSON results output and returns a LimelightResults object.
+   * Gets the latest JSON {@link LimelightResults} output and returns a LimelightResults object.
    *
-   * @param limelightName Name of the Limelight camera
+   * @param limelightName Name of the {@link Limelight} camera
    * @return LimelightResults object containing all current target data
    */
   public Optional<LimelightResults> getLatestResults(String limelightName)
@@ -114,6 +127,7 @@ public class Limelight
 
   /**
    * Get the {@link NetworkTable} for this limelight.
+   *
    * @return {@link NetworkTable} for this limelight.
    */
   public NetworkTable getNTTable()

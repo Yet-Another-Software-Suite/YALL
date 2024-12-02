@@ -1,4 +1,4 @@
-package frc.robot.limelight.structures.target.pipeline;
+package limelight.structures.target.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

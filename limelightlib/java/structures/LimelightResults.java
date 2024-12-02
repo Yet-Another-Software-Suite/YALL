@@ -1,7 +1,8 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
-import static frc.robot.limelight.structures.LimelightUtils.toPose2D;
-import static frc.robot.limelight.structures.LimelightUtils.toPose3D;
+
+import static limelight.structures.LimelightUtils.toPose2D;
+import static limelight.structures.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
@@ -9,14 +10,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.limelight.structures.target.AprilTagFiducial;
-import frc.robot.limelight.structures.target.Barcode;
-import frc.robot.limelight.structures.target.RetroreflectiveTape;
-import frc.robot.limelight.structures.target.pipeline.NeuralClassifier;
-import frc.robot.limelight.structures.target.pipeline.NeuralDetector;
+import limelight.structures.target.AprilTagFiducial;
+import limelight.structures.target.Barcode;
+import limelight.structures.target.RetroreflectiveTape;
+import limelight.structures.target.pipeline.NeuralClassifier;
+import limelight.structures.target.pipeline.NeuralDetector;
 
 /**
- * Limelight Results object, parsed from a Limelight's JSON results output.
+ * {@link Limelight} Results object, parsed from a {@link Limelight}'s JSON limelight.results output.
  */
 public class LimelightResults
 {
@@ -66,13 +67,36 @@ public class LimelightResults
   public double botpose_avgarea;
 
   @JsonProperty("t6c_rs")
-  public double[] camerapose_robotspace;
+  public double[]              camerapose_robotspace;
+  @JsonProperty("Retro")
+  public RetroreflectiveTape[] targets_Retro;
+  @JsonProperty("Fiducial")
+  public AprilTagFiducial[]    targets_Fiducials;
+  @JsonProperty("Classifier")
+  public NeuralClassifier[]    targets_Classifier;
+  @JsonProperty("Detector")
+  public NeuralDetector[]      targets_Detector;
+  @JsonProperty("Barcode")
+  public Barcode[]             targets_Barcode;
+
+  public LimelightResults()
+  {
+    botpose = new double[6];
+    botpose_wpired = new double[6];
+    botpose_wpiblue = new double[6];
+    camerapose_robotspace = new double[6];
+    targets_Retro = new RetroreflectiveTape[0];
+    targets_Fiducials = new AprilTagFiducial[0];
+    targets_Classifier = new NeuralClassifier[0];
+    targets_Detector = new NeuralDetector[0];
+    targets_Barcode = new Barcode[0];
+
+  }
 
   public Pose3d getBotPose3d()
   {
     return toPose3D(botpose);
   }
-
 
   public Pose3d getBotPose3d(DriverStation.Alliance alliance)
   {
@@ -99,36 +123,6 @@ public class LimelightResults
     {
       return toPose2D(botpose_wpiblue);
     }
-  }
-
-
-  @JsonProperty("Retro")
-  public RetroreflectiveTape[] targets_Retro;
-
-  @JsonProperty("Fiducial")
-  public AprilTagFiducial[] targets_Fiducials;
-
-  @JsonProperty("Classifier")
-  public NeuralClassifier[] targets_Classifier;
-
-  @JsonProperty("Detector")
-  public NeuralDetector[] targets_Detector;
-
-  @JsonProperty("Barcode")
-  public Barcode[] targets_Barcode;
-
-  public LimelightResults()
-  {
-    botpose = new double[6];
-    botpose_wpired = new double[6];
-    botpose_wpiblue = new double[6];
-    camerapose_robotspace = new double[6];
-    targets_Retro = new RetroreflectiveTape[0];
-    targets_Fiducials = new AprilTagFiducial[0];
-    targets_Classifier = new NeuralClassifier[0];
-    targets_Detector = new NeuralDetector[0];
-    targets_Barcode = new Barcode[0];
-
   }
 
 

@@ -1,4 +1,4 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -11,12 +11,51 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Utility classes to convert WPILib data to LimelightLib expected values.
  */
 public class LimelightUtils
 {
+
+  /**
+   * Sanitize the {@link limelight.Limelight} name
+   *
+   * @param name Limelight name
+   * @return {@link limelight.Limelight#limelightName} or "limelight"
+   */
+  public static final String sanitizeName(String name)
+  {
+    if (name == "" || name == null)
+    {
+      return "limelight";
+    }
+    return name;
+  }
+
+  /**
+   * Get the URL for the limelight.
+   *
+   * @param tableName {@link limelight.Limelight#limelightName}
+   * @param request   URI to request from {@link limelight.Limelight}
+   * @return {@link URL} to request for {@link limelight.Limelight}
+   */
+  public static URL getLimelightURLString(String tableName, String request)
+  {
+    String urlString = "http://" + sanitizeName(tableName) + ".local:5807/" + request;
+    URL    url;
+    try
+    {
+      url = new URL(urlString);
+      return url;
+    } catch (MalformedURLException e)
+    {
+      System.err.println("bad LL URL");
+    }
+    return null;
+  }
 
   /**
    * Takes a 6-length array of pose data and converts it to a {@link Pose3d} object. Array format: [x, y, z, roll,
@@ -79,7 +118,9 @@ public class LimelightUtils
    */
   public static Orientation3d toOrientation(double[] orientation)
   {
-    return new Orientation3d(new Rotation3d(Degrees.of(orientation[4]), Degrees.of(orientation[2]), Degrees.of(orientation[0])),
+    return new Orientation3d(new Rotation3d(Degrees.of(orientation[4]),
+                                            Degrees.of(orientation[2]),
+                                            Degrees.of(orientation[0])),
                              DegreesPerSecond.of(orientation[1]),
                              DegreesPerSecond.of(orientation[3]),
                              DegreesPerSecond.of(orientation[5]));
@@ -87,14 +128,18 @@ public class LimelightUtils
 
   /**
    * Converts an {@link Orientation3d} to a 6-length array of [yaw,yawrate,pitch,pitchrate,roll,rollrate] in Degrees.
+   *
    * @param orientation {@link Orientation3d} to convert.
    * @return Array [yaw,yawrate,pitch,pitchrate,roll,rollrate] in Degrees.
    */
   public static double[] orientation3dToArray(Orientation3d orientation)
   {
-    return new double[] {orientation.orientation.getMeasureZ().in(Degrees), orientation.angularVelocity.yaw.in(DegreesPerSecond),
-                         orientation.orientation.getMeasureY().in(Degrees), orientation.angularVelocity.pitch.in(DegreesPerSecond),
-                         orientation.orientation.getMeasureX().in(Degrees), orientation.angularVelocity.roll.in(DegreesPerSecond)};
+    return new double[]{orientation.orientation.getMeasureZ().in(Degrees), orientation.angularVelocity.yaw.in(
+        DegreesPerSecond),
+                        orientation.orientation.getMeasureY().in(Degrees), orientation.angularVelocity.pitch.in(
+        DegreesPerSecond),
+                        orientation.orientation.getMeasureX().in(Degrees), orientation.angularVelocity.roll.in(
+        DegreesPerSecond)};
   }
 
   /**

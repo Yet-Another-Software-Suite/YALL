@@ -1,4 +1,4 @@
-package frc.robot.limelight.structures.target;
+package limelight.structures.target;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

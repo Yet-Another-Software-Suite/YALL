@@ -1,14 +1,15 @@
-package frc.robot.limelight.estimator;
+package limelight.estimator;
 
-import static frc.robot.limelight.structures.LimelightUtils.extractArrayEntry;
-import static frc.robot.limelight.structures.LimelightUtils.toPose3D;
+
+import static limelight.structures.LimelightUtils.extractArrayEntry;
+import static limelight.structures.LimelightUtils.toPose3D;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.TimestampedDoubleArray;
-import frc.robot.limelight.Limelight;
-import frc.robot.limelight.results.RawFiducial;
 import java.util.Optional;
+import limelight.Limelight;
+import limelight.results.RawFiducial;
 
 /**
  * Represents a 3D Pose Estimate.
@@ -16,39 +17,6 @@ import java.util.Optional;
 public class PoseEstimate
 {
 
-  /**
-   * Bot pose estimate
-   */
-  public Pose3d pose;
-  /**
-   * NT Timestamp in seconds
-   */
-  public double timestampSeconds;
-  /**
-   * Total latency in seconds
-   */
-  public double latency;
-  /**
-   * AprilTag in view count
-   */
-  public int    tagCount;
-  /**
-   * Tag Span
-   */
-  public double tagSpan;
-  /**
-   * Avg apriltag distance
-   */
-  public double avgTagDist;
-  /**
-   * Avg view in the cameras area
-   */
-  public double avgTagArea;
-
-  /**
-   * AprilTags
-   */
-  public        RawFiducial[]    rawFiducials;
   /**
    * Is a MegaTag2 reading
    */
@@ -62,11 +30,43 @@ public class PoseEstimate
    */
   private final String           poseEntryName;
   /**
-   * Does the pose estimator contain data?
+   * Bot pose estimate
+   */
+  public        Pose3d           pose;
+  /**
+   * NT Timestamp in seconds
+   */
+  public        double           timestampSeconds;
+  /**
+   * Total latency in seconds
+   */
+  public        double           latency;
+  /**
+   * AprilTag in view count
+   */
+  public        int              tagCount;
+  /**
+   * Tag Span
+   */
+  public        double           tagSpan;
+  /**
+   * Avg apriltag distance
+   */
+  public        double           avgTagDist;
+  /**
+   * Avg view in the cameras area
+   */
+  public        double           avgTagArea;
+  /**
+   * AprilTags
+   */
+  public        RawFiducial[]    rawFiducials;
+  /**
+   * Does the pose limelight.estimator contain data?
    */
   public        boolean          hasData;
   /**
-   * Limelight Pose Entry NetworkTables.
+   * {@link Limelight} Pose Entry NetworkTables.
    */
   private       DoubleArrayEntry poseEntry;
 

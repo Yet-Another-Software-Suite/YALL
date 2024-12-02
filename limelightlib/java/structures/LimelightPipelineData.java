@@ -1,11 +1,9 @@
-package frc.robot.limelight.structures;
+package limelight.structures;
 
-import static frc.robot.limelight.LimelightHelpers.sanitizeName;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import frc.robot.limelight.Limelight;
+import limelight.Limelight;
 
 public class LimelightPipelineData
 {
@@ -85,9 +83,11 @@ public class LimelightPipelineData
 
   /**
    * Gets the current pipeline type.
+   *
    * @return Pipeline type string (e.g. "retro", "apriltag", etc)
    */
-  public String getCurrentPipelineType() {
+  public String getCurrentPipelineType()
+  {
     return pipelineType.getString("");
   }
 

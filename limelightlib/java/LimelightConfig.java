@@ -1,4 +1,4 @@
-package frc.robot.limelight;
+package limelight;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -25,7 +25,7 @@ public class LimelightConfig
    */
   public Translation3d aprilTagOffset;
   /**
-   * Stream mode for the Limelight.
+   * Stream mode for the {@link Limelight}.
    */
   public StreamMode    streamMode;
   /**
@@ -33,6 +33,14 @@ public class LimelightConfig
    */
   public List<Double>  aprilTagOverride;
 
+
+  /**
+   * Construct the {@link LimelightConfig}
+   */
+  public LimelightConfig()
+  {
+
+  }
 
   /**
    * Set the offset from the AprilTag that is of interest. More information here.
@@ -57,14 +65,6 @@ public class LimelightConfig
   {
     this.aprilTagOverride = override;
     return this;
-  }
-
-  /**
-   * Construct the {@link LimelightConfig}
-   */
-  public LimelightConfig()
-  {
-
   }
 
   /**
