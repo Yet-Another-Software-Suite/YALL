@@ -124,7 +124,8 @@ public class DrivebaseSubsystem extends SubsystemBase
              .withRobotOrientation(new Orientation3d(navx.getRotation3d(),
                                                      new AngularVelocity3d(DegreesPerSecond.of(0),
                                                                            DegreesPerSecond.of(0),
-                                                                           DegreesPerSecond.of(0))));
+                                                                           DegreesPerSecond.of(0))))
+        .save();
     // Get the vision estimate.
     Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate(); // BotPose.BLUE_MEGATAG2.get(limelight);
     visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
