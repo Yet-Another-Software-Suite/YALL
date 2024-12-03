@@ -123,8 +123,8 @@ task vendordepJson() {
         from templateVendorFile
         into "repo/"
         expand(version: pubVersion,
-                groupId: artifactGroupId,
-                artifactId: baseArtifactId)
+        groupId: artifactGroupId,
+        artifactId: baseArtifactId)
     }
 }
 
@@ -202,8 +202,8 @@ model {
                 groupId artifactGroupId
                 version pubVersion
             }
-			
-			vendordep(MavenPublication) {
+
+            vendordep(MavenPublication) {
                 artifact vendordepJsonZip
 
                 artifactId = "${baseArtifactId}-vendordep"

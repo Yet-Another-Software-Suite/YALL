@@ -2,5 +2,5 @@
 #include "driverheader.h"
 
 void func() {
-  c_doThing();
+	c_doThing();
 }
