@@ -83,6 +83,7 @@ public class LimelightSettings
    */
   public LimelightSettings(Limelight camera)
   {
+    limelight = camera;
     limelightTable = limelight.getNTTable();
     ledMode = limelightTable.getEntry("ledMode");
 
