@@ -6,10 +6,10 @@ apply plugin: 'maven-publish'
 ext.licenseFile = files("$rootDir/../LICENSE")
 def templateVendorFile = "limelightlib.json"
 
-def pubVersion = '0.0.1'
+def pubVersion = '0.0.2'
 
 def outputsFolder = file("$buildDir/outputs")
-def releasesRepoUrl = "yagsl/repos/"
+def releasesRepoUrl = "repo/"
 
 def versionFile = file("$outputsFolder/version.txt")
 
@@ -182,7 +182,7 @@ publishing {
     repositories {
         maven {
 
-            url = "repo/"
+            url = releasesRepoUrl
         }
     }
 }
