@@ -94,12 +94,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code>double</code></div>
 <div class="col-second even-row-color"><code><a href="#avgTagArea" class="member-name-link">avgTagArea</a></code></div>
 <div class="col-last even-row-color">
-<div class="block">Avg view in the cameras area</div>
+<div class="block">Avg area in percent of image</div>
 </div>
 <div class="col-first odd-row-color"><code>double</code></div>
 <div class="col-second odd-row-color"><code><a href="#avgTagDist" class="member-name-link">avgTagDist</a></code></div>
 <div class="col-last odd-row-color">
-<div class="block">Avg apriltag distance</div>
+<div class="block">Avg apriltag distance in Meters</div>
 </div>
 <div class="col-first even-row-color"><code>boolean</code></div>
 <div class="col-second even-row-color"><code><a href="#hasData" class="member-name-link">hasData</a></code></div>
@@ -134,7 +134,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code>double</code></div>
 <div class="col-second even-row-color"><code><a href="#tagSpan" class="member-name-link">tagSpan</a></code></div>
 <div class="col-last even-row-color">
-<div class="block">Tag Span</div>
+<div class="block">Tag Span in meters</div>
 </div>
 <div class="col-first odd-row-color"><code>double</code></div>
 <div class="col-second odd-row-color"><code><a href="#timestampSeconds" class="member-name-link">timestampSeconds</a></code></div>
@@ -172,19 +172,34 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getPoseEstimate()" class="member-name-link">getPoseEstimate</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getAvgTagAmbiguity()" class="member-name-link">getAvgTagAmbiguity</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Get the average ambiguity from seen AprilTag's</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getMaxTagAmbiguity()" class="member-name-link">getMaxTagAmbiguity</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Get the maximum ambiguity from seen AprilTag's</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getMinTagAmbiguity()" class="member-name-link">getMinTagAmbiguity</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Get the minimum ambiguity from seen AprilTag's</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getPoseEstimate()" class="member-name-link">getPoseEstimate</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Refresh <a href="PoseEstimate.html" title="class in limelight.estimator"><code>PoseEstimate</code></a> object</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#printPoseEstimate()" class="member-name-link">printPoseEstimate</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#printPoseEstimate()" class="member-name-link">printPoseEstimate</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Prints detailed information about a PoseEstimate to standard output.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#refresh()" class="member-name-link">refresh</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#refresh()" class="member-name-link">refresh</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Refresh the <a href="PoseEstimate.html" title="class in limelight.estimator"><code>PoseEstimate</code></a></div>
 </div>
 </div>
@@ -243,21 +258,21 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="tagSpan">
 <h3>tagSpan</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">tagSpan</span></div>
-<div class="block">Tag Span</div>
+<div class="block">Tag Span in meters</div>
 </section>
 </li>
 <li>
 <section class="detail" id="avgTagDist">
 <h3>avgTagDist</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">avgTagDist</span></div>
-<div class="block">Avg apriltag distance</div>
+<div class="block">Avg apriltag distance in Meters</div>
 </section>
 </li>
 <li>
 <section class="detail" id="avgTagArea">
 <h3>avgTagArea</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">avgTagArea</span></div>
-<div class="block">Avg view in the cameras area</div>
+<div class="block">Avg area in percent of image</div>
 </section>
 </li>
 <li>
@@ -324,6 +339,39 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd><a href="PoseEstimate.html" title="class in limelight.estimator"><code>PoseEstimate</code></a> for chaining.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getMinTagAmbiguity()">
+<h3>getMinTagAmbiguity</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getMinTagAmbiguity</span>()</div>
+<div class="block">Get the minimum ambiguity from seen AprilTag's</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Min ambiguity from observed tags.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getMaxTagAmbiguity()">
+<h3>getMaxTagAmbiguity</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getMaxTagAmbiguity</span>()</div>
+<div class="block">Get the maximum ambiguity from seen AprilTag's</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Max ambiguity from observed tags. Returns 1 if none.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getAvgTagAmbiguity()">
+<h3>getAvgTagAmbiguity</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getAvgTagAmbiguity</span>()</div>
+<div class="block">Get the average ambiguity from seen AprilTag's</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Avg ambiguity from observed tags. Returns 1 if no tags.</dd>
 </dl>
 </section>
 </li>

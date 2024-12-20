@@ -13,10 +13,10 @@ plugins {
 // WPILib Version
 ext.wpilibVersion = "2025.1.1-beta-3"
 
-// Copy limelightlib source over.
+// Copy yall source over.
 delete "src/main/java/limelight"
 copy {
-    from "../limelightlib/java/limelight"
+    from "../yall/java/limelight"
     into "src/main/java/limelight"
 }
 

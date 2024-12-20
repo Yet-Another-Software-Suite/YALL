@@ -1,6 +1,6 @@
-# LimelightLib
+# Yet Another Limelight Library (YALL)
 
-**LimelightLib** is an improved version of the [LimelightHelpers](https://github.com/LimelightVision/limelightlib-wpijava) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
+**Yet Another Limelight Library** is an improved version of the [LimelightHelpers](https://github.com/LimelightVision/limelightlib-wpijava) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
 
 ## Features
 
@@ -20,7 +20,7 @@
 
 ### 1. Install the Library via WPILib Vendordep
 ```
-https://broncbotz3481.github.io/LimelightLib/vendordep/repo/limelightlib.json
+https://broncbotz3481.github.io/YALL/vendordep/repo/yall.json
 ```
 
 ### 2. Manual Installation
@@ -99,7 +99,7 @@ Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
 
 ## API Documentation
 
-* Java Docs are at https://broncbotz3481.github.io/LimelightLib/docs/
+* Java Docs are at https://broncbotz3481.github.io/YALL/docs/
 
 ### Limelight
 
@@ -145,7 +145,7 @@ visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
 
 ## Contributing
 
-We welcome contributions from the FRC community! To contribute to the LimelightLib project, please follow these steps:
+We welcome contributions from the FRC community! To contribute to the Yet Another Limelight Library project, please follow these steps:
 
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feature-name`).
@@ -157,8 +157,8 @@ Please make sure your code follows the project's style guidelines and includes t
 
 ## License
 
-LimelightLib is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Yet Another Limelight Library is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-Enjoy using LimelightLib to enhance your FRC robot’s vision capabilities! For further assistance or to report issues, please visit our [GitHub Issues page](https://github.com/your-repo/limelightlib/issues).
+Enjoy using Yet Another Limelight Library to enhance your FRC robot’s vision capabilities! For further assistance or to report issues, please visit our [GitHub Issues page](https://github.com/your-repo/limelightlib/issues).

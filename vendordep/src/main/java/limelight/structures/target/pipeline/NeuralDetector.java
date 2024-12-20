@@ -2,8 +2,11 @@ package limelight.structures.target.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/** Represents a Neural Detector Pipeline Result extracted from JSON Output */
-public class NeuralDetector {
+/**
+ * Represents a Neural Detector Pipeline Result extracted from JSON Output
+ */
+public class NeuralDetector
+{
 
   @JsonProperty("class")
   public String className;
@@ -35,5 +38,7 @@ public class NeuralDetector {
   @JsonProperty("ty_nocross")
   public double ty_nocrosshair;
 
-  public NeuralDetector() {}
+  public NeuralDetector()
+  {
+  }
 }
