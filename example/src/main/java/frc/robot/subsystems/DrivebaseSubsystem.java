@@ -120,16 +120,25 @@ public class DrivebaseSubsystem extends SubsystemBase
   {
     differentialDrivePoseEstimator.update(navx.getRotation2d(), getWheelPositions());
 
+    // Required for megatag2
     limelight.getSettings()
              .withRobotOrientation(new Orientation3d(navx.getRotation3d(),
                                                      new AngularVelocity3d(DegreesPerSecond.of(0),
                                                                            DegreesPerSecond.of(0),
                                                                            DegreesPerSecond.of(0))))
-        .save();
+             .save();
+
     // Get the vision estimate.
     Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate(); // BotPose.BLUE_MEGATAG2.get(limelight);
     visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-      differentialDrivePoseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
+      // If the average tag distance is less than 4 meters,
+      // there are more than 0 tags in view,
+      // and the average ambiguity between tags is less than 30% then we update the pose estimation.
+      if (poseEstimate.avgTagDist < 4 && poseEstimate.tagCount > 0 && poseEstimate.getMinTagAmbiguity() < 0.3)
+      {
+        differentialDrivePoseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(),
+                                                            poseEstimate.timestampSeconds);
+      }
     });
 
     limelight.getLatestResults().ifPresent((LimelightResults result) -> {

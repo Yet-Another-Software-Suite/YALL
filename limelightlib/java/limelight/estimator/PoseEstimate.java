@@ -46,15 +46,15 @@ public class PoseEstimate
    */
   public        int              tagCount;
   /**
-   * Tag Span
+   * Tag Span in meters
    */
   public        double           tagSpan;
   /**
-   * Avg apriltag distance
+   * Avg apriltag distance in Meters
    */
   public        double           avgTagDist;
   /**
-   * Avg view in the cameras area
+   * Avg area in percent of image
    */
   public        double           avgTagArea;
   /**
@@ -169,6 +169,63 @@ public class PoseEstimate
     return Optional.of(this);
   }
 
+  /**
+   * Get the minimum ambiguity from seen AprilTag's
+   *
+   * @return Min ambiguity from observed tags.
+   */
+  public double getMinTagAmbiguity()
+  {
+    if (!hasData)
+    {
+      return 1;
+    }
+    double minTagAmbiguity = Double.MAX_VALUE;
+    for (RawFiducial tag : rawFiducials)
+    {
+      minTagAmbiguity = Math.min(minTagAmbiguity, tag.ambiguity);
+    }
+    return minTagAmbiguity;
+  }
+
+
+  /**
+   * Get the maximum ambiguity from seen AprilTag's
+   *
+   * @return Max ambiguity from observed tags. Returns 1 if none.
+   */
+  public double getMaxTagAmbiguity()
+  {
+    if (!hasData)
+    {
+      return 1;
+    }
+    double maxTagAmbiguity = 0;
+    for (RawFiducial tag : rawFiducials)
+    {
+      maxTagAmbiguity = Math.max(maxTagAmbiguity, tag.ambiguity);
+    }
+    return maxTagAmbiguity;
+  }
+
+  /**
+   * Get the average ambiguity from seen AprilTag's
+   *
+   * @return Avg ambiguity from observed tags. Returns 1 if no tags.
+   */
+  public double getAvgTagAmbiguity()
+  {
+    if (!hasData)
+    {
+      return 1;
+    }
+    double ambiguitySum = 0;
+    for (RawFiducial tag : rawFiducials)
+    {
+      ambiguitySum += tag.ambiguity;
+    }
+    return ambiguitySum / rawFiducials.length;
+  }
 
   /**
    * Prints detailed information about a PoseEstimate to standard output. Includes timestamp, latency, tag count, tag
