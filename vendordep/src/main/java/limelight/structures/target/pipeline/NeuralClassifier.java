@@ -2,11 +2,8 @@ package limelight.structures.target.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Represents a Neural Classifier Pipeline Result extracted from JSON Output
- */
-public class NeuralClassifier
-{
+/** Represents a Neural Classifier Pipeline Result extracted from JSON Output */
+public class NeuralClassifier {
 
   @JsonProperty("class")
   public String className;
@@ -32,7 +29,5 @@ public class NeuralClassifier
   @JsonProperty("typ")
   public double ty_pixels;
 
-  public NeuralClassifier()
-  {
-  }
+  public NeuralClassifier() {}
 }

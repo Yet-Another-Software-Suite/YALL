@@ -2,21 +2,14 @@ package limelight.structures.target;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Represents a Barcode Target Result extracted from JSON Output
- */
-public class Barcode
-{
+/** Represents a Barcode Target Result extracted from JSON Output */
+public class Barcode {
 
-  /**
-   * Barcode family type (e.g. "QR", "DataMatrix", etc.)
-   */
+  /** Barcode family type (e.g. "QR", "DataMatrix", etc.) */
   @JsonProperty("fam")
   public String family;
 
-  /**
-   * Gets the decoded data content of the barcode
-   */
+  /** Gets the decoded data content of the barcode */
   @JsonProperty("data")
   public String data;
 
@@ -44,12 +37,9 @@ public class Barcode
   @JsonProperty("pts")
   public double[][] corners;
 
-  public Barcode()
-  {
-  }
+  public Barcode() {}
 
-  public String getFamily()
-  {
+  public String getFamily() {
     return family;
   }
 }
