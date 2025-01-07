@@ -41,7 +41,6 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: build/allOutputs
-        working-directory: ${{env.working-directory}}
 
   build-host:
     env: 
