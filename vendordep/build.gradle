@@ -6,12 +6,12 @@ plugins {
     id 'edu.wpi.first.NativeUtils' version '2025.9.0'
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
-    id "edu.wpi.first.GradleRIO" version "2025.1.1-beta-3"
+    id "edu.wpi.first.GradleRIO" version "2025.1.1"
     id "com.diffplug.spotless" version "6.11.0"
 }
 
 // WPILib Version
-ext.wpilibVersion = "2025.1.1-beta-3"
+ext.wpilibVersion = "2025.1.1"
 
 // Copy yall source over.
 delete "src/main/java/limelight"
@@ -51,14 +51,15 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
     implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
-    implementation 'edu.wpi.first.thirdparty.frc2024.opencv:opencv-java:4.8.0-4'
+    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
 }
 
 javadoc {
     destinationDir = file("../docs")
 
     options {
-        links 'https://docs.oracle.com/en/java/javase/17/docs/api/', 'https://github.wpilib.org/allwpilib/docs/release/java/'
+        links 'https://docs.oracle.com/en/java/javase/17/docs/api/',
+		'https://github.wpilib.org/allwpilib/docs/release/java/'
     }
 }
 

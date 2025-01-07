@@ -13,6 +13,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.StringArrayEntry;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import java.util.Optional;
 import limelight.Limelight;
 import limelight.results.RawDetection;
@@ -179,7 +180,13 @@ public class LimelightData
 
     } catch (JsonProcessingException e)
     {
-      DriverStation.reportError("lljson error: " + e.getMessage(), true);
+      if (RobotBase.isSimulation())
+      {
+        // TODO: Put sim warning here.
+      }
+      else {
+        DriverStation.reportError("lljson error: " + e.getMessage(), true);
+      }
     }
     return Optional.empty();
   }
