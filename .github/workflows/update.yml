@@ -21,6 +21,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
+      - name: Change gradleRIO executable
+        run: chmod a+x gradlew
+        working-directory: ${{env.working-directory}}
       - name: Install roboRio toolchain
         run: ./gradlew installRoboRioToolchain
         working-directory: ${{env.working-directory}}
