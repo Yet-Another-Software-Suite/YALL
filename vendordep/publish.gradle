@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 ext.licenseFile = files("$rootDir/../LICENSE")
 def templateVendorFile = "yall.json"
 
-def pubVersion = '2025.0.0'
+def pubVersion = System.getenv("releaseVersion") ?: "test"
 
 def outputsFolder = file("$buildDir/outputs")
 def releasesRepoUrl = "repo/"
