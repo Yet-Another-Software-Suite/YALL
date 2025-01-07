@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
       - name: Build with Gradle
-        run: cd ${{env.working-directory}} && ls -al && chmod a+x ./gradlew && ./gradlew build ${{ matrix.build-options }}
+        run: cd ${{env.working-directory}} && chmod a+x ./gradlew && ./gradlew build ${{ matrix.build-options }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
@@ -68,7 +68,7 @@ jobs:
           java-version: 17
           architecture: ${{ matrix.architecture }}
       - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop
+        run: chmod a+x ./gradlew && ./gradlew build -Pbuildalldesktop
         working-directory: ${{env.working-directory}}
       - uses: actions/upload-artifact@v4
         with:
