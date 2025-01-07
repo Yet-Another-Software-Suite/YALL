@@ -34,11 +34,12 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
       - name: Build with Gradle
-        run: cd ${{env.working-directory}} && chmod a+x ./gradlew && ./gradlew build ${{ matrix.build-options }}
+        run: chmod a+x ./gradlew && ./gradlew build ${{ matrix.build-options }}
+        working-directory: ${{env.working-directory}}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
+          path: ${{env.working-directory}}/build/allOutputs
 
   build-host:
     env: 
@@ -73,7 +74,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
+          path: ${{env.working-directory}}/build/allOutputs
 
   combine:
     name: Combine
