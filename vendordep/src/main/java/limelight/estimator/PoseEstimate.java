@@ -68,7 +68,7 @@ public class PoseEstimate
   /**
    * {@link Limelight} Pose Entry NetworkTables.
    */
-  private final DoubleArrayEntry poseEntry;
+  private       DoubleArrayEntry poseEntry;
 
   /**
    * Construct the {@link PoseEstimate} from the limelight entry in NT.
@@ -145,14 +145,14 @@ public class PoseEstimate
     {
       for (int i = 0; i < tagCount; i++)
       {
-        int    baseIndex = 11 + (i * valsPerFiducial);
-        int    id        = (int) poseArray[baseIndex];
-        double txnc      = poseArray[baseIndex + 1];
-        double tync      = poseArray[baseIndex + 2];
-        double ta        = poseArray[baseIndex + 3];
+        int    baseIndex    = 11 + (i * valsPerFiducial);
+        int    id           = (int) poseArray[baseIndex];
+        double txnc         = poseArray[baseIndex + 1];
+        double tync         = poseArray[baseIndex + 2];
+        double ta           = poseArray[baseIndex + 3];
         double distToCamera = poseArray[baseIndex + 4];
-        double distToRobot = poseArray[baseIndex + 5];
-        double ambiguity = poseArray[baseIndex + 6];
+        double distToRobot  = poseArray[baseIndex + 5];
+        double ambiguity    = poseArray[baseIndex + 6];
         rawFiducials[i] = new RawFiducial(id, txnc, tync, ta, distToCamera, distToRobot, ambiguity);
       }
     }

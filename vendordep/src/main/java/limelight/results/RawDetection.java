@@ -8,10 +8,10 @@ import limelight.Limelight;
 public class RawDetection
 {
 
-  public int    classId = 0;
-  public double txnc    = 0;
-  public double tync    = 0;
-  public double ta      = 0;
+  public int    classId   = 0;
+  public double txnc      = 0;
+  public double tync      = 0;
+  public double ta        = 0;
   public double corner0_X = 0;
   public double corner0_Y = 0;
   public double corner1_X = 0;

@@ -27,7 +27,7 @@ public class LimelightPoseEstimator
    * Old botpose from megatag1
    */
   @Deprecated
-  private final DoubleArrayEntry botpose;
+  private       DoubleArrayEntry botpose;
 
   /**
    * Construct {@link LimelightPoseEstimator} which fetches data from NetworkTables

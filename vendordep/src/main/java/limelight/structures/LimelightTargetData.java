@@ -15,70 +15,70 @@ public class LimelightTargetData
   /**
    * {@link NetworkTable} for the {@link Limelight}
    */
-  private final NetworkTable limelightTable;
+  private NetworkTable limelightTable;
   /**
    * {@link Limelight} to fetch data for.
    */
-  private final Limelight    limelight;
+  private Limelight    limelight;
 
   /**
    * NetworkTable entry for target validity
    */
-  private final NetworkTableEntry targetValid;
+  private NetworkTableEntry targetValid;
   /**
    * Color of the targets in view.
    */
-  private final DoubleArrayEntry  targetColor;
+  private DoubleArrayEntry  targetColor;
   /**
    * Horizontal Offset from the crosshair to the target in degrees.
    */
-  private final NetworkTableEntry horizontalOffset;
+  private NetworkTableEntry horizontalOffset;
   /**
    * Vertical offset from the crosshair to the target in degrees.
    */
-  private final NetworkTableEntry verticalOffset;
+  private NetworkTableEntry verticalOffset;
   /**
    * Horizontal offset from the principal pixel/point to the target in degrees.
    */
-  private final NetworkTableEntry horizontalOffsetFromPrincipal;
+  private NetworkTableEntry horizontalOffsetFromPrincipal;
   /**
    * Vertical offset from the principal pixel/point to the target in degrees.
    */
-  private final NetworkTableEntry verticalOffsetFromPrincipal;
+  private NetworkTableEntry verticalOffsetFromPrincipal;
   /**
    * Target area as a percentage of the image (0-100%).
    */
-  private final NetworkTableEntry targetArea;
+  private NetworkTableEntry targetArea;
   /**
    * Array containing  [targetValid, targetCount, targetLatency, captureLatency, tx, ty, txnc, tync, ta, tid,
    * targetClassIndexDetector, targetClassIndexClassifier, targetLongSidePixels, targetShortSidePixels,
    * targetHorizontalExtentPixels, targetVerticalExtentPixels, targetSkewDegrees]
    */
-  private final DoubleArrayEntry  targetMetrics;
+  private DoubleArrayEntry  targetMetrics;
   /**
    * {@link Pose3d} object representing the target's position and orientation relative to the robot
    */
-  private final DoubleArrayEntry  target2RobotPose;
+  private DoubleArrayEntry  target2RobotPose;
   /**
    * {@link Pose3d} object representing the target's position and orientation relative to the camera.
    */
-  private final DoubleArrayEntry target2CameraPose;
+  private DoubleArrayEntry  target2CameraPose;
   /**
    * {@link Pose3d} object representing the camera's position and orientation relative to the target.
    */
-  private final DoubleArrayEntry camera2TargetPose;
+  private DoubleArrayEntry  camera2TargetPose;
   /**
    * {@link Pose3d} object representing the robot's position and orientation relative to the target
    */
-  private final DoubleArrayEntry robot2TargetPose;
+  private DoubleArrayEntry  robot2TargetPose;
   /**
    * Current AprilTag fiducial ID.
    */
-  private final NetworkTableEntry fiducialID;
+  private NetworkTableEntry fiducialID;
   /**
    * Current Neural class ID.
    */
-  private final NetworkTableEntry neuralClassID;
+  private NetworkTableEntry neuralClassID;
 
   /**
    * Construct data for targets.

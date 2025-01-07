@@ -14,21 +14,21 @@ public class RetroreflectiveTape
 {
 
   @JsonProperty("ta")
-  public double ta;
+  public  double   ta;
   @JsonProperty("tx")
-  public double tx;
+  public  double   tx;
   @JsonProperty("ty")
-  public double ty;
+  public  double   ty;
   @JsonProperty("txp")
-  public double tx_pixels;
+  public  double   tx_pixels;
   @JsonProperty("typ")
-  public double ty_pixels;
+  public  double   ty_pixels;
   @JsonProperty("tx_nocross")
-  public double tx_nocrosshair;
+  public  double   tx_nocrosshair;
   @JsonProperty("ty_nocross")
-  public double ty_nocrosshair;
+  public  double   ty_nocrosshair;
   @JsonProperty("ts")
-  public double ts;
+  public  double   ts;
   @JsonProperty("t6c_ts")
   private double[] cameraPose_TargetSpace;
   @JsonProperty("t6r_fs")

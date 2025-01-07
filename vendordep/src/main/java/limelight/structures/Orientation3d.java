@@ -12,7 +12,7 @@ public class Orientation3d
   /**
    * Current orientation of the robot.
    */
-  public Rotation3d orientation;
+  public Rotation3d        orientation;
   public AngularVelocity3d angularVelocity;
 
   /**

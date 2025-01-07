@@ -14,27 +14,27 @@ public class LimelightPipelineData
   /**
    * {@link NetworkTable} for the {@link Limelight}
    */
-  private final NetworkTable limelightTable;
+  private NetworkTable      limelightTable;
   /**
    * {@link Limelight} to fetch data for.
    */
-  private final Limelight    limelight;
+  private Limelight         limelight;
   /**
    * Pipeline processing latency contribution.
    */
-  private final NetworkTableEntry processingLatency;
+  private NetworkTableEntry processingLatency;
   /**
    * Pipeline capture latency.
    */
-  private final NetworkTableEntry captureLatency;
+  private NetworkTableEntry captureLatency;
   /**
    * Current pipeline index.
    */
-  private final NetworkTableEntry pipelineIndex;
+  private NetworkTableEntry pipelineIndex;
   /**
    * Current pipeline type
    */
-  private final NetworkTableEntry pipelineType;
+  private NetworkTableEntry pipelineType;
 
   /**
    * Construct data for pipelines.

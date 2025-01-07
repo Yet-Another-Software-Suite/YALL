@@ -24,15 +24,15 @@ public class Limelight
   /**
    * {@link Limelight} name.
    */
-  public final  String            limelightName;
+  public final String            limelightName;
   /**
    * {@link Limelight} data from NetworkTables.
    */
-  private final LimelightData     limelightData;
+  private      LimelightData     limelightData;
   /**
    * {@link Limelight} settings that we apply.
    */
-  private final LimelightSettings settings;
+  private      LimelightSettings settings;
 
 
   /**

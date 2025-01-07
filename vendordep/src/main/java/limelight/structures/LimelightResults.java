@@ -68,17 +68,17 @@ public class LimelightResults
   public double botpose_avgarea;
 
   @JsonProperty("t6c_rs")
-  public double[]         camerapose_robotspace;
+  public double[]              camerapose_robotspace;
   @JsonProperty("Retro")
   public RetroreflectiveTape[] targets_Retro;
   @JsonProperty("Fiducial")
-  public AprilTagFiducial[] targets_Fiducials;
+  public AprilTagFiducial[]    targets_Fiducials;
   @JsonProperty("Classifier")
-  public NeuralClassifier[] targets_Classifier;
+  public NeuralClassifier[]    targets_Classifier;
   @JsonProperty("Detector")
-  public NeuralDetector[] targets_Detector;
+  public NeuralDetector[]      targets_Detector;
   @JsonProperty("Barcode")
-  public Barcode[]        targets_Barcode;
+  public Barcode[]             targets_Barcode;
 
   public LimelightResults()
   {

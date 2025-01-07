@@ -45,7 +45,7 @@ public class LimelightUtils
   public static URL getLimelightURLString(String tableName, String request)
   {
     String urlString = "http://" + sanitizeName(tableName) + ".local:5807/" + request;
-    URL url;
+    URL    url;
     try
     {
       url = new URL(urlString);
@@ -93,7 +93,7 @@ public class LimelightUtils
       return new Pose2d();
     }
     Translation2d tran2d = new Translation2d(inData[0], inData[1]);
-    Rotation2d r2d = new Rotation2d(Units.degreesToRadians(inData[5]));
+    Rotation2d    r2d    = new Rotation2d(Units.degreesToRadians(inData[5]));
     return new Pose2d(tran2d, r2d);
   }
 
