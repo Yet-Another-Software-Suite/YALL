@@ -145,7 +145,7 @@ public class DrivebaseSubsystem extends SubsystemBase
       for (NeuralClassifier object : result.targets_Classifier)
       {
         // Classifier says its a note.
-        if (object.className.equals("note"))
+        if (object.className.equals("algae"))
         {
           if (object.ty > 2 && object.ty < 1)
           {
