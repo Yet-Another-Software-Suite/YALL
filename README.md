@@ -25,14 +25,14 @@ https://broncbotz3481.github.io/YALL/vendordep/repo/yall.json
 
 ### 2. Manual Installation
 
-If you prefer to install the library manually, download the latest version from the [releases page](https://github.com/your-repo/limelightlib/releases) and add it to your FRC project’s `lib` directory.
+If you prefer to install the library manually, download the latest version from the [releases page](https://github.com/BroncBotz3481/YALL/releases) and add it to your FRC project’s `src/main` directory.
 
 ## Usage
 
 Once installed, you can begin using LimelightLib in your code by importing it:
 
 ```java
-import limelightlib.Limelight;
+import limelight.Limelight;
 ```
 
 ### Basic Setup
@@ -50,17 +50,26 @@ limelight.getSettings()
 limelight.getLatestResults().ifPresent((LimelightResults result) -> {
     for (NeuralClassifier object : result.targets_Classifier)
     {
-        // Classifier says its a note.
-        if (object.className.equals("note"))
+        // Classifier says its a algae.
+        if (object.className.equals("algae"))
         {
-            // Check pixel location of note.
+            // Check pixel location of algae.
             if (object.ty > 2 && object.ty < 1)
             {
-              // Nte is valid! do stuff!
+              // Algae is valid! do stuff!
             }
         }
     }
 });
+
+
+// Required for megatag2 in periodic() function before fetching pose.
+limelight.getSettings()
+		 .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
+												 new AngularVelocity3d(DegreesPerSecond.of(gyro.getPitchVelocity()),
+																	   DegreesPerSecond.of(gyro.getRollVelocity()),
+																	   DegreesPerSecond.of(gyro.getYawVelocity()))))
+		 .save();
 
 // Get MegaTag2 pose
 Optional<PoseEstimate> visionEstimate = limelight.getPoseEstimator(true).getPoseEstimate();
@@ -117,13 +126,13 @@ Limelight limelight = new Limelight("limelight");
 limelight.getLatestResults().ifPresent((LimelightResults result) -> {
     for (NeuralClassifier object : result.targets_Classifier)
     {
-        // Classifier says its a note.
-        if (object.className.equals("note"))
+        // Classifier says its a coral.
+        if (object.className.equals("coral"))
         {
-            // Check pixel location of note.
+            // Check pixel location of coral.
             if (object.ty > 2 && object.ty < 1)
             {
-            // Note is valid! do stuff!
+            // Coral is valid! do stuff!
             }
         }
     }
@@ -134,6 +143,15 @@ limelight.getLatestResults().ifPresent((LimelightResults result) -> {
 
 ```java
 Limelight limelight = new Limelight("limelight");
+
+// Required for megatag2 in periodic() function before fetching pose.
+limelight.getSettings()
+		 .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
+												 new AngularVelocity3d(DegreesPerSecond.of(gyro.getPitchVelocity()),
+																	   DegreesPerSecond.of(gyro.getRollVelocity()),
+																	   DegreesPerSecond.of(gyro.getYawVelocity()))))
+		 .save();
+		 
 // Get MegaTag2 pose
 Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate();
 // If the pose is present
@@ -161,4 +179,4 @@ Yet Another Limelight Library is licensed under the MIT License. See the [LICENS
 
 ---
 
-Enjoy using Yet Another Limelight Library to enhance your FRC robot’s vision capabilities! For further assistance or to report issues, please visit our [GitHub Issues page](https://github.com/your-repo/limelightlib/issues).
+Enjoy using Yet Another Limelight Library to enhance your FRC robot’s vision capabilities! For further assistance or to report issues, please visit our [GitHub Issues page](https://github.com/BroncBotz3481/YALL/issues).
