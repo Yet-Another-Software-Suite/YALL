@@ -1,4 +1,4 @@
-name: Build and Publish YAGSL vendordep
+name: Build and Publish YALL vendordep
 on:
   workflow_dispatch:
     inputs:
