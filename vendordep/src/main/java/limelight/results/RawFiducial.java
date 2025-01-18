@@ -21,7 +21,7 @@ public class RawFiducial
    */
   public double tync         = 0;
   /**
-   * Tag area as percent of the image.
+   * Tag ambiguity as percent of the image.
    */
   public double ta           = 0;
   /**
