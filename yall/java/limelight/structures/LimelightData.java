@@ -4,6 +4,7 @@ package limelight.structures;
 import static limelight.structures.LimelightUtils.extractArrayEntry;
 import static limelight.structures.LimelightUtils.toPose3D;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -175,7 +176,7 @@ public class LimelightData
   {
     try
     {
-      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), LimelightResults.class);
+      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), Results.class).results;
       return Optional.of(data);
 
     } catch (JsonProcessingException e)
@@ -275,5 +276,17 @@ public class LimelightData
     return rawDetections;
   }
 
+  /**
+   * Results Wrapper Class for JSON reading
+   */
+  private class Results
+  {
+
+    /**
+     * "Results" Object for JSON reading.
+     */
+    @JsonProperty("Results")
+    public LimelightResults results;
+  }
 
 }
