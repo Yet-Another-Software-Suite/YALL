@@ -176,7 +176,7 @@ public class LimelightData
   {
     try
     {
-      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), Results.class).results;
+      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), LimelightResults.class);
       return Optional.of(data);
 
     } catch (JsonProcessingException e)
@@ -274,23 +274,6 @@ public class LimelightData
     }
 
     return rawDetections;
-  }
-
-  /**
-   * Results Wrapper Class for JSON reading
-   */
-  private class Results
-  {
-
-    /**
-     * "Results" Object for JSON reading.
-     */
-    @JsonProperty("Results")
-    public LimelightResults results;
-
-    public Results() {
-        results = new LimelightResults();
-    }
   }
 
 }
