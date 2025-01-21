@@ -176,7 +176,7 @@ public class LimelightData
   {
     try
     {
-      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), LimelightResultsJson.class).results;
+      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), LimelightResults.class);
       return Optional.of(data);
 
     } catch (JsonProcessingException e)
@@ -275,7 +275,5 @@ public class LimelightData
 
     return rawDetections;
   }
-
-
 
 }
