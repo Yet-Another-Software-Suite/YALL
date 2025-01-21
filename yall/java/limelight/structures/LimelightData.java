@@ -287,6 +287,10 @@ public class LimelightData
      */
     @JsonProperty("Results")
     public LimelightResults results;
+
+    public Results() {
+        results = new LimelightResults();
+    }
   }
 
 }
