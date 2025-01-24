@@ -1,18 +1,20 @@
 package limelight;
 
 
+import static edu.wpi.first.units.Units.Milliseconds;
+import static edu.wpi.first.units.Units.Seconds;
 import static limelight.structures.LimelightUtils.getLimelightURLString;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import limelight.estimator.LimelightPoseEstimator;
 import limelight.structures.LimelightData;
 import limelight.structures.LimelightResults;
@@ -45,7 +47,11 @@ public class Limelight
    */
   public Limelight(String name)
   {
-    isAvailable(name);
+    if (!isAvailable(name))
+    {
+      throw new RuntimeException("Limelight not available");
+    }
+
     limelightName = name;
     limelightData = new LimelightData(this);
     settings = new LimelightSettings(this);
@@ -77,43 +83,22 @@ public class Limelight
       {
         return true;
       }
-      System.out.println("waiting " + i + " of 15 seconds for limelight to attach");
+      //System.out.println("waiting " + i + " of 15 seconds for limelight to attach");
       try
       {
-        Thread.sleep(1000);
+        Thread.sleep((long) Seconds.of(1).in(Milliseconds));
       } catch (InterruptedException e)
       {
         e.printStackTrace();
       }
     }
-
-    StringBuilder message = new StringBuilder();
-    message.append("Your limelight name \"");
-    message.append(limelightName);
-    message.append("\" doesn't exist on the network (no getpipe key).\nThese may be available <");
-    var foundNoLL = true;
-    var NTtables  = NetworkTableInstance.getDefault().getTable("/").getSubTables().toArray();
-    for (Object element : NTtables)
-    {
-      var tableName = (String) element;
-      if (tableName.startsWith("limelight"))
-      {
-        foundNoLL = false;
-        message.append(tableName);
-        message.append(" ");
-      }
-    }
-
-    if (foundNoLL)
-    {
-      message.append("--none--");
-    }
-
-    message.append(">");
-
-    DriverStation.reportError(message.toString(), false);
-    new Alert(message.toString(), AlertType.kError).set(true);
-
+    String errMsg = "Your limelight name \"" + limelightName +
+                    "\" is invalid.  doesn't exist on the network (no getpipe key).\n" +
+                    "These may be available:" +
+                    NetworkTableInstance.getDefault().getTable("/").getSubTables().stream()
+                                        .filter(ntName -> ((String) (ntName)).startsWith("limelight"))
+                                        .collect(Collectors.joining("\n"));
+    new Alert(errMsg, AlertType.kError).set(true);
     return false;
   }
 
