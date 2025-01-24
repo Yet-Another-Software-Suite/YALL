@@ -167,7 +167,7 @@ public class LimelightData
   /**
    * Get {@link LimelightResults} from NetworkTables.
    * <p>
-   * Exists only if LL GUI option "Output & Crosshair - Send JSON over NT?" is Yes
+   * Exists only if LL GUI option "Output &amp; Crosshair - Send JSON over NT?" is Yes
    *
    * @return {@link LimelightResults} if it exists.
    */
