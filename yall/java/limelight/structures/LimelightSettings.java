@@ -15,6 +15,16 @@ import limelight.Limelight;
 
 /**
  * Settings class to apply configurable options to the {@link Limelight}
+ * <p>
+ * These settings are sent from the roboRIO back to the Limelight to affect the LL.
+ * <p>
+ * One or more chains of ".withXXXX" methods can change the LL settings. The action of each ".withXXXX" method is
+ * essentially immediate, however, some slight delay is possible and the {@link #save} method will immediately save any
+ * settings that had not yet been saved.
+ * <p>
+ * <p>
+ * Initially, at constructor time, settings are fetched from the LL, however, there is no provision to programatically
+ * access those values - they are dead, useless.
  */
 public class LimelightSettings
 {
@@ -51,14 +61,17 @@ public class LimelightSettings
   private DoubleArrayEntry  cropWindow;
   /**
    * Sets 3d offset point for easy 3d targeting Sets the 3D point-of-interest offset for the current fiducial pipeline.
+   * <p>
    * https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking
    * <p>
    * DoubleArray [offsetX(meters), offsetY(meters), offsetZ(meters)]
    */
   private DoubleArrayEntry  fiducial3DOffset;
   /**
-   * Robot orientation for MegaTag2 localization algorithm. DoubleArray [yaw(degrees), *yawRaw(degreesPerSecond),
-   * *pitch(degrees), *pitchRate(degreesPerSecond), *roll(degrees), *rollRate(degreesPerSecond)]
+   * Robot orientation for MegaTag2 localization algorithm.
+   * <p>
+   * DoubleArray [yaw(degrees), *yawRaw(degreesPerSecond), *pitch(degrees), *pitchRate(degreesPerSecond),
+   * *roll(degrees), *rollRate(degreesPerSecond)]
    */
   private DoubleArrayEntry  robotOrientationSet;
   /**
@@ -100,6 +113,7 @@ public class LimelightSettings
 
   /**
    * Set the {@link Limelight} {@link LEDMode}.
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param mode {@link LEDMode} enum
    * @return {@link LimelightSettings} for chaining.
@@ -112,6 +126,7 @@ public class LimelightSettings
 
   /**
    * Set the current pipeline index for the {@link Limelight}
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param index Pipeline index to use.
    * @return {@link LimelightSettings}
@@ -124,6 +139,7 @@ public class LimelightSettings
 
   /**
    * Set the Priority Tag ID for {@link Limelight}
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param aprilTagId AprilTag ID to set as a priority.
    * @return {@link LimelightSettings} for chaining.
@@ -136,6 +152,7 @@ public class LimelightSettings
 
   /**
    * Set the Stream mode based on the {@link StreamMode} enum
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param mode {@link StreamMode} to use
    * @return {@link LimelightSettings} for chaining.
@@ -148,6 +165,7 @@ public class LimelightSettings
 
   /**
    * Sets the crop window for the camera. The crop window in the UI must be completely open.
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param minX Minimum X value (-1 to 1)
    * @param maxX Maximum X value (-1 to 1)
@@ -161,9 +179,11 @@ public class LimelightSettings
   }
 
   /**
-   * Set the robot {@link Orientation3d} given.
+   * Set the current robot {@link Orientation3d} (normally given by the robot gyro) for LL to use in its MegaTag2
+   * determination.
+   * <p> This method changes the Limelight - normally immediately.
    *
-   * @param orientation {@link Orientation3d} object to set the current orientation too.
+   * @param orientation {@link Orientation3d} object to set the current orientation to.
    * @return {@link LimelightSettings} for chaining.
    */
   public LimelightSettings withRobotOrientation(Orientation3d orientation)
@@ -175,6 +195,7 @@ public class LimelightSettings
   /**
    * Sets the downscaling factor for AprilTag detection. Increasing downscale can improve performance at the cost of
    * potentially reduced detection range.
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param downscalingOverride Downscale factor. Valid values: 1.0 (no downscale), 1.5, 2.0, 3.0, 4.0. Set to 0 for
    *                            pipeline control.
@@ -189,6 +210,7 @@ public class LimelightSettings
    * Set the offset from the AprilTag that is of interest. More information here. <a
    * href="https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking">Docs
    * page</a>
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param offset {@link Translation3d} offset.
    * @return {@link LimelightSettings} for chaining.
@@ -201,6 +223,7 @@ public class LimelightSettings
 
   /**
    * Set the {@link Limelight} AprilTagID filter/override of which to track.
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param idFilter Array of AprilTag ID's to track
    * @return {@link LimelightSettings} for chaining.
@@ -213,6 +236,7 @@ public class LimelightSettings
 
   /**
    * Set the {@link Limelight} offset.
+   * <p> This method changes the Limelight - normally immediately.
    *
    * @param offset {@link Pose3d} of the {@link Limelight} with the {@link edu.wpi.first.math.geometry.Rotation3d} set
    *               in Meters.
@@ -225,7 +249,10 @@ public class LimelightSettings
   }
 
   /**
-   * Push all local changes to the {@link NetworkTable} instance immediately.
+   * Push any pending changes to the {@link NetworkTable} instance immediately.
+   * <p> This method changes the Limelight immediately.
+   * <p> Most setting changes are done essentially immediately and this method
+   * isn't needed but does no harm to assure changes.
    */
   public void save()
   {

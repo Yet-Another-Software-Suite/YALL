@@ -132,7 +132,7 @@ public class PoseEstimate
     double tagArea  = extractArrayEntry(poseArray, 10);
 
     // Convert server timestamp from microseconds to seconds and adjust for latency
-    double adjustedTimestamp = (timestamp / 1000000.0) - (latency / 1000.0);
+    double adjustedTimestamp = (timestamp / 1_000_000.0) - (latency / 1_000.0);
 
     RawFiducial[] rawFiducials      = new RawFiducial[tagCount];
     int           valsPerFiducial   = 7;
@@ -231,44 +231,37 @@ public class PoseEstimate
    * Prints detailed information about a PoseEstimate to standard output. Includes timestamp, latency, tag count, tag
    * span, average tag distance, average tag area, and detailed information about each detected fiducial.
    */
-  public void printPoseEstimate()
+  public String toString()
   {
+    StringBuilder str = new StringBuilder();
     if (!hasData)
     {
-      System.out.println("No PoseEstimate available.");
-      return;
+      str.append(String.format("No PoseEstimate available.%n"));
+      return str.toString();
     }
-
-    System.out.printf("Pose Estimate Information:%n");
-    System.out.printf("Timestamp (Seconds): %.3f%n", timestampSeconds);
-    System.out.printf("Latency: %.3f ms%n", latency);
-    System.out.printf("Tag Count: %d%n", tagCount);
-    System.out.printf("Tag Span: %.2f meters%n", tagSpan);
-    System.out.printf("Average Tag Distance: %.2f meters%n", avgTagDist);
-    System.out.printf("Average Tag Area: %.2f%% of image%n", avgTagArea);
-    System.out.printf("Is MegaTag2: %b%n", isMegaTag2);
-    System.out.println();
+    str.append(String.format("%nPose Estimate Information:%n"));
+    str.append(String.format("Timestamp (Seconds): %.3f%n", timestampSeconds));
+    str.append(String.format("Latency: %.3f ms%n", latency));
+    str.append(String.format("Tag Count: %d%n", tagCount));
+    str.append(String.format("Tag Span: %.2f meters%n", tagSpan));
+    str.append(String.format("Average Tag Distance: %.2f meters%n", avgTagDist));
+    str.append(String.format("Average Tag Area: %.2f%% of image%n", avgTagArea));
+    str.append(String.format("Is MegaTag2: %b%n%n", isMegaTag2));
 
     if (rawFiducials == null || rawFiducials.length == 0)
     {
-      System.out.println("No RawFiducials data available.");
-      return;
+      str.append(String.format("No RawFiducials data available.%n"));
+      return str.toString();
     }
 
-    System.out.println("Raw Fiducials Details:");
+    str.append(String.format("Raw Fiducials Details:%n"));
     for (int i = 0; i < rawFiducials.length; i++)
     {
       RawFiducial fiducial = rawFiducials[i];
-      System.out.printf(" Fiducial #%d:%n", i + 1);
-      System.out.printf("  ID: %d%n", fiducial.id);
-      System.out.printf("  TXNC: %.2f%n", fiducial.txnc);
-      System.out.printf("  TYNC: %.2f%n", fiducial.tync);
-      System.out.printf("  TA: %.2f%n", fiducial.ta);
-      System.out.printf("  Distance to Camera: %.2f meters%n", fiducial.distToCamera);
-      System.out.printf("  Distance to Robot: %.2f meters%n", fiducial.distToRobot);
-      System.out.printf("  Ambiguity: %.2f%n", fiducial.ambiguity);
-      System.out.println();
+      str.append(String.format("Fiducial #%d:%n", i + 1));
+      str.append(fiducial);
     }
+    return str.toString();
   }
 
 

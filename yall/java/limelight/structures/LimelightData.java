@@ -4,8 +4,6 @@ package limelight.structures;
 import static limelight.structures.LimelightUtils.extractArrayEntry;
 import static limelight.structures.LimelightUtils.toPose3D;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -14,7 +12,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.StringArrayEntry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import java.util.Optional;
 import limelight.Limelight;
 import limelight.results.RawDetection;
@@ -168,7 +165,9 @@ public class LimelightData
 
 
   /**
-   * Get {@link LimelightResults} from NetworkTables
+   * Get {@link LimelightResults} from NetworkTables.
+   * <p>
+   * Exists only if LL GUI option "Output & Crosshair - Send JSON over NT?" is Yes
    *
    * @return {@link LimelightResults} if it exists.
    */
@@ -176,18 +175,19 @@ public class LimelightData
   {
     try
     {
-      LimelightResults data = resultsObjectMapper.readValue(results.getString(""), LimelightResults.class);
-      return Optional.of(data);
-
-    } catch (JsonProcessingException e)
-    {
-      if (RobotBase.isSimulation())
+      var JSONresult = results.getString("");
+      if (JSONresult.length() <= 0)
       {
-        // TODO: Put sim warning here.
+        return Optional.empty();
       }
-      else {
-        DriverStation.reportError("lljson error: " + e.getMessage(), true);
-      }
+      LimelightResults data = resultsObjectMapper.readValue(JSONresult,
+                                                            LimelightResults.class); // don't use wrapper class
+      // LimelightResults data = resultsObjectMapper.readValue(JSONresult, ResultsWrapper.class).resultsWrapper; // use wrapper class
+      return Optional.of(data);
+    } catch (Exception e) // catch all the errors - multiple kinds are possible
+    {
+      System.out.println("lljson error: " + e.getMessage());
+      DriverStation.reportError("lljson error: " + e.getMessage(), true);
     }
     return Optional.empty();
   }
@@ -276,4 +276,25 @@ public class LimelightData
     return rawDetections;
   }
 
+  // Example of a JSON deserializer wrapper class that can be customized.
+  // Customization not needed for the current impelmentation of this YALL.
+  // /**
+  //  * ResultsWrapper Class for JSON reading.
+  //  */
+  // private static class ResultsWrapper
+  // {
+
+  //   /**
+  //    * "ResultsWrapper" Object for JSON reading.
+  //    */
+  //   @JsonProperty("resultsWrapper")
+  //   public LimelightResults resultsWrapper;
+
+  //   @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+
+  //   public ResultsWrapper(LimelightResults resultsWrapper)
+  //   {
+  //     this.resultsWrapper = resultsWrapper;
+  //   }
+  // }
 }

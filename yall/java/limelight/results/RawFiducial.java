@@ -49,4 +49,20 @@ public class RawFiducial
     this.distToRobot = distToRobot;
     this.ambiguity = ambiguity;
   }
+
+
+  /**
+   * Convert the AprilTag class into a string
+   */
+  public String toString()
+  {
+    StringBuilder str = new StringBuilder(220);
+    str.append(String.format("Tag ID %d%n", id));
+    str.append(String.format(" Coordinate in image (%.2f, %.2f)%n", txnc, tync));
+    str.append(String.format(" Tag Area %.2f%n", ta));
+    str.append(String.format(" Distance to Camera %.2f%n", distToCamera));
+    str.append(String.format(" Distance to Robot %.2f%n", distToRobot));
+    str.append(String.format(" Ambiguity %.2f%n", ambiguity));
+    return str.toString();
+  }
 }
