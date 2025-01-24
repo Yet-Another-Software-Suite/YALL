@@ -78,7 +78,17 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">LimelightSettings</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Settings class to apply configurable options to the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+<div class="block">Settings class to apply configurable options to the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a>
+ <p>
+ These settings are sent from the roboRIO back to the Limelight to affect the LL.
+ <p>
+ One or more chains of ".withXXXX" methods can change the LL settings. The action of each ".withXXXX" method is
+ essentially immediate, however, some slight delay is possible and the <a href="#save()"><code>save()</code></a> method will immediately save any
+ settings that had not yet been saved.
+ <p>
+ <p>
+ Initially, at constructor time, settings are fetched from the LL, however, there is no provision to programatically
+ access those values - they are dead, useless.</div>
 </section>
 <section class="summary">
 <ul class="summary-list">
@@ -138,7 +148,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#save()" class="member-name-link">save</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Push all local changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.</div>
+<div class="block">Push any pending changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withAprilTagOffset(edu.wpi.first.math.geometry.Translation3d)" class="member-name-link">withAprilTagOffset</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Translation3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Translation3d</a>&nbsp;offset)</code></div>
@@ -186,7 +196,8 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withRobotOrientation(limelight.structures.Orientation3d)" class="member-name-link">withRobotOrientation</a><wbr>(<a href="Orientation3d.html" title="class in limelight.structures">Orientation3d</a>&nbsp;orientation)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Set the robot <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> given.</div>
+<div class="block">Set the current robot <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> (normally given by the robot gyro) for LL to use in its MegaTag2
+ determination.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withStreamMode(limelight.structures.LimelightSettings.StreamMode)" class="member-name-link">withStreamMode</a><wbr>(<a href="LimelightSettings.StreamMode.html" title="enum class in limelight.structures">LimelightSettings.StreamMode</a>&nbsp;mode)</code></div>
@@ -233,7 +244,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withLimelightLEDMode(limelight.structures.LimelightSettings.LEDMode)">
 <h3>withLimelightLEDMode</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withLimelightLEDMode</span><wbr><span class="parameters">(<a href="LimelightSettings.LEDMode.html" title="enum class in limelight.structures">LimelightSettings.LEDMode</a>&nbsp;mode)</span></div>
-<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> <a href="LimelightSettings.LEDMode.html" title="enum class in limelight.structures"><code>LimelightSettings.LEDMode</code></a>.</div>
+<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> <a href="LimelightSettings.LEDMode.html" title="enum class in limelight.structures"><code>LimelightSettings.LEDMode</code></a>.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>mode</code> - <a href="LimelightSettings.LEDMode.html" title="enum class in limelight.structures"><code>LimelightSettings.LEDMode</code></a> enum</dd>
@@ -246,7 +258,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withPipelineIndex(int)">
 <h3>withPipelineIndex</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withPipelineIndex</span><wbr><span class="parameters">(int&nbsp;index)</span></div>
-<div class="block">Set the current pipeline index for the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+<div class="block">Set the current pipeline index for the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a>
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>index</code> - Pipeline index to use.</dd>
@@ -259,7 +272,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withPriorityTagId(int)">
 <h3>withPriorityTagId</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withPriorityTagId</span><wbr><span class="parameters">(int&nbsp;aprilTagId)</span></div>
-<div class="block">Set the Priority Tag ID for <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+<div class="block">Set the Priority Tag ID for <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a>
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>aprilTagId</code> - AprilTag ID to set as a priority.</dd>
@@ -272,7 +286,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withStreamMode(limelight.structures.LimelightSettings.StreamMode)">
 <h3>withStreamMode</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withStreamMode</span><wbr><span class="parameters">(<a href="LimelightSettings.StreamMode.html" title="enum class in limelight.structures">LimelightSettings.StreamMode</a>&nbsp;mode)</span></div>
-<div class="block">Set the Stream mode based on the <a href="LimelightSettings.StreamMode.html" title="enum class in limelight.structures"><code>LimelightSettings.StreamMode</code></a> enum</div>
+<div class="block">Set the Stream mode based on the <a href="LimelightSettings.StreamMode.html" title="enum class in limelight.structures"><code>LimelightSettings.StreamMode</code></a> enum
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>mode</code> - <a href="LimelightSettings.StreamMode.html" title="enum class in limelight.structures"><code>LimelightSettings.StreamMode</code></a> to use</dd>
@@ -288,7 +303,8 @@ loadScripts(document, 'script');</script>
  double&nbsp;maxX,
  double&nbsp;minY,
  double&nbsp;maxY)</span></div>
-<div class="block">Sets the crop window for the camera. The crop window in the UI must be completely open.</div>
+<div class="block">Sets the crop window for the camera. The crop window in the UI must be completely open.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>minX</code> - Minimum X value (-1 to 1)</dd>
@@ -302,10 +318,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withRobotOrientation(limelight.structures.Orientation3d)">
 <h3>withRobotOrientation</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withRobotOrientation</span><wbr><span class="parameters">(<a href="Orientation3d.html" title="class in limelight.structures">Orientation3d</a>&nbsp;orientation)</span></div>
-<div class="block">Set the robot <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> given.</div>
+<div class="block">Set the current robot <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> (normally given by the robot gyro) for LL to use in its MegaTag2
+ determination.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>orientation</code> - <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> object to set the current orientation too.</dd>
+<dd><code>orientation</code> - <a href="Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> object to set the current orientation to.</dd>
 <dt>Returns:</dt>
 <dd><a href="LimelightSettings.html" title="class in limelight.structures"><code>LimelightSettings</code></a> for chaining.</dd>
 </dl>
@@ -316,7 +334,8 @@ loadScripts(document, 'script');</script>
 <h3>withFiducialDownscalingOverride</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withFiducialDownscalingOverride</span><wbr><span class="parameters">(<a href="LimelightSettings.DownscalingOverride.html" title="enum class in limelight.structures">LimelightSettings.DownscalingOverride</a>&nbsp;downscalingOverride)</span></div>
 <div class="block">Sets the downscaling factor for AprilTag detection. Increasing downscale can improve performance at the cost of
- potentially reduced detection range.</div>
+ potentially reduced detection range.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>downscalingOverride</code> - Downscale factor. Valid values: 1.0 (no downscale), 1.5, 2.0, 3.0, 4.0. Set to 0 for
@@ -329,7 +348,8 @@ loadScripts(document, 'script');</script>
 <h3>withAprilTagOffset</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withAprilTagOffset</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Translation3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Translation3d</a>&nbsp;offset)</span></div>
 <div class="block">Set the offset from the AprilTag that is of interest. More information here. <a href="https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking">Docs
- page</a></div>
+ page</a>
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>offset</code> - <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Translation3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link"><code>Translation3d</code></a> offset.</dd>
@@ -342,7 +362,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withArilTagIdFilter(java.util.List)">
 <h3>withArilTagIdFilter</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withArilTagIdFilter</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;&nbsp;idFilter)</span></div>
-<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> AprilTagID filter/override of which to track.</div>
+<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> AprilTagID filter/override of which to track.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>idFilter</code> - Array of AprilTag ID's to track</dd>
@@ -355,7 +376,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withCameraOffset(edu.wpi.first.math.geometry.Pose3d)">
 <h3>withCameraOffset</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></span>&nbsp;<span class="element-name">withCameraOffset</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Pose3d</a>&nbsp;offset)</span></div>
-<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> offset.</div>
+<div class="block">Set the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> offset.
+ <p> This method changes the Limelight - normally immediately.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>offset</code> - <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link"><code>Pose3d</code></a> of the <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Rotation3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link"><code>Rotation3d</code></a> set
@@ -369,7 +391,10 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="save()">
 <h3>save</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">save</span>()</div>
-<div class="block">Push all local changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.</div>
+<div class="block">Push any pending changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.
+ <p> This method changes the Limelight immediately.
+ <p> Most setting changes are done essentially immediately and this method
+ isn't needed but does no harm to assure changes.</div>
 </section>
 </li>
 </ul>

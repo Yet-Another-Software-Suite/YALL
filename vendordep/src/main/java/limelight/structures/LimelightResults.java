@@ -10,12 +10,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import limelight.Limelight;
 import limelight.structures.target.AprilTagFiducial;
 import limelight.structures.target.Barcode;
 import limelight.structures.target.RetroreflectiveTape;
 import limelight.structures.target.pipeline.NeuralClassifier;
 import limelight.structures.target.pipeline.NeuralDetector;
-import limelight.Limelight;
 
 /**
  * {@link Limelight} Results object, parsed from a {@link Limelight}'s JSON limelight.results output.
@@ -126,5 +126,40 @@ public class LimelightResults
     }
   }
 
+  /**
+   * Commonly used but very incomplete set from JSON key from the LL
+   */
+  public String toString()
+  {
+    StringBuilder str = new StringBuilder();
+    str.append("Partial JSON LimelightResults\n");
+    str.append("error " + error + "\n");
+    str.append("latency_jsonParse " + latency_jsonParse + "\n");
+
+    str.append("pID " + pipelineID + "\n");
+    str.append("tl " + latency_pipeline + "\n");
+    str.append("cl " + latency_capture + "\n");
+    str.append("ts " + timestamp_LIMELIGHT_publish + "\n");
+    str.append("ts_rio " + timestamp_RIOFPGA_capture + "\n");
+    str.append("v " + valid + "\n");
+    str.append("botpose 3d " + getBotPose3d() + "\n");
+    str.append("botpose_wpired 3d " + getBotPose3d(DriverStation.Alliance.Red) + "\n");
+    str.append("botpose_wpiblue 3d " + getBotPose3d(DriverStation.Alliance.Blue) + "\n");
+    str.append("botpose 2d " + getBotPose2d() + "\n");
+    str.append("botpose_wpired 2d " + getBotPose2d(DriverStation.Alliance.Red) + "\n");
+    str.append("botpose_wpiblue 2d " + getBotPose2d(DriverStation.Alliance.Blue) + "\n");
+    str.append("botpose_tagcount " + botpose_tagcount + "\n");
+    str.append("botpose_span " + botpose_span + "\n");
+    str.append("botpose_avgdist " + botpose_avgdist + "\n");
+    str.append("botpose_avgarea " + botpose_avgarea + "\n");
+    str.append("t6c_rs " + camerapose_robotspace + "\n");
+    str.append("Retro " + targets_Retro + "\n");
+    str.append("Fiducial " + targets_Fiducials + "\n");
+    str.append("Classifier " + targets_Classifier + "\n");
+    str.append("Detector " + targets_Detector + "\n");
+    str.append("Barcode " + targets_Barcode + "\n");
+
+    return str.toString();
+  }
 
 }
