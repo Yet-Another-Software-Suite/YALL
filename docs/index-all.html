@@ -351,7 +351,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="limelight/structures/LimelightData.html#getResults()" class="member-name-link">getResults()</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightData.html" title="class in limelight.structures">LimelightData</a></dt>
 <dd>
-<div class="block">Get <a href="limelight/structures/LimelightResults.html" title="class in limelight.structures"><code>LimelightResults</code></a> from NetworkTables</div>
+<div class="block">Get <a href="limelight/structures/LimelightResults.html" title="class in limelight.structures"><code>LimelightResults</code></a> from NetworkTables.</div>
 </dd>
 <dt><a href="limelight/structures/target/AprilTagFiducial.html#getRobotPose_FieldSpace()" class="member-name-link">getRobotPose_FieldSpace()</a> - Method in class limelight.structures.target.<a href="limelight/structures/target/AprilTagFiducial.html" title="class in limelight.structures.target">AprilTagFiducial</a></dt>
 <dd>&nbsp;</dd>
@@ -372,10 +372,6 @@ loadScripts(document, 'script');</script>
 <dt><a href="limelight/structures/LimelightTargetData.html#getRobotToTarget()" class="member-name-link">getRobotToTarget()</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightTargetData.html" title="class in limelight.structures">LimelightTargetData</a></dt>
 <dd>
 <div class="block">Gets the robot's 3D pose with respect to the currently tracked target's coordinate system.</div>
-</dd>
-<dt><a href="limelight/Limelight.html#getSettings()" class="member-name-link">getSettings()</a> - Method in class limelight.<a href="limelight/Limelight.html" title="class in limelight">Limelight</a></dt>
-<dd>
-<div class="block">Get the <a href="limelight/structures/LimelightSettings.html" title="class in limelight.structures"><code>LimelightSettings</code></a> with current selections.</div>
 </dd>
 <dt><a href="limelight/structures/LimelightTargetData.html#getTargetArea()" class="member-name-link">getTargetArea()</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightTargetData.html" title="class in limelight.structures">LimelightTargetData</a></dt>
 <dd>
@@ -446,6 +442,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="limelight/results/RawFiducial.html#id" class="member-name-link">id</a> - Variable in class limelight.results.<a href="limelight/results/RawFiducial.html" title="class in limelight.results">RawFiducial</a></dt>
 <dd>
 <div class="block">AprilTag ID</div>
+</dd>
+<dt><a href="limelight/Limelight.html#isAvailable(java.lang.String)" class="member-name-link">isAvailable(String)</a> - Static method in class limelight.<a href="limelight/Limelight.html" title="class in limelight">Limelight</a></dt>
+<dd>
+<div class="block">Verify limelight name exists as a table in NT.</div>
 </dd>
 <dt><a href="limelight/estimator/PoseEstimate.html#isMegaTag2" class="member-name-link">isMegaTag2</a> - Variable in class limelight.estimator.<a href="limelight/estimator/PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a></dt>
 <dd>
@@ -533,6 +533,12 @@ loadScripts(document, 'script');</script>
 <div class="block"><a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> Results object, parsed from a <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a>'s JSON limelight.results output.</div>
 </dd>
 <dt><a href="limelight/structures/LimelightResults.html#%3Cinit%3E()" class="member-name-link">LimelightResults()</a> - Constructor for class limelight.structures.<a href="limelight/structures/LimelightResults.html" title="class in limelight.structures">LimelightResults</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="limelight/structures/LimelightResultsJson.html" class="type-name-link" title="class in limelight.structures">LimelightResultsJson</a> - Class in <a href="limelight/structures/package-summary.html">limelight.structures</a></dt>
+<dd>
+<div class="block">Results Wrapper Class for JSON reading</div>
+</dd>
+<dt><a href="limelight/structures/LimelightResultsJson.html#%3Cinit%3E()" class="member-name-link">LimelightResultsJson()</a> - Constructor for class limelight.structures.<a href="limelight/structures/LimelightResultsJson.html" title="class in limelight.structures">LimelightResultsJson</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="limelight/structures/LimelightSettings.html" class="type-name-link" title="class in limelight.structures">LimelightSettings</a> - Class in <a href="limelight/structures/package-summary.html">limelight.structures</a></dt>
 <dd>
@@ -655,10 +661,6 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Construct the <a href="limelight/estimator/PoseEstimate.html" title="class in limelight.estimator"><code>PoseEstimate</code></a> from the limelight entry in NT.</div>
 </dd>
-<dt><a href="limelight/estimator/PoseEstimate.html#printPoseEstimate()" class="member-name-link">printPoseEstimate()</a> - Method in class limelight.estimator.<a href="limelight/estimator/PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a></dt>
-<dd>
-<div class="block">Prints detailed information about a PoseEstimate to standard output.</div>
-</dd>
 </dl>
 <h2 class="title" id="I:Q">Q</h2>
 <dl class="index">
@@ -697,6 +699,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Refresh the <a href="limelight/estimator/PoseEstimate.html" title="class in limelight.estimator"><code>PoseEstimate</code></a></div>
 </dd>
+<dt><a href="limelight/structures/LimelightResultsJson.html#results" class="member-name-link">results</a> - Variable in class limelight.structures.<a href="limelight/structures/LimelightResultsJson.html" title="class in limelight.structures">LimelightResultsJson</a></dt>
+<dd>
+<div class="block">"Results" Object for JSON reading.</div>
+</dd>
 <dt><a href="limelight/structures/target/RetroreflectiveTape.html" class="type-name-link" title="class in limelight.structures.target">RetroreflectiveTape</a> - Class in <a href="limelight/structures/target/package-summary.html">limelight.structures.target</a></dt>
 <dd>
 <div class="block">Represents a Color/Retroreflective Target Result extracted from JSON Output</div>
@@ -716,11 +722,15 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="limelight/structures/LimelightSettings.html#save()" class="member-name-link">save()</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></dt>
 <dd>
-<div class="block">Push all local changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.</div>
+<div class="block">Push any pending changes to the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> instance immediately.</div>
 </dd>
 <dt><a href="limelight/structures/LimelightData.html#setPythonData(double%5B%5D)" class="member-name-link">setPythonData(double[])</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightData.html" title="class in limelight.structures">LimelightData</a></dt>
 <dd>
 <div class="block">Set the input for the custom python script running on the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+</dd>
+<dt><a href="limelight/Limelight.html#settingsBuilder()" class="member-name-link">settingsBuilder()</a> - Method in class limelight.<a href="limelight/Limelight.html" title="class in limelight">Limelight</a></dt>
+<dd>
+<div class="block">Get the <a href="limelight/structures/LimelightSettings.html" title="class in limelight.structures"><code>LimelightSettings</code></a> preparatory to changing settings.</div>
 </dd>
 <dt><a href="limelight/Limelight.html#snapshot(java.lang.String)" class="member-name-link">snapshot(String)</a> - Method in class limelight.<a href="limelight/Limelight.html" title="class in limelight">Limelight</a></dt>
 <dd>
@@ -788,6 +798,18 @@ loadScripts(document, 'script');</script>
 <dt><a href="limelight/structures/LimelightUtils.html#toPose3D(double%5B%5D)" class="member-name-link">toPose3D(double[])</a> - Static method in class limelight.structures.<a href="limelight/structures/LimelightUtils.html" title="class in limelight.structures">LimelightUtils</a></dt>
 <dd>
 <div class="block">Takes a 6-length array of pose data and converts it to a <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link"><code>Pose3d</code></a> object.</div>
+</dd>
+<dt><a href="limelight/estimator/PoseEstimate.html#toString()" class="member-name-link">toString()</a> - Method in class limelight.estimator.<a href="limelight/estimator/PoseEstimate.html" title="class in limelight.estimator">PoseEstimate</a></dt>
+<dd>
+<div class="block">Prints detailed information about a PoseEstimate to standard output.</div>
+</dd>
+<dt><a href="limelight/results/RawFiducial.html#toString()" class="member-name-link">toString()</a> - Method in class limelight.results.<a href="limelight/results/RawFiducial.html" title="class in limelight.results">RawFiducial</a></dt>
+<dd>
+<div class="block">Convert the AprilTag class into a string</div>
+</dd>
+<dt><a href="limelight/structures/LimelightResults.html#toString()" class="member-name-link">toString()</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightResults.html" title="class in limelight.structures">LimelightResults</a></dt>
+<dd>
+<div class="block">Commonly used but very incomplete set from JSON key from the LL</div>
 </dd>
 <dt><a href="limelight/structures/LimelightUtils.html#toTranslation3d(double%5B%5D)" class="member-name-link">toTranslation3d(double[])</a> - Static method in class limelight.structures.<a href="limelight/structures/LimelightUtils.html" title="class in limelight.structures">LimelightUtils</a></dt>
 <dd>
@@ -959,7 +981,8 @@ the order they are declared.</div>
 </dd>
 <dt><a href="limelight/structures/LimelightSettings.html#withRobotOrientation(limelight.structures.Orientation3d)" class="member-name-link">withRobotOrientation(Orientation3d)</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></dt>
 <dd>
-<div class="block">Set the robot <a href="limelight/structures/Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> given.</div>
+<div class="block">Set the current robot <a href="limelight/structures/Orientation3d.html" title="class in limelight.structures"><code>Orientation3d</code></a> (normally given by the robot gyro) for LL to use in its MegaTag2
+ determination.</div>
 </dd>
 <dt><a href="limelight/structures/LimelightSettings.html#withStreamMode(limelight.structures.LimelightSettings.StreamMode)" class="member-name-link">withStreamMode(LimelightSettings.StreamMode)</a> - Method in class limelight.structures.<a href="limelight/structures/LimelightSettings.html" title="class in limelight.structures">LimelightSettings</a></dt>
 <dd>
