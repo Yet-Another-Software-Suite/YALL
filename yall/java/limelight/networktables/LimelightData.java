@@ -1,8 +1,8 @@
-package limelight.structures;
+package limelight.networktables;
 
 
-import static limelight.structures.LimelightUtils.extractArrayEntry;
-import static limelight.structures.LimelightUtils.toPose3D;
+import static limelight.networktables.LimelightUtils.extractArrayEntry;
+import static limelight.networktables.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ public class LimelightData
   /**
    * {@link NetworkTable} for the {@link Limelight}
    */
-  private NetworkTable          limelightTable;
+  protected NetworkTable      limelightTable;
   /**
    * {@link Limelight} to fetch data for.
    */
@@ -42,43 +42,43 @@ public class LimelightData
   /**
    * The limelight.results {@link LimelightResults} JSON data
    */
-  private NetworkTableEntry     results;
+  protected NetworkTableEntry results;
   /**
    * Raw AprilTag detection from NetworkTables.
    */
-  private NetworkTableEntry     rawfiducials;
+  protected NetworkTableEntry rawfiducials;
   /**
    * Raw Neural Detector limelight.results from NetworkTables.
    */
-  private NetworkTableEntry     rawDetections;
+  protected NetworkTableEntry rawDetections;
   /**
    * Neural Clasifier result class name.
    */
-  private NetworkTableEntry     classifierClass;
+  protected NetworkTableEntry classifierClass;
   /**
    * Primary neural detect result class name.
    */
-  private NetworkTableEntry     detectorClass;
+  protected NetworkTableEntry detectorClass;
   /**
    * {@link Pose3d} object representing the camera's position and orientation relative to the robot.
    */
-  private DoubleArrayEntry      camera2RobotPose3d;
+  protected DoubleArrayEntry  camera2RobotPose3d;
   /**
    * Barcodes read by the {@link Limelight}.
    */
-  private StringArrayEntry      barcodeData;
+  protected StringArrayEntry  barcodeData;
   /**
    * Custom Python script set data for {@link Limelight}.
    */
-  private DoubleArrayEntry      pythonScriptDataSet;
+  protected DoubleArrayEntry  pythonScriptDataSet;
   /**
    * Custom Python script output data for {@link Limelight}.
    */
-  private DoubleArrayEntry      pythonScriptData;
+  protected DoubleArrayEntry  pythonScriptData;
   /**
    * Object mapper for limelight.results JSON.
    */
-  private ObjectMapper          resultsObjectMapper;
+  protected ObjectMapper      resultsObjectMapper;
 
   /**
    * Construct the {@link LimelightData} class to retrieve read-only data.
@@ -182,7 +182,6 @@ public class LimelightData
       }
       LimelightResults data = resultsObjectMapper.readValue(JSONresult,
                                                             LimelightResults.class); // don't use wrapper class
-      // LimelightResults data = resultsObjectMapper.readValue(JSONresult, ResultsWrapper.class).resultsWrapper; // use wrapper class
       return Optional.of(data);
     } catch (Exception e) // catch all the errors - multiple kinds are possible
     {

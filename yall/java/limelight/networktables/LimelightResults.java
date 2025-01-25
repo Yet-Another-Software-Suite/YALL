@@ -1,8 +1,8 @@
-package limelight.structures;
+package limelight.networktables;
 
 
-import static limelight.structures.LimelightUtils.toPose2D;
-import static limelight.structures.LimelightUtils.toPose3D;
+import static limelight.networktables.LimelightUtils.toPose2D;
+import static limelight.networktables.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
@@ -11,11 +11,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import limelight.Limelight;
-import limelight.structures.target.AprilTagFiducial;
-import limelight.structures.target.Barcode;
-import limelight.structures.target.RetroreflectiveTape;
-import limelight.structures.target.pipeline.NeuralClassifier;
-import limelight.structures.target.pipeline.NeuralDetector;
+import limelight.networktables.target.AprilTagFiducial;
+import limelight.networktables.target.Barcode;
+import limelight.networktables.target.RetroreflectiveTape;
+import limelight.networktables.target.pipeline.NeuralClassifier;
+import limelight.networktables.target.pipeline.NeuralDetector;
 
 /**
  * {@link Limelight} Results object, parsed from a {@link Limelight}'s JSON limelight.results output.

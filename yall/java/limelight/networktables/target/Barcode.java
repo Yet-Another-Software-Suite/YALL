@@ -1,4 +1,4 @@
-package limelight.structures.target;
+package limelight.networktables.target;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

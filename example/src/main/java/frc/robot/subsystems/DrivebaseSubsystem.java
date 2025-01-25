@@ -26,13 +26,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import limelight.Limelight;
-import limelight.estimator.LimelightPoseEstimator;
-import limelight.estimator.PoseEstimate;
-import limelight.structures.AngularVelocity3d;
-import limelight.structures.LimelightResults;
-import limelight.structures.LimelightSettings.LEDMode;
-import limelight.structures.Orientation3d;
-import limelight.structures.target.pipeline.NeuralClassifier;
+import limelight.networktables.AngularVelocity3d;
+import limelight.networktables.LimelightPoseEstimator;
+import limelight.networktables.LimelightResults;
+import limelight.networktables.LimelightSettings.LEDMode;
+import limelight.networktables.Orientation3d;
+import limelight.networktables.PoseEstimate;
+import limelight.networktables.target.pipeline.NeuralClassifier;
 
 public class DrivebaseSubsystem extends SubsystemBase
 {

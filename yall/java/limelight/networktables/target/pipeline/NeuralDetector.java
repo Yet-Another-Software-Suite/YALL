@@ -1,4 +1,4 @@
-package limelight.structures.target.pipeline;
+package limelight.networktables.target.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

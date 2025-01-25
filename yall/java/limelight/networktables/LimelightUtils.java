@@ -1,4 +1,4 @@
-package limelight.structures;
+package limelight.networktables;
 
 
 import static edu.wpi.first.units.Units.Degrees;

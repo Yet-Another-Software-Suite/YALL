@@ -1,23 +1,18 @@
-package limelight.structures.target;
+package limelight.networktables.target;
 
-import static limelight.structures.LimelightUtils.toPose2D;
-import static limelight.structures.LimelightUtils.toPose3D;
+import static limelight.networktables.LimelightUtils.toPose2D;
+import static limelight.networktables.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 
 /**
- * Represents an AprilTag/Fiducial Target Result extracted from JSON Output
+ * Represents a Color/Retroreflective Target Result extracted from JSON Output
  */
-public class AprilTagFiducial
+public class RetroreflectiveTape
 {
 
-  @JsonProperty("fID")
-  public double fiducialID;
-
-  @JsonProperty("fam")
-  public  String   fiducialFamily;
   @JsonProperty("ta")
   public  double   ta;
   @JsonProperty("tx")
@@ -45,7 +40,7 @@ public class AprilTagFiducial
   @JsonProperty("t6t_rs")
   private double[] targetPose_RobotSpace;
 
-  public AprilTagFiducial()
+  public RetroreflectiveTape()
   {
     cameraPose_TargetSpace = new double[6];
     robotPose_FieldSpace = new double[6];
@@ -103,4 +98,5 @@ public class AprilTagFiducial
   {
     return toPose2D(targetPose_RobotSpace);
   }
+
 }

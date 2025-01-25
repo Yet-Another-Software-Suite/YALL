@@ -1,8 +1,8 @@
-package limelight.estimator;
+package limelight.networktables;
 
 
-import static limelight.structures.LimelightUtils.extractArrayEntry;
-import static limelight.structures.LimelightUtils.toPose3D;
+import static limelight.networktables.LimelightUtils.extractArrayEntry;
+import static limelight.networktables.LimelightUtils.toPose3D;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;

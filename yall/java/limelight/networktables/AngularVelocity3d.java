@@ -1,4 +1,4 @@
-package limelight.structures;
+package limelight.networktables;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 

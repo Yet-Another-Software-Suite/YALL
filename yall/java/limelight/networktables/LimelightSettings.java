@@ -1,8 +1,8 @@
-package limelight.structures;
+package limelight.networktables;
 
-import static limelight.structures.LimelightUtils.orientation3dToArray;
-import static limelight.structures.LimelightUtils.pose3dToArray;
-import static limelight.structures.LimelightUtils.translation3dToArray;
+import static limelight.networktables.LimelightUtils.orientation3dToArray;
+import static limelight.networktables.LimelightUtils.pose3dToArray;
+import static limelight.networktables.LimelightUtils.translation3dToArray;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
