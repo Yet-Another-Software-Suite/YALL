@@ -341,7 +341,9 @@ public class LimelightSettings
      */
     QuadrupleDownscale
   }
-
+  /**
+   * IMU Mode Enum for the {@link Limelight}
+   */
   public enum ImuMode
   {
     /**
