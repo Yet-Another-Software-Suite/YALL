@@ -60,6 +60,10 @@ public class LimelightSettings
    */
   private DoubleArrayEntry  cropWindow;
   /**
+   * Imu Mode for the Limelight 4.
+   */
+  private NetworkTableEntry imuMode;
+  /**
    * Sets 3d offset point for easy 3d targeting Sets the 3D point-of-interest offset for the current fiducial pipeline.
    * <p>
    * https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking
@@ -104,6 +108,7 @@ public class LimelightSettings
     priorityTagID = limelightTable.getEntry("priorityid");
     streamMode = limelightTable.getEntry("stream");
     cropWindow = limelightTable.getDoubleArrayTopic("crop").getEntry(new double[0]);
+    imuMode = limelightTable.getEntry("imumode_set");
     robotOrientationSet = limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(new double[0]);
     downscale = limelightTable.getEntry("fiducial_downscale_set");
     fiducial3DOffset = limelightTable.getDoubleArrayTopic("fiducial_offset_set").getEntry(new double[0]);
@@ -154,7 +159,7 @@ public class LimelightSettings
    * Set the Stream mode based on the {@link StreamMode} enum
    * <p> This method changes the Limelight - normally immediately.
    *
-   * @param mode {@link StreamMode} to use
+   * @param mode {@link StreamMode} to use.
    * @return {@link LimelightSettings} for chaining.
    */
   public LimelightSettings withStreamMode(StreamMode mode)
@@ -171,10 +176,24 @@ public class LimelightSettings
    * @param maxX Maximum X value (-1 to 1)
    * @param minY Minimum Y value (-1 to 1)
    * @param maxY Maximum Y value (-1 to 1)
+   * @return {@link LimelightSettings} for chaining.
    */
   public LimelightSettings withCropWindow(double minX, double maxX, double minY, double maxY)
   {
     cropWindow.set(new double[]{minX, maxX, minY, maxY});
+    return this;
+  }
+
+  /**
+   * Set the IMU Mode based on the {@link ImuMode} enum. 
+   * <p> This method changes the Limelight - normally immediately.
+   *
+   * @param mode {@link ImuMode} to use.
+   * @return {@link LimelightSettings} for chaining.
+   */
+  public LimelightSettings withImuMode(ImuMode mode)
+  {
+    imuMode.setNumber(mode.ordinal());
     return this;
   }
 
@@ -199,6 +218,7 @@ public class LimelightSettings
    *
    * @param downscalingOverride Downscale factor. Valid values: 1.0 (no downscale), 1.5, 2.0, 3.0, 4.0. Set to 0 for
    *                            pipeline control.
+   * @return {@link LimelightSettings} for chaining.
    */
   public LimelightSettings withFiducialDownscalingOverride(DownscalingOverride downscalingOverride)
   {
@@ -320,6 +340,24 @@ public class LimelightSettings
      * Quadruple downscaling, equivalent to 4
      */
     QuadrupleDownscale
+  }
+  /**
+   * IMU Mode Enum for the {@link Limelight}
+   */
+  public enum ImuMode
+  {
+    /**
+     * Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is ignored entirely.
+     */
+    ExternalImu,
+    /**
+     * Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is synced with the external IMU.
+     */
+    SyncInternalImu,
+    /**
+     * Use internal IMU for MT2 localization. Ignores external IMU updates from {@link withRobotOrientation}.
+     */
+    InternalImu
   }
 
 }
