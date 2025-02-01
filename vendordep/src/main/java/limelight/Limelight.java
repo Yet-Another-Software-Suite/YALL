@@ -3,22 +3,23 @@ package limelight;
 
 import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Seconds;
-import static limelight.structures.LimelightUtils.getLimelightURLString;
+import static limelight.networktables.LimelightUtils.getLimelightURLString;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.RobotBase;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import limelight.estimator.LimelightPoseEstimator;
-import limelight.structures.LimelightData;
-import limelight.structures.LimelightResults;
-import limelight.structures.LimelightSettings;
+import limelight.networktables.LimelightData;
+import limelight.networktables.LimelightPoseEstimator;
+import limelight.networktables.LimelightResults;
+import limelight.networktables.LimelightSettings;
 
 /**
  * Limelight Camera class.
@@ -47,7 +48,7 @@ public class Limelight
    */
   public Limelight(String name)
   {
-    if (!isAvailable(name))
+    if (!isAvailable(name) && !RobotBase.isSimulation())
     {
       throw new RuntimeException("Limelight not available");
     }
@@ -123,7 +124,7 @@ public class Limelight
    *
    * @return object used as the target of the various ".withXXXX" settings methods.
    */
-  public LimelightSettings settingsBuilder()
+  public LimelightSettings getSettings()
   {
     return settings;
   }

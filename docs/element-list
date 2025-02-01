@@ -1,6 +1,5 @@
 limelight
-limelight.estimator
+limelight.networktables
+limelight.networktables.target
+limelight.networktables.target.pipeline
 limelight.results
-limelight.structures
-limelight.structures.target
-limelight.structures.target.pipeline
