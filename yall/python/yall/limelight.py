@@ -3,6 +3,8 @@ from enum import Enum
 from typing import Final, List, Optional
 
 import ntcore
+
+from yall.networktables.geometry import Orientation3d
 from . import results
 from wpilib import Alert, DriverStation, RobotBase
 from wpimath import geometry
@@ -688,7 +690,151 @@ class LimelightData:
         return rawDetections
 
 
-class LimelightSettings: ...  # TODO
+class LimelightSettings:
+    """
+    Settings class to apply configurable options to the Limelight.
+
+    These settings are sent from the roboRIO back to the Limelight to affect the LL.
+    One or more chains of ".withXXXX" methods can change the LL settings.
+    The action of each ".withXXXX" method is essentially immediate.
+    """
+
+    class LEDMode(Enum):
+        PipelineControl = 0
+        ForceOff = 1
+        ForceBlink = 2
+        ForceOn = 3
+
+    class ImuMode(Enum):
+        ExternalImu = 0  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is ignored entirely.
+        SyncInternalImu = 1  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is synced with the external IMU.
+        InternalImu = 2  # Use internal IMU for MT2 localization. Ignores external IMU updates from {@link withRobotOrientation}.
+
+    class DownscalingOverride(Enum):
+        Pipeline = 0  # Pipeline downscaling, equivalent to 0
+        NoDownscale = 1  # No downscaling, equivalent to 1
+        HalfDownscale = 1.5  # Half downscaling, equivalent to 1.5
+        DoubleDownscale = 2  # Double downscaling, equivalent to 2
+        TripleDownscale = 3  # Triple downscaling, equivalent to 3
+        QuadrupleDownscale = 4  # Quadruple downscaling, equivalent to 4
+
+    class StreamMode(Enum):
+        Standard = 0  # Side by side.
+        PictureInPictureMain = 1  # Picture in picture, with secondary in corner
+        PictureInPictureSecondary = 2  # Picture in picture, with main in corner
+
+    def __init__(self, camera: "Limelight"):
+        """
+        Create a LimelightSettings object with all configurable features of a Limelight.
+        :param camera: Limelight instance to use.
+        """
+        self.limelight: Limelight = camera
+        self.limelightTable: ntcore.NetworkTable = camera.getNTTable()
+
+        self.ledMode: ntcore.NetworkTableEntry = self.limelightTable.getEntry("ledMode")
+        self.pipelineIndex: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "pipeline"
+        )
+        self.priorityTagID: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "priorityid"
+        )
+        self.streamMode: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "stream"
+        )
+        self.cropWindow: ntcore.DoubleArrayEntry = (
+            self.limelightTable.getDoubleArrayTopic("crop").getEntry([])
+        )
+        self.imuMode: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "imumode_set"
+        )
+        self.robotOrientationSet: ntcore.DoubleArrayEntry = (
+            self.limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(
+                []
+            )
+        )
+        self.downscale: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "fiducial_downscale_set"
+        )
+        self.fiducial3DOffset: ntcore.DoubleArrayEntry = (
+            self.limelightTable.getDoubleArrayTopic("fiducial_offset_set").getEntry([])
+        )
+        self.cameraToRobot: ntcore.DoubleArrayEntry = (
+            self.limelightTable.getDoubleArrayTopic(
+                "camerapose_robotspace_set"
+            ).getEntry([])
+        )
+        self.fiducialIDFiltersOverride: ntcore.DoubleArrayEntry = (
+            self.limelightTable.getDoubleArrayTopic("fiducial_id_filters_set").getEntry(
+                []
+            )
+        )
+
+    def withLimelightLEDMode(self, mode: LEDMode) -> "LimelightSettings":
+        """Set the Limelight LED mode."""
+        self.ledMode.setDouble(mode.value)
+        return self
+
+    def withPipelineIndex(self, index: int) -> "LimelightSettings":
+        """Set the current pipeline index for the Limelight."""
+        self.pipelineIndex.setDouble(index)
+        return self
+
+    def withPriorityTagId(self, aprilTagId: int) -> "LimelightSettings":
+        """Set the Priority Tag ID for the Limelight."""
+        self.priorityTagID.setDouble(aprilTagId)
+        return self
+
+    def withStreamMode(self, mode: StreamMode) -> "LimelightSettings":
+        """Set the Stream mode based on the StreamMode enum."""
+        self.streamMode.setDouble(mode.value)
+        return self
+
+    def withCropWindow(
+        self, minX: float, maxX: float, minY: float, maxY: float
+    ) -> "LimelightSettings":
+        """
+        Set the crop window for the camera. Values must be between -1 and 1.
+        """
+        self.cropWindow.set([minX, maxX, minY, maxY])
+        return self
+
+    def withImuMode(self, mode: ImuMode) -> "LimelightSettings":
+        """Set the IMU Mode for the Limelight."""
+        self.imuMode.setDouble(mode.value)
+        return self
+
+    def withRobotOrientation(self, orientation: Orientation3d) -> "LimelightSettings":
+        """Set the robot orientation used for localization."""
+        self.robotOrientationSet.set(LimelightUtils.orientation3dToArray(orientation))
+        return self
+
+    def withFiducialDownscalingOverride(
+        self, downscalingOverride: DownscalingOverride
+    ) -> "LimelightSettings":
+        """
+        Set the downscaling factor for AprilTag detection.
+        Valid values are 0 (pipeline control), 1 (no downscale), 2, 3, 4.
+        """
+        self.downscale.setDouble(downscalingOverride.value)
+        return self
+
+    def withAprilTagOffset(self, offset: geometry.Translation3d) -> "LimelightSettings":
+        """
+        Set the offset from the AprilTag that is of interest.
+        See: https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking
+        """
+        self.fiducial3DOffset.set(LimelightUtils.translation3dToArray(offset))
+        return self
+
+    def withArilTagIdFilter(self, idFilter: List[float]) -> "LimelightSettings":
+        """Set the Limelight AprilTag ID filter/override."""
+        self.fiducialIDFiltersOverride.set(idFilter)
+        return self
+
+    def withCameraToRobot(self, pose: geometry.Pose3d) -> "LimelightSettings":
+        """Set the camera pose relative to the robot."""
+        self.cameraToRobot.set(LimelightUtils.pose3dToArray(pose))
+        return self
 
 
 class LimelightResults:
@@ -887,7 +1033,8 @@ class Limelight:
         executor = ThreadPoolExecutor()
         executor.submit(task)
 
-    def getLatestResults(self) -> Optional[LimelightResults]: ...  # TODO
+    def getLatestResults(self) -> Optional[LimelightResults]:
+        self.__limelightData.getResults()
 
     def flush(self) -> None:
         ntcore.NetworkTableInstance.getDefault().flush()
