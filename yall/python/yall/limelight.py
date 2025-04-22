@@ -3,13 +3,140 @@ from enum import Enum
 from typing import Final, List, Optional
 
 import ntcore
-import results
+from . import results
 from wpilib import Alert, DriverStation, RobotBase
 from wpimath import geometry
 
 from .deprecated import deprecated
 from .networktables import targets
-from .networktables.util import LimelightUtils, PoseEstimate
+from .networktables.util import LimelightUtils
+
+
+class PoseEstimate:
+    def __init__(self, camera: "Limelight", entryName: str, megaTag2: bool):
+        self.pose: geometry.Pose3d = geometry.Pose3d()
+        self.timestampSeconds: float = 0
+        self.latency: float = 0
+        self.tagCount: int = 0
+        self.tagSpan: float = 0
+        self.avgTagDist: float = 0
+        self.avgTagArea: float = 0
+        self.rawFiducials: list[results.RawFiducial]
+        self.isMegaTag2: Final[bool] = megaTag2
+        self.__poseEntryName: Final[str] = entryName
+        self.__poseEntry: ntcore.DoubleArrayEntry = (
+            camera.getNTTable().getDoubleArrayTopic(self.__poseEntryName).getEntry([])
+        )
+        self.hasData: bool = False
+
+    def getPoseEstimate(self) -> Optional["PoseEstimate"]:
+        tsValue: ntcore.TimestampedDoubleArray = self.__poseEntry.getAtomic()
+        poseArray: list[float] = tsValue.value
+        timestamp: int = tsValue.time
+
+        if len(poseArray) == 0:
+            self.hasData = False
+            return None
+
+        pose: Optional[geometry.Pose3d] = LimelightUtils.toPose3d(poseArray)
+        latency: float = LimelightUtils.extractArrayEntry(poseArray, 6)
+        tagCount: int = int(LimelightUtils.extractArrayEntry(poseArray, 7))
+        tagSpan: float = LimelightUtils.extractArrayEntry(poseArray, 8)
+        tagDist: float = LimelightUtils.extractArrayEntry(poseArray, 9)
+        tagArea: float = LimelightUtils.extractArrayEntry(poseArray, 10)
+
+        adjustedTimestamp = (timestamp / 1_000_000.0) - (latency / 1_000.0)
+
+        rawFiducials: list[results.RawFiducial] = [results.RawFiducial()] * tagCount
+        valsPerFiducial: int = 7
+        expectedTotalVals = 11 + valsPerFiducial * tagCount
+
+        if len(poseArray) != expectedTotalVals:
+            # Don't populate fiducials
+            ...
+        else:
+            for i in range(tagCount):
+                baseIndex = 11 + (i * valsPerFiducial)
+                id: int = int(poseArray[baseIndex])
+                txnc: float = poseArray[baseIndex + 1]
+                tync: float = poseArray[baseIndex + 2]
+                ta: float = poseArray[baseIndex + 3]
+                distToCamera: float = poseArray[baseIndex + 4]
+                distToRobot: float = poseArray[baseIndex + 5]
+                ambiguity: float = poseArray[baseIndex + 6]
+                rawFiducials[i] = results.RawFiducial(
+                    id=id,
+                    txnc=txnc,
+                    tync=tync,
+                    ta=ta,
+                    distToCamera=distToCamera,
+                    distToRobot=distToRobot,
+                    ambiguity=ambiguity,
+                )
+        if pose:
+            self.pose = pose
+            self.timestampSeconds = adjustedTimestamp
+            self.latency = latency
+            self.tagCount = tagCount
+            self.tagSpan = tagSpan
+            self.avgTagDist = tagDist
+            self.avgTagArea = tagArea
+            self.rawFiducials = rawFiducials
+            self.hasData = len(rawFiducials) > 0
+
+            return self
+        return None
+
+    def getMinTagAmbiguity(self) -> float:
+        if not self.hasData:
+            return 1
+        minTagAmbiguity: float = float("inf")
+        minTagAmbiguity = min(
+            map(lambda fiducial: fiducial.ambiguity, self.rawFiducials)
+        )
+        return minTagAmbiguity
+
+    def getMaxTagAmbiguity(self) -> float:
+        if not self.hasData:
+            return 1
+        maxTagAmbiguity: float = float("inf")
+        maxTagAmbiguity = max(
+            map(lambda fiducial: fiducial.ambiguity, self.rawFiducials)
+        )
+        return maxTagAmbiguity
+
+    def getAvgTagAmbiguity(self) -> float:
+        if not self.hasData:
+            return 1
+        ambiguitySum = sum(map(lambda fiducial: fiducial.ambiguity, self.rawFiducials))
+        return ambiguitySum / len(self.rawFiducials)
+
+    def __str__(self) -> str:
+        if not self.hasData:
+            return "No PoseEstimate available."
+
+        result = (
+            "Pose Estimate Information:\n"
+            + f"Timestamp (Seconds): {self.timestampSeconds:.3f}\n"
+            + f"Latency: {self.latency:.3f} ms\n"
+            + f"Tag Count: {self.tagCount}\n"
+            + f"Average Tag Distance: {self.avgTagDist:.2f} meters\n"
+            + f"Average Tag Area: {self.avgTagArea:.2f}% of image\n"
+            + f"Is MegaTag2: {self.isMegaTag2}\n\n"
+        )
+
+        if self.rawFiducials is None or len(self.rawFiducials) == 0:
+            result += "No RawFiducials data available.\n"
+            return result
+
+        result += "Raw Fiducials Details:\n"
+
+        for i in range(len(self.rawFiducials)):
+            fiducial: results.RawFiducial = self.rawFiducials[i]
+            result += f"Fiducial: {i + 1}\n"
+            result += str(fiducial)
+
+        return result
 
 
 class BotPose(Enum):
