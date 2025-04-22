@@ -8,6 +8,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "robotpy-wpimath",
+        "wpilib",
         "pyntcore",
     ],
     python_requires=">=3.8",
