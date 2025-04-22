@@ -1,7 +1,6 @@
-from typing import Callable, ParamSpec, TypeVar
-import warnings
 import functools
-
+import warnings
+from typing import Callable, ParamSpec, TypeVar
 
 rT = TypeVar("rT")  # return type
 pT = ParamSpec("pT")  # parameters type

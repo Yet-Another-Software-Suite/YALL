@@ -1,9 +1,11 @@
 from typing import Final, Optional
-from .deprecated import deprecated
+
 import ntcore
 from wpimath import geometry
 
 from yall.networktables.util import LimelightUtils
+
+from .deprecated import deprecated
 
 
 class Limelight: ...  # TODO
