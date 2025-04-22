@@ -1,14 +1,15 @@
+import json
+from enum import Enum
 from typing import Final, List, Optional
 
 import ntcore
-from wpimath import geometry
-from wpilib import Alert, DriverStation, RobotBase
 import results
-from .networktables.util import LimelightUtils, PoseEstimate
-from .networktables import targets
-from enum import Enum
+from wpilib import Alert, DriverStation, RobotBase
+from wpimath import geometry
+
 from .deprecated import deprecated
-import json
+from .networktables import targets
+from .networktables.util import LimelightUtils, PoseEstimate
 
 
 class BotPose(Enum):
@@ -735,8 +736,8 @@ class Limelight:
         return self.__limelightData
 
     def snapshot(self, snapshotName: str):
-        import urllib.request
         import urllib.error
+        import urllib.request
         from concurrent.futures import ThreadPoolExecutor
 
         def task():
