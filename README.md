@@ -20,7 +20,7 @@
 
 ### 1. Install the Library via WPILib Vendordep
 ```
-https://broncbotz3481.github.io/YALL/vendordep/repo/yall.json
+https://Yet-Another-Software-Suite.github.io/YALL/vendordep/repo/yall.json
 ```
 
 ### 2. Manual Installation
