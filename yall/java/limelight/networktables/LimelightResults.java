@@ -25,61 +25,116 @@ public class LimelightResults
 
   public String error;
 
+  /**
+   * Current pipeline index
+   */
   @JsonProperty("pID")
   public double pipelineID;
 
+  /**
+   * Targeting latency (milliseconds consumed by tracking loop this frame)
+   */
   @JsonProperty("tl")
   public double latency_pipeline;
 
+  /**
+   * Capture latency (milliseconds between the end of the exposure of the middle row to the beginning of the tracking
+   * loop)
+   */
   @JsonProperty("cl")
   public double latency_capture;
 
   public double latency_jsonParse;
 
+  /**
+   * Timestamp in milliseconds from boot.
+   */
   @JsonProperty("ts")
   public double timestamp_LIMELIGHT_publish;
 
   @JsonProperty("ts_rio")
   public double timestamp_RIOFPGA_capture;
 
+  /**
+   * Validity indicator. 1 = valid targets, 0 = no valid targets
+   */
   @JsonProperty("v")
   @JsonFormat(shape = Shape.NUMBER)
   public boolean valid;
 
+  /**
+   * Botpose (MegaTag): x,y,z, roll, pitch, yaw (meters, degrees)
+   */
   @JsonProperty("botpose")
   public double[] botpose;
 
+  /**
+   * Botpose (MegaTag, WPI Red driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
+   */
   @JsonProperty("botpose_wpired")
   public double[] botpose_wpired;
 
+  /**
+   * Botpose (MegaTag, WPI Blue driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
+   */
   @JsonProperty("botpose_wpiblue")
   public double[] botpose_wpiblue;
 
+  /**
+   * Number of tags used to compute botpose
+   */
   @JsonProperty("botpose_tagcount")
   public double botpose_tagcount;
 
+  /**
+   * Max distance between tags used to compute botpose (meters)
+   */
   @JsonProperty("botpose_span")
   public double botpose_span;
 
+  /**
+   * Max distance between tags used to compute botpose (meters)
+   */
   @JsonProperty("botpose_avgdist")
   public double botpose_avgdist;
 
+  /**
+   * Average area of tags used to compute botpose
+   */
   @JsonProperty("botpose_avgarea")
   public double botpose_avgarea;
 
   @JsonProperty("t6c_rs")
   public double[]              camerapose_robotspace;
+  /**
+   * Color/Retroreflective pipeline results array
+   */
   @JsonProperty("Retro")
   public RetroreflectiveTape[] targets_Retro;
+  /**
+   * AprilTag pipeline results array
+   */
   @JsonProperty("Fiducial")
   public AprilTagFiducial[]    targets_Fiducials;
+  /**
+   * Classifier pipeline results array
+   */
   @JsonProperty("Classifier")
   public NeuralClassifier[]    targets_Classifier;
+  /**
+   * Neural Detector pipeline results array
+   */
   @JsonProperty("Detector")
   public NeuralDetector[]      targets_Detector;
+  /**
+   * Barcode pipeline results array
+   */
   @JsonProperty("Barcode")
   public Barcode[]             targets_Barcode;
 
+  /**
+   * Construct a LimelightResults object for JSON Parsing.
+   */
   public LimelightResults()
   {
     botpose = new double[6];
@@ -94,11 +149,22 @@ public class LimelightResults
 
   }
 
+  /**
+   * Get the current botpose as a {@link Pose3d} object.
+   *
+   * @return {@link Pose3d} object representing the botpose.
+   */
   public Pose3d getBotPose3d()
   {
     return toPose3D(botpose);
   }
 
+  /**
+   * Get the current botpose as a {@link Pose3d} object.
+   *
+   * @param alliance Alliance color to get the botpose for.
+   * @return {@link Pose3d} object representing the botpose.
+   */
   public Pose3d getBotPose3d(DriverStation.Alliance alliance)
   {
     if (alliance == DriverStation.Alliance.Red)
@@ -110,11 +176,22 @@ public class LimelightResults
     }
   }
 
+  /**
+   * Get the current botpose as a {@link Pose2d} object.
+   *
+   * @return
+   */
   public Pose2d getBotPose2d()
   {
     return toPose2D(botpose);
   }
 
+  /**
+   * Get the current botpose as a {@link Pose2d} object.
+   *
+   * @param alliance Alliance color to get the botpose for.
+   * @return {@link Pose2d} object representing the botpose.
+   */
   public Pose2d getBotPose2d(DriverStation.Alliance alliance)
   {
     if (alliance == DriverStation.Alliance.Red)

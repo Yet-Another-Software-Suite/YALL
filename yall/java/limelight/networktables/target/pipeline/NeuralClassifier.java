@@ -53,6 +53,9 @@ public class NeuralClassifier
   @JsonProperty("typ")
   public double ty_pixels;
 
+  /**
+   * Creates a new NeuralClassifier object.
+   */
   public NeuralClassifier()
   {
   }
