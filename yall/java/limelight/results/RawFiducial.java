@@ -38,6 +38,17 @@ public class RawFiducial
   public double ambiguity    = 0;
 
 
+  /**
+   * Creates a new RawFiducial Result
+   *
+   * @param id           Tag ID
+   * @param txnc         X coordinate in image
+   * @param tync         Y coordinate in image
+   * @param ta           Ambiguity as a percent of the image
+   * @param distToCamera Distance to camera in Meters
+   * @param distToRobot  Distance to robot in Meters
+   * @param ambiguity    ambiguity as a percentage [0,1]
+   */
   public RawFiducial(int id, double txnc, double tync, double ta, double distToCamera, double distToRobot,
                      double ambiguity)
   {

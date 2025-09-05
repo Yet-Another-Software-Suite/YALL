@@ -8,9 +8,21 @@ import limelight.Limelight;
 public class RawDetection
 {
 
+  /**
+   * ClassID integer
+   */
   public int    classId   = 0;
+  /**
+   * Horizontal Offset From Principal Pixel To Target (degrees)
+   */
   public double txnc      = 0;
+  /**
+   * Vertical Offset From Principal Pixel To Target (degrees)
+   */
   public double tync      = 0;
+  /**
+   * 	Target Area (0% of image to 100% of image)
+   */
   public double ta        = 0;
   public double corner0_X = 0;
   public double corner0_Y = 0;

@@ -286,9 +286,21 @@ public class LimelightSettings
    */
   public enum LEDMode
   {
+    /**
+     * LED Mode Pipeline Control.
+     */
     PipelineControl,
+    /**
+     * LED Mode Force Off.
+     */
     ForceOff,
+    /**
+     * LED Mode Force Blink.
+     */
     ForceBlink,
+    /**
+     * LED Mode Force On.
+     */
     ForceOn
   }
 

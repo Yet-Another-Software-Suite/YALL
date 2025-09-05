@@ -1,29 +1,22 @@
+import edu.wpi.first.toolchain.*
+
 plugins {
     id 'cpp'
     id 'java'
     id 'google-test'
+    id 'idea'
     id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
     id 'edu.wpi.first.NativeUtils' version '2025.9.0'
+    id "edu.wpi.first.GradleRIO" version "2025.3.2"
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
-    id "edu.wpi.first.GradleRIO" version "2025.3.1"
-    id "com.diffplug.spotless" version "6.11.0"
 }
 
 // WPILib Version
-ext.wpilibVersion = "2025.3.1"
+ext.wpilibVersion = "2025.3.2"
+ext.releasePath = "$buildDir/maven"
+ext.pubVersion = System.getenv("releaseVersion") ?: System.getenv("releaseName") ?: "test"
 
-// Copy yall source over.
-delete "src/main/java/limelight"
-copy {
-    from "../yall/java/limelight"
-    into "src/main/java/limelight"
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
 
 repositories {
     mavenCentral()
@@ -34,11 +27,35 @@ if (project.hasProperty('releaseMode')) {
     wpilibRepositories.addAllDevelopmentRepositories(project)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$rootDir/../yall/java/"
+        }
+    }
+//    test {
+//        java {
+//            srcDir "src/test/java"
+//        }
+//    }
+}
+
+var javaVersion = "17"
+
 // Apply C++ configuration
 apply from: 'config.gradle'
 
 // Apply Java configuration
 dependencies {
+    annotationProcessor wpi.java.deps.wpilibAnnotations()
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+
     implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
     implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
     implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
@@ -52,80 +69,61 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
     implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
+
+}
+
+// Set up java tests
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+}
+
+wpi.sim.addGui().defaultEnabled = true
+wpi.sim.addDriverstation()
+wpi.java.configureTestTasks(test)
+
+tasks.test {
+    // Disable test when running 'build' task, but enable when running 'test' task directly
+    enabled = !gradle.startParameter.taskNames.contains('build')
+}
+
+if (project.hasProperty('onlylinuxathena') || project.hasProperty('onlylinuxarm32') || project.hasProperty('onlylinuxarm64') || project.hasProperty('onlywindowsarm64') || project.hasProperty('onlylinuxsystemcore')) {
+    test.enabled = false
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+    options.encoding = 'UTF-8'
 }
 
 javadoc {
-    destinationDir = file("../docs")
-    title = "Yet Another Limelight Library (YALL)"
+    title = "Yet Another Mechanism System API"
+    destinationDir = file("$releasePath/javadocs")
     options {
-        links 'https://docs.oracle.com/en/java/javase/17/docs/api/',
-                'https://github.wpilib.org/allwpilib/docs/release/java/'
+        links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/",
+                'https://github.wpilib.org/allwpilib/docs/release/java/',
+                'https://codedocs.revrobotics.com/java/',
+                'https://api.ctr-electronics.com/phoenix6/release/java/',
+                'https://api.ctr-electronics.com/phoenix/release/java/',
+                "https://www.kauailabs.com/public_files/navx-mxp/apidocs/java/"
     }
+}
+ext.getCurrentArch = {
+    return NativePlatforms.desktop
 }
 
-// Set up exports properly
-nativeUtils {
-    exportsConfigs {
-        // Main library is just default empty. This will export everything
-        Vendor {
-        }
-    }
-}
+def systemArch = getCurrentArch()
 
 model {
     components {
     }
-    testSuites {
-    }
 }
 
-spotless {
-    java {
-        target fileTree('.') {
-            include '**/*.java'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        toggleOffOn()
-        googleJavaFormat()
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-    cpp {
-        target fileTree('.') {
-            include '**/*.cpp', '**/*.h'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        eclipseCdt()
-    }
-    groovyGradle {
-        target fileTree('.') {
-            include '**/*.gradle'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        greclipse()
-        indentWithSpaces(4)
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-    format 'misc', {
-        target fileTree('.') {
-            include '**/*.md', '**/.gitignore'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        trimTrailingWhitespace()
-        indentWithSpaces(4)
-        endWithNewline()
-    }
-}
-
-spotlessCpp.dependsOn javadoc
-spotlessJava.dependsOn javadoc
-spotlessGroovyGradle.dependsOn javadoc
-spotlessMisc.dependsOn javadoc
-
-build.dependsOn spotlessApply
-
+build.dependsOn javadoc
 apply from: 'publish.gradle'
 
 wrapper {

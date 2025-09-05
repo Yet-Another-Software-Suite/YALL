@@ -23,6 +23,9 @@ import limelight.networktables.target.pipeline.NeuralDetector;
 public class LimelightResults
 {
 
+  /**
+   * Error message, if any.
+   */
   public String error;
 
   /**
@@ -179,7 +182,7 @@ public class LimelightResults
   /**
    * Get the current botpose as a {@link Pose2d} object.
    *
-   * @return
+   * @return {@link Pose2d} object representing the botpose.
    */
   public Pose2d getBotPose2d()
   {
