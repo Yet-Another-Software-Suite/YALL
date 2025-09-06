@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: write
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       releaseVersion: ${{ inputs.releaseVersion }}
       working-directory: ./vendordep
     steps:
@@ -27,12 +27,28 @@ jobs:
       - name: Install roboRio toolchain
         run: ./gradlew installRoboRioToolchain
         working-directory: ${{env.working-directory}}
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: ${{ env.workingDirectory }}/build/maven/
       - name: Build vendordep
         run: ./gradlew build
         working-directory: ${{env.working-directory}}
       - name: Publish vendordep
         run: ./gradlew publish
         working-directory: ${{env.working-directory}}
+      - name: Create new vendor JSON
+        run: cp ${{ env.workingDirectory }}/build/maven/yall.json ${{ env.workingDirectory }}/build/maven/yall-${{inputs.releaseVersion}}.json
+      - name: Create Vendor JSON Repo PR
+        uses: wpilibsuite/vendor-json-repo/.github/actions/add_vendordep@main
+        with:
+          repo: Yet-Another-Software-Suite/vendor-json-repo
+          token: ${{ secrets.PUBLISH_VENDOR_JSON_TOKEN }}
+          vendordep_file: ${{ env.workingDirectory }}/build/maven/yall-${{inputs.releaseVersion}}.json
+          pr_title: "Automatically add YALL version ${{inputs.releaseVersion}}"
+          pr_branch: "publish_yall_${{inputs.releaseVersion}}"
+        continue-on-error: true
       - name: Update repository
         run: |
           git config --global user.name "thenetworkgrinch"
@@ -40,3 +56,4 @@ jobs:
           git add .
           git commit -m "Upgrading to ${{ inputs.releaseVersion }}"
           git push
+        working-directory: ${{ env.workingDirectory }}/build/maven/
