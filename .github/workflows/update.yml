@@ -40,6 +40,8 @@ jobs:
         working-directory: ${{env.working-directory}}
       - name: Create new vendor JSON
         run: cp ${{ env.working-directory }}/build/maven/yall.json ${{ env.working-directory }}/build/maven/yall-${{inputs.releaseVersion}}.json
+      - name: View build files
+        run: find ${{ env.working-directory }}/build/maven/ -type f
       - name: Create Vendor JSON Repo PR
         uses: wpilibsuite/vendor-json-repo/.github/actions/add_vendordep@main
         with:
