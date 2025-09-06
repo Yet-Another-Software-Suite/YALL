@@ -5,9 +5,9 @@
     "frcYear": "2025",
     "uuid": "29aa8c8f-05ae-40aa-96f9-552a5c8a0347",
     "mavenUrls": [
-        "https://Yet-Another-Software-Suite.github.io/YALL/vendordep/repo"
+        "https://Yet-Another-Software-Suite.github.io/YALL/releases"
     ],
-    "jsonUrl": "https://Yet-Another-Software-Suite.github.io/YALL/vendordep/repo/yall.json",
+    "jsonUrl": "https://Yet-Another-Software-Suite.github.io/YALL/yall.json",
     "javaDependencies": [
         {
             "groupId": "${groupId}",
