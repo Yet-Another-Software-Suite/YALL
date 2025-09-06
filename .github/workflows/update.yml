@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          path: ${{ env.workingDirectory }}/build/maven/
+          path: ${{ env.working-directory }}/build/maven/
       - name: Build vendordep
         run: ./gradlew build
         working-directory: ${{env.working-directory}}
@@ -39,13 +39,13 @@ jobs:
         run: ./gradlew publish
         working-directory: ${{env.working-directory}}
       - name: Create new vendor JSON
-        run: cp ${{ env.workingDirectory }}/build/maven/yall.json ${{ env.workingDirectory }}/build/maven/yall-${{inputs.releaseVersion}}.json
+        run: cp ${{ env.working-directory }}/build/maven/yall.json ${{ env.working-directory }}/build/maven/yall-${{inputs.releaseVersion}}.json
       - name: Create Vendor JSON Repo PR
         uses: wpilibsuite/vendor-json-repo/.github/actions/add_vendordep@main
         with:
           repo: Yet-Another-Software-Suite/vendor-json-repo
           token: ${{ secrets.PUBLISH_VENDOR_JSON_TOKEN }}
-          vendordep_file: ${{ env.workingDirectory }}/build/maven/yall-${{inputs.releaseVersion}}.json
+          vendordep_file: ${{ env.working-directory }}/build/maven/yall-${{inputs.releaseVersion}}.json
           pr_title: "Automatically add YALL version ${{inputs.releaseVersion}}"
           pr_branch: "publish_yall_${{inputs.releaseVersion}}"
         continue-on-error: true
@@ -56,4 +56,4 @@ jobs:
           git add .
           git commit -m "Upgrading to ${{ inputs.releaseVersion }}"
           git push
-        working-directory: ${{ env.workingDirectory }}/build/maven/
+        working-directory: ${{ env.working-directory }}/build/maven/
