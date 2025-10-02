@@ -108,7 +108,7 @@ Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
 
 ## API Documentation
 
-* Java Docs are at https://Yet-Another-Software-Suite.github.io/YALL/docs/
+* Java Docs are at [https://Yet-Another-Software-Suite.github.io/YALL/javadocs/](https://yet-another-software-suite.github.io/YALL/javadocs/)
 
 ### Limelight
 
