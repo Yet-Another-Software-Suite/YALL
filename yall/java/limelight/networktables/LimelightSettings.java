@@ -40,29 +40,29 @@ public class LimelightSettings
   /**
    * LED Mode for the limelight. 0 = Pipeline Control, 1 = Force Off, 2 = Force Blink, 3 = Force On
    */
-  private NetworkTableEntry ledMode;
+  private NetworkTableEntry ledModeEntry;
   /**
    * {@link Limelight} PipelineIndex to use.
    */
-  private NetworkTableEntry pipelineIndex;
+  private NetworkTableEntry pipelineIndexEntry;
   /**
    * Priority TagID for the limelight.
    */
-  private NetworkTableEntry priorityTagID;
+  private NetworkTableEntry priorityTagIDEntry;
   /**
    * Stream mode, 0 = Side-by-side, 1 = Picture-in-Picture (second in corner), 2 = Picture-in-Picture (primary in
    * corner)
    */
-  private NetworkTableEntry streamMode;
+  private NetworkTableEntry streamModeEntry;
   /**
    * Crop window for the camera. The crop window in the UI must be completely open. DoubleArray
    * [cropXMin,cropXMax,cropYMin,cropYMax] values between -1 and 1
    */
-  private DoubleArrayEntry  cropWindow;
+  private DoubleArrayEntry  cropWindowEntry;
   /**
    * Imu Mode for the Limelight 4.
    */
-  private NetworkTableEntry imuMode;
+  private NetworkTableEntry imuModeEntry;
   /**
    * Sets 3d offset point for easy 3d targeting Sets the 3D point-of-interest offset for the current fiducial pipeline.
    * <p>
@@ -70,28 +70,28 @@ public class LimelightSettings
    * <p>
    * DoubleArray [offsetX(meters), offsetY(meters), offsetZ(meters)]
    */
-  private DoubleArrayEntry  fiducial3DOffset;
+  private DoubleArrayEntry  fiducial3DOffsetEntry;
   /**
    * Robot orientation for MegaTag2 localization algorithm.
    * <p>
    * DoubleArray [yaw(degrees), *yawRaw(degreesPerSecond), *pitch(degrees), *pitchRate(degreesPerSecond),
    * *roll(degrees), *rollRate(degreesPerSecond)]
    */
-  private DoubleArrayEntry  robotOrientationSet;
+  private DoubleArrayEntry  robotOrientationSetEntry;
   /**
    * DoubleArray of valid apriltag id's to track.
    */
-  private DoubleArrayEntry  fiducialIDFiltersOverride;
+  private DoubleArrayEntry  fiducialIDFiltersOverrideEntry;
   /**
    * Downscaling factor for AprilTag detection. Increasing downscale can improve performance at the cost of potentially
    * reduced detection range. Valid values ar [0 (pipeline control), 1 (no downscale), 2, 3, 4]
    */
-  private NetworkTableEntry downscale;
+  private NetworkTableEntry downscaleEntry;
   /**
    * Camera pose relative to the robot. DoubleArray [forward(meters), side(meters), up(meters), roll(degrees),
    * pitch(degrees), yaw(degrees)]
    */
-  private DoubleArrayEntry  cameraToRobot;
+  private DoubleArrayEntry  cameraToRobotEntry;
 
   /**
    * Create a {@link LimelightSettings} object with all configurable features of a {@link Limelight}.
@@ -102,18 +102,18 @@ public class LimelightSettings
   {
     limelight = camera;
     limelightTable = limelight.getNTTable();
-    ledMode = limelightTable.getEntry("ledMode");
+    ledModeEntry = limelightTable.getEntry("ledMode");
 
-    pipelineIndex = limelightTable.getEntry("pipeline");
-    priorityTagID = limelightTable.getEntry("priorityid");
-    streamMode = limelightTable.getEntry("stream");
-    cropWindow = limelightTable.getDoubleArrayTopic("crop").getEntry(new double[0]);
-    imuMode = limelightTable.getEntry("imumode_set");
-    robotOrientationSet = limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(new double[0]);
-    downscale = limelightTable.getEntry("fiducial_downscale_set");
-    fiducial3DOffset = limelightTable.getDoubleArrayTopic("fiducial_offset_set").getEntry(new double[0]);
-    cameraToRobot = limelightTable.getDoubleArrayTopic("camerapose_robotspace_set").getEntry(new double[0]);
-    fiducialIDFiltersOverride = limelightTable.getDoubleArrayTopic("fiducial_id_filters_set").getEntry(new double[0]);
+    pipelineIndexEntry = limelightTable.getEntry("pipeline");
+    priorityTagIDEntry = limelightTable.getEntry("priorityid");
+    streamModeEntry = limelightTable.getEntry("stream");
+    cropWindowEntry = limelightTable.getDoubleArrayTopic("crop").getEntry(new double[0]);
+    imuModeEntry = limelightTable.getEntry("imumode_set");
+    robotOrientationSetEntry = limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(new double[0]);
+    downscaleEntry = limelightTable.getEntry("fiducial_downscale_set");
+    fiducial3DOffsetEntry = limelightTable.getDoubleArrayTopic("fiducial_offset_set").getEntry(new double[0]);
+    cameraToRobotEntry = limelightTable.getDoubleArrayTopic("camerapose_robotspace_set").getEntry(new double[0]);
+    fiducialIDFiltersOverrideEntry = limelightTable.getDoubleArrayTopic("fiducial_id_filters_set").getEntry(new double[0]);
   }
 
   /**
@@ -125,7 +125,7 @@ public class LimelightSettings
    */
   public LimelightSettings withLimelightLEDMode(LEDMode mode)
   {
-    ledMode.setNumber(mode.ordinal());
+    ledModeEntry.setNumber(mode.ordinal());
     return this;
   }
 
@@ -138,7 +138,7 @@ public class LimelightSettings
    */
   public LimelightSettings withPipelineIndex(int index)
   {
-    pipelineIndex.setNumber(index);
+    pipelineIndexEntry.setNumber(index);
     return this;
   }
 
@@ -151,7 +151,7 @@ public class LimelightSettings
    */
   public LimelightSettings withPriorityTagId(int aprilTagId)
   {
-    priorityTagID.setNumber(aprilTagId);
+    priorityTagIDEntry.setNumber(aprilTagId);
     return this;
   }
 
@@ -164,7 +164,7 @@ public class LimelightSettings
    */
   public LimelightSettings withStreamMode(StreamMode mode)
   {
-    streamMode.setNumber(mode.ordinal());
+    streamModeEntry.setNumber(mode.ordinal());
     return this;
   }
 
@@ -180,7 +180,7 @@ public class LimelightSettings
    */
   public LimelightSettings withCropWindow(double minX, double maxX, double minY, double maxY)
   {
-    cropWindow.set(new double[]{minX, maxX, minY, maxY});
+    cropWindowEntry.set(new double[]{minX, maxX, minY, maxY});
     return this;
   }
 
@@ -193,7 +193,7 @@ public class LimelightSettings
    */
   public LimelightSettings withImuMode(ImuMode mode)
   {
-    imuMode.setNumber(mode.ordinal());
+    imuModeEntry.setNumber(mode.ordinal());
     return this;
   }
 
@@ -207,7 +207,7 @@ public class LimelightSettings
    */
   public LimelightSettings withRobotOrientation(Orientation3d orientation)
   {
-    robotOrientationSet.set(orientation3dToArray(orientation));
+    robotOrientationSetEntry.set(orientation3dToArray(orientation));
     save();
     return this;
   }
@@ -223,7 +223,7 @@ public class LimelightSettings
    */
   public LimelightSettings withFiducialDownscalingOverride(DownscalingOverride downscalingOverride)
   {
-    downscale.setDouble(downscalingOverride.ordinal());
+    downscaleEntry.setDouble(downscalingOverride.ordinal());
     return this;
   }
 
@@ -238,7 +238,7 @@ public class LimelightSettings
    */
   public LimelightSettings withAprilTagOffset(Translation3d offset)
   {
-    fiducial3DOffset.set(translation3dToArray(offset));
+    fiducial3DOffsetEntry.set(translation3dToArray(offset));
     return this;
   }
 
@@ -251,7 +251,7 @@ public class LimelightSettings
    */
   public LimelightSettings withArilTagIdFilter(List<Double> idFilter)
   {
-    fiducialIDFiltersOverride.set(idFilter.stream().mapToDouble(Double::doubleValue).toArray());
+    fiducialIDFiltersOverrideEntry.set(idFilter.stream().mapToDouble(Double::doubleValue).toArray());
     return this;
   }
 
@@ -265,7 +265,7 @@ public class LimelightSettings
    */
   public LimelightSettings withCameraOffset(Pose3d offset)
   {
-    cameraToRobot.set(pose3dToArray(offset));
+    cameraToRobotEntry.set(pose3dToArray(offset));
     return this;
   }
 
