@@ -86,7 +86,7 @@ public class DrivebaseSubsystem extends SubsystemBase
              .withLimelightLEDMode(LEDMode.PipelineControl)
              .withCameraOffset(cameraOffset)
              .save();
-    poseEstimator = limelight.getPoseEstimator(true);
+    poseEstimator = limelight.createPoseEstimator(true);
 
   }
 

@@ -999,7 +999,7 @@ class Limelight:
         Alert(errMsg, Alert.AlertType.kError).set(True)
         return False
 
-    def getPoseEstimator(self, megatag2: bool) -> "LimelightPoseEstimator":
+    def createPoseEstimator(self, megatag2: bool) -> "LimelightPoseEstimator":
         return LimelightPoseEstimator(self, megatag2)
 
     def getSettings(self) -> LimelightSettings:

@@ -109,7 +109,7 @@ public class Limelight
    * @param megatag2 Use MegaTag2.
    * @return {@link LimelightPoseEstimator}
    */
-  public LimelightPoseEstimator getPoseEstimator(boolean megatag2)
+  public LimelightPoseEstimator createPoseEstimator(boolean megatag2)
   {
     return new LimelightPoseEstimator(this, megatag2);
   }
