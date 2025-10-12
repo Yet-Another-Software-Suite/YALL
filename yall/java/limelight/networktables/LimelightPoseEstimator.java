@@ -35,7 +35,7 @@ public class LimelightPoseEstimator {
      * gyro or odometry source) to refine the estimated pose. This results in
      * smoother and more accurate global localization, especially when tags
      * are viewed from oblique angles or at long range.
-     * @see LimelightSettings.withRobotOrientation
+     * @see LimelightSettings#withRobotOrientation
      */
     MEGATAG2
   }
