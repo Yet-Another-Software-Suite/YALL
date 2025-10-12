@@ -12,8 +12,31 @@ import limelight.Limelight;
  * Pose estimator for {@link Limelight}.
  */
 public class LimelightPoseEstimator {
+  /**
+   * Represents the pose estimation mode used by the Limelight camera.
+   * <p>
+   * Each mode corresponds to a different vision pipeline for AprilTag-based
+   * localization, with distinct methods for combining visual and robot data.
+   */
   public static enum EstimationMode {
+    /**
+     * Uses the original Limelight MegaTag1 pipeline for pose estimation.
+     * <p>
+     * MegaTag1 estimates the robot's pose using data from a single detected
+     * AprilTag. It relies entirely on visual information from the camera,
+     * without using any external robot state data.
+     */
     MEGATAG1,
+
+    /**
+     * Uses the Limelight MegaTag2 pipeline for pose estimation.
+     * <p>
+     * MegaTag2 fuses AprilTag data with the robot's current heading (from a
+     * gyro or odometry source) to refine the estimated pose. This results in
+     * smoother and more accurate global localization, especially when tags
+     * are viewed from oblique angles or at long range.
+     * @see LimelightSettings.withRobotOrientation
+     */
     MEGATAG2
   }
 
@@ -22,7 +45,7 @@ public class LimelightPoseEstimator {
    */
   private final Limelight limelight;
   /**
-   * Use MegaTag2 for the {@link PoseEstimate}.
+   * Estimation mode to use (MEGATAG1 / MEGATAG2).
    */
   private final EstimationMode estimationMode;
   /**
@@ -35,8 +58,8 @@ public class LimelightPoseEstimator {
    * Construct {@link LimelightPoseEstimator} which fetches data from
    * NetworkTables
    *
-   * @param camera   {@link Limelight} to use.
-   * @param megatag2 MegaTag2 decoding.
+   * @param camera         {@link Limelight} to use.
+   * @param estimationMode Estimation mode to use (MEGATAG1 / MEGATAG2).
    */
   public LimelightPoseEstimator(Limelight camera, EstimationMode estimationMode) {
     limelight = camera;

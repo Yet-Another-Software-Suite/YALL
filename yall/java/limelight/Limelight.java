@@ -106,7 +106,7 @@ public class Limelight {
   /**
    * Create a {@link LimelightPoseEstimator} for the {@link Limelight}.
    *
-   * @param megatag2 Use MegaTag2.
+   * @param estimationMode Estimation mode to use (MEGATAG1 / MEGATAG2).
    * @return {@link LimelightPoseEstimator}
    */
   public LimelightPoseEstimator createPoseEstimator(EstimationMode estimationMode) {
