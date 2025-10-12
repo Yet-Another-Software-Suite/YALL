@@ -32,6 +32,7 @@ import limelight.networktables.LimelightResults;
 import limelight.networktables.LimelightSettings.LEDMode;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
+import limelight.networktables.LimelightPoseEstimator.EstimationMode;
 import limelight.networktables.target.pipeline.NeuralClassifier;
 
 public class DrivebaseSubsystem extends SubsystemBase
@@ -86,7 +87,7 @@ public class DrivebaseSubsystem extends SubsystemBase
              .withLimelightLEDMode(LEDMode.PipelineControl)
              .withCameraOffset(cameraOffset)
              .save();
-    poseEstimator = limelight.createPoseEstimator(true);
+    poseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
 
   }
 

@@ -1043,10 +1043,15 @@ class Limelight:
         return ntcore.NetworkTableInstance.getDefault().getTable(self.limelightName)
 
 
+class EstimationMode(Enum):
+    MEGATAG1 = 0
+    MEGATAG2 = 1
+
+
 class LimelightPoseEstimator:
-    def __init__(self, camera: Limelight, megatag2: bool) -> None:
+    def __init__(self, camera: Limelight, estimationMode: EstimationMode) -> None:
         self.__limelight: Final[Limelight] = camera
-        self.__megatag2: Final[bool] = megatag2
+        self.__estimationMode = estimationMode
         self.__botpose: ntcore.DoubleArrayEntry = (
             self.__limelight.getNTTable()
             .getDoubleArrayTopic("botpose")
@@ -1064,13 +1069,13 @@ class LimelightPoseEstimator:
         if alliance == DriverStation.Alliance.kRed:
             return (
                 BotPose.RED_MEGATAG2.get(self.__limelight)
-                if self.__megatag2
+                if self.__estimationMode == EstimationMode.MEGATAG2
                 else BotPose.RED.get(self.__limelight)
             )
         elif alliance == DriverStation.Alliance.kBlue:
             return (
                 BotPose.BLUE_MEGATAG2.get(self.__limelight)
-                if self.__megatag2
+                if self.__estimationMode == EstimationMode.MEGATAG2
                 else BotPose.BLUE.get(self.__limelight)
             )
         return None
@@ -1078,6 +1083,6 @@ class LimelightPoseEstimator:
     def getPoseEstimate(self) -> Optional[PoseEstimate]:
         return (
             BotPose.BLUE_MEGATAG2.get(self.__limelight)
-            if self.__megatag2
+            if self.__estimationMode == EstimationMode.MEGATAG2
             else BotPose.BLUE.get(self.__limelight)
         )
