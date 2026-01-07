@@ -370,7 +370,15 @@ public class LimelightSettings
     /**
      * Use internal IMU for MT2 localization. Ignores external IMU updates from {@link LimelightSettings#withRobotOrientation(Orientation3d)}.
      */
-    InternalImu
+    InternalImu,
+    /**
+     * Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.
+     */
+    InternalImuMT1Assist,
+    /**
+     * Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.
+     */
+    InternalImuExternalAssist
   }
 
 }

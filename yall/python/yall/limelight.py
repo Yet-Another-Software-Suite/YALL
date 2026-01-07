@@ -709,6 +709,8 @@ class LimelightSettings:
         ExternalImu = 0  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is ignored entirely.
         SyncInternalImu = 1  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is synced with the external IMU.
         InternalImu = 2  # Use internal IMU for MT2 localization. Ignores external IMU updates from {@link withRobotOrientation}.
+        InternalImuMT1Assist = 3  # Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.
+        InternalImuExternalAssist = 4  # Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.
 
     class DownscalingOverride(Enum):
         Pipeline = 0  # Pipeline downscaling, equivalent to 0
