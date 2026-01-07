@@ -72,7 +72,7 @@ limelight.getSettings()
 		 .save();
 
 // Get MegaTag2 pose
-Optional<PoseEstimate> visionEstimate = limelight.getPoseEstimator(EstimationMode.MEGATAG2).getPoseEstimate();
+Optional<PoseEstimate> visionEstimate = limelight.createPoseEstimator(EstimationMode.MEGATAG2).getPoseEstimate();
 // If the pose is present
 visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
   // Add it to the pose estimator.
