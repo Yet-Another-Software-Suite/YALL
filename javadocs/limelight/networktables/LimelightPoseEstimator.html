@@ -96,6 +96,11 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">BotPose enum for easier decoding.</div>
 </div>
+<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="LimelightPoseEstimator.EstimationMode.html" class="type-name-link" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Represents the pose estimation mode used by the Limelight camera.</div>
+</div>
 </div>
 </section>
 </li>
@@ -107,10 +112,11 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(limelight.Limelight,boolean)" class="member-name-link">LimelightPoseEstimator</a><wbr>(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;camera,
- boolean&nbsp;megatag2)</code></div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(limelight.Limelight,limelight.networktables.LimelightPoseEstimator.EstimationMode)" class="member-name-link">LimelightPoseEstimator</a><wbr>(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;camera,
+ <a href="LimelightPoseEstimator.EstimationMode.html" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a>&nbsp;estimationMode)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Construct <a href="LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> which fetches data from NetworkTables</div>
+<div class="block">Construct <a href="LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> which fetches data from
+ NetworkTables</div>
 </div>
 </div>
 </section>
@@ -159,15 +165,16 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(limelight.Limelight,boolean)">
+<section class="detail" id="&lt;init&gt;(limelight.Limelight,limelight.networktables.LimelightPoseEstimator.EstimationMode)">
 <h3>LimelightPoseEstimator</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LimelightPoseEstimator</span><wbr><span class="parameters">(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;camera,
- boolean&nbsp;megatag2)</span></div>
-<div class="block">Construct <a href="LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> which fetches data from NetworkTables</div>
+ <a href="LimelightPoseEstimator.EstimationMode.html" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a>&nbsp;estimationMode)</span></div>
+<div class="block">Construct <a href="LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> which fetches data from
+ NetworkTables</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>camera</code> - <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> to use.</dd>
-<dd><code>megatag2</code> - MegaTag2 decoding.</dd>
+<dd><code>estimationMode</code> - Estimation mode to use (MEGATAG1 / MEGATAG2).</dd>
 </dl>
 </section>
 </li>
@@ -198,7 +205,8 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="PoseEstimate.html" title="class in limelight.networktables">PoseEstimate</a>&gt;</span>&nbsp;<span class="element-name">getAlliancePoseEstimate</span>()</div>
 <div class="block">Get the <a href="PoseEstimate.html" title="class in limelight.networktables"><code>PoseEstimate</code></a> corresponding with your alliance color.
  <p>
- Alliance comes from DriverStation. If simulation, then the sim GUI must not be in "disconnected" mode.</div>
+ Alliance comes from DriverStation. If simulation, then the sim GUI must not
+ be in "disconnected" mode.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link"><code>Optional</code></a> of <a href="PoseEstimate.html" title="class in limelight.networktables"><code>PoseEstimate</code></a> of your given alliance.</dd>

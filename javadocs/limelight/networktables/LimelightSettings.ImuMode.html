@@ -117,6 +117,14 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color">
 <div class="block">Use internal IMU for MT2 localization.</div>
 </div>
+<div class="col-first even-row-color"><code><a href="#InternalImuExternalAssist" class="member-name-link">InternalImuExternalAssist</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Use internal IMU for MT2 localization.</div>
+</div>
+<div class="col-first odd-row-color"><code><a href="#InternalImuMT1Assist" class="member-name-link">InternalImuMT1Assist</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Use internal IMU for MT2 localization.</div>
+</div>
 <div class="col-first even-row-color"><code><a href="#SyncInternalImu" class="member-name-link">SyncInternalImu</a></code></div>
 <div class="col-last even-row-color">
 <div class="block">Use external IMU yaw submitted via <a href="LimelightSettings.html#withRobotOrientation(limelight.networktables.Orientation3d)"><code>LimelightSettings.withRobotOrientation(Orientation3d)</code></a> for MT2 localization.</div>
@@ -185,6 +193,20 @@ the order they are declared.</div>
 <h3>InternalImu</h3>
 <div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="LimelightSettings.ImuMode.html" title="enum class in limelight.networktables">LimelightSettings.ImuMode</a></span>&nbsp;<span class="element-name">InternalImu</span></div>
 <div class="block">Use internal IMU for MT2 localization. Ignores external IMU updates from <a href="LimelightSettings.html#withRobotOrientation(limelight.networktables.Orientation3d)"><code>LimelightSettings.withRobotOrientation(Orientation3d)</code></a>.</div>
+</section>
+</li>
+<li>
+<section class="detail" id="InternalImuMT1Assist">
+<h3>InternalImuMT1Assist</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="LimelightSettings.ImuMode.html" title="enum class in limelight.networktables">LimelightSettings.ImuMode</a></span>&nbsp;<span class="element-name">InternalImuMT1Assist</span></div>
+<div class="block">Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.</div>
+</section>
+</li>
+<li>
+<section class="detail" id="InternalImuExternalAssist">
+<h3>InternalImuExternalAssist</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="LimelightSettings.ImuMode.html" title="enum class in limelight.networktables">LimelightSettings.ImuMode</a></span>&nbsp;<span class="element-name">InternalImuExternalAssist</span></div>
+<div class="block">Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.</div>
 </section>
 </li>
 </ul>
