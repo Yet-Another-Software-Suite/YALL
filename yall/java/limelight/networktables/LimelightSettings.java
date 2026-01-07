@@ -64,6 +64,10 @@ public class LimelightSettings
    */
   private NetworkTableEntry imuMode;
   /**
+   * Imu Assist Alpha value for the Limelight 4.
+   */
+  private NetworkTableEntry imuAssistAlpha;
+  /**
    * Sets 3d offset point for easy 3d targeting Sets the 3D point-of-interest offset for the current fiducial pipeline.
    * <p>
    * https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking
@@ -109,6 +113,7 @@ public class LimelightSettings
     streamMode = limelightTable.getEntry("stream");
     cropWindow = limelightTable.getDoubleArrayTopic("crop").getEntry(new double[0]);
     imuMode = limelightTable.getEntry("imumode_set");
+    imuAssistAlpha = limelightTable.getEntry("imuassistalpha_set");
     robotOrientationSet = limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(new double[0]);
     downscale = limelightTable.getEntry("fiducial_downscale_set");
     fiducial3DOffset = limelightTable.getDoubleArrayTopic("fiducial_offset_set").getEntry(new double[0]);
@@ -194,6 +199,20 @@ public class LimelightSettings
   public LimelightSettings withImuMode(ImuMode mode)
   {
     imuMode.setNumber(mode.ordinal());
+    return this;
+  }
+
+  /**
+   * Set the IMU Assist filter alpha/strength value. Higher values will cause the internal imu to converge on
+   * assist source more rapidly.
+   * <p> This method changes the Limelight - normally immediately.
+   *
+   * @param alpha Assist alpha value (0.001 by default).
+   * @return {@link LimelightSettings} for chaining.
+   */
+  public LimelightSettings withImuAssistAlpha(double alpha)
+  {
+    imuAssistAlpha.setNumber(alpha);
     return this;
   }
 
@@ -370,7 +389,15 @@ public class LimelightSettings
     /**
      * Use internal IMU for MT2 localization. Ignores external IMU updates from {@link LimelightSettings#withRobotOrientation(Orientation3d)}.
      */
-    InternalImu
+    InternalImu,
+    /**
+     * Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.
+     */
+    InternalImuMT1Assist,
+    /**
+     * Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.
+     */
+    InternalImuExternalAssist
   }
 
 }

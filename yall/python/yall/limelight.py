@@ -709,6 +709,8 @@ class LimelightSettings:
         ExternalImu = 0  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is ignored entirely.
         SyncInternalImu = 1  # Use external IMU yaw submitted via {@link withRobotOrientation} for MT2 localization. The internal IMU is synced with the external IMU.
         InternalImu = 2  # Use internal IMU for MT2 localization. Ignores external IMU updates from {@link withRobotOrientation}.
+        InternalImuMT1Assist = 3  # Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.
+        InternalImuExternalAssist = 4  # Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.
 
     class DownscalingOverride(Enum):
         Pipeline = 0  # Pipeline downscaling, equivalent to 0
@@ -746,6 +748,9 @@ class LimelightSettings:
         )
         self.imuMode: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
             "imumode_set"
+        )
+        self.imuAssistAlpha: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "imuassistalpha_set"
         )
         self.robotOrientationSet: ntcore.DoubleArrayEntry = (
             self.limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(
@@ -801,6 +806,15 @@ class LimelightSettings:
     def withImuMode(self, mode: ImuMode) -> "LimelightSettings":
         """Set the IMU Mode for the Limelight."""
         self.imuMode.setDouble(mode.value)
+        return self
+
+    def withImuAssistAlpha(self, alpha: float) -> "LimelightSettings":
+        """
+        Set the IMU Assist filter alpha/strength value.
+        Higher values will cause the internal imu to converge on assist source more rapidly.
+        Default value is 0.001.
+        """
+        self.imuAssistAlpha.setDouble(alpha)
         return self
 
     def withRobotOrientation(self, orientation: Orientation3d) -> "LimelightSettings":
