@@ -749,6 +749,9 @@ class LimelightSettings:
         self.imuMode: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
             "imumode_set"
         )
+        self.imuAssistAlpha: ntcore.NetworkTableEntry = self.limelightTable.getEntry(
+            "imuassistalpha_set"
+        )
         self.robotOrientationSet: ntcore.DoubleArrayEntry = (
             self.limelightTable.getDoubleArrayTopic("robot_orientation_set").getEntry(
                 []
@@ -803,6 +806,15 @@ class LimelightSettings:
     def withImuMode(self, mode: ImuMode) -> "LimelightSettings":
         """Set the IMU Mode for the Limelight."""
         self.imuMode.setDouble(mode.value)
+        return self
+
+    def withImuAssistAlpha(self, alpha: float) -> "LimelightSettings":
+        """
+        Set the IMU Assist filter alpha/strength value.
+        Higher values will cause the internal imu to converge on assist source more rapidly.
+        Default value is 0.001.
+        """
+        self.imuAssistAlpha.setDouble(alpha)
         return self
 
     def withRobotOrientation(self, orientation: Orientation3d) -> "LimelightSettings":
