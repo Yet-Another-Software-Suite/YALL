@@ -105,11 +105,7 @@ javadoc {
     destinationDir = file("$releasePath/javadocs")
     options {
         links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/",
-                'https://github.wpilib.org/allwpilib/docs/release/java/',
-                'https://codedocs.revrobotics.com/java/',
-                'https://api.ctr-electronics.com/phoenix6/release/java/',
-                'https://api.ctr-electronics.com/phoenix/release/java/',
-                "https://www.kauailabs.com/public_files/navx-mxp/apidocs/java/"
+                'https://github.wpilib.org/allwpilib/docs/release/java/'
     }
 }
 ext.getCurrentArch = {
