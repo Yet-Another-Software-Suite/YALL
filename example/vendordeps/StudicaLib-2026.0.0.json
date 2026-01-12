@@ -1,25 +1,25 @@
 {
-    "fileName": "REVLib-2025.0.1.json",
-    "name": "REVLib",
-    "version": "2025.0.1",
-    "frcYear": "2025",
-    "uuid": "3f48eb8c-50fe-43a6-9cb7-44c86353c4cb",
+    "fileName": "StudicaLib.json",
+    "name": "StudicaLib",
+    "version": "2026.0.0",
+    "frcYear": "2026",
+    "uuid": "963ef341-8abd-4981-a969-c8ae3f592e82",
     "mavenUrls": [
-        "https://maven.revrobotics.com/"
+        "https://dev.studica.com/maven/release/2026/"
     ],
-    "jsonUrl": "https://software-metadata.revrobotics.com/REVLib-2025.json",
+    "jsonUrl": "https://dev.studica.com/maven/release/2026/json/StudicaLib-2026.0.0.json",
     "javaDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-java",
-            "version": "2025.0.1"
+            "groupId": "com.studica.frc",
+            "artifactId": "StudicaLib-java",
+            "version": "2026.0.0"
         }
     ],
     "jniDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-driver",
-            "version": "2025.0.1",
+            "groupId": "com.studica.frc",
+            "artifactId": "StudicaLib-driver",
+            "version": "2026.0.0",
             "skipInvalidPlatforms": true,
             "isJar": false,
             "validPlatforms": [
@@ -34,10 +34,10 @@
     ],
     "cppDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-cpp",
-            "version": "2025.0.1",
-            "libName": "REVLib",
+            "groupId": "com.studica.frc",
+            "artifactId": "StudicaLib-cpp",
+            "version": "2026.0.0",
+            "libName": "StudicaLib",
             "headerClassifier": "headers",
             "sharedLibrary": false,
             "skipInvalidPlatforms": true,
@@ -51,10 +51,10 @@
             ]
         },
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-driver",
-            "version": "2025.0.1",
-            "libName": "REVLibDriver",
+            "groupId": "com.studica.frc",
+            "artifactId": "StudicaLib-driver",
+            "version": "2026.0.0",
+            "libName": "StudicaLibDriver",
             "headerClassifier": "headers",
             "sharedLibrary": false,
             "skipInvalidPlatforms": true,
