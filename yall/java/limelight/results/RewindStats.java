@@ -34,7 +34,7 @@ public class RewindStats
   public int    frameCount;
   /**
    * Rewind has a latency penalty of 500us-1ms. This latency penalty is listed in the results json rewind object as
-   * “latpen” in integer microseconds
+   * "latpen" in integer microseconds
    */
   @JsonProperty("latpen")
   public int    latencyPenalty;

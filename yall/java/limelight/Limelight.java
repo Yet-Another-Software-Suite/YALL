@@ -54,7 +54,6 @@ public class Limelight
     if (!isAvailable(name) && !RobotBase.isSimulation())
     {
       DriverStation.reportWarning("Limelight " + name + " is not available", true);
-      //throw new RuntimeException("Limelight not available");
     }
 
     limelightName = name;
