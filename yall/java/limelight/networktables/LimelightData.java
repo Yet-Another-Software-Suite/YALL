@@ -84,7 +84,7 @@ public class LimelightData
    */
   protected DoubleArrayEntry      imuData;
   /**
-   * Uses counter-based rising edge detection. Increment value (0→1→2→3) to trigger snapshots. Rate-limited to once per
+   * Uses counter-based rising edge detection. Increment value (0->1->2->3) to trigger snapshots. Rate-limited to once per
    * 10 frames
    */
   protected NetworkTableEntry     snapshot;
