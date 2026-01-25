@@ -26,59 +26,68 @@ public class LimelightData
   /**
    * Target data from limelight.
    */
-  public  LimelightTargetData   targetData;
+  public    LimelightTargetData   targetData;
   /**
    * Pipeline data from limelight.
    */
-  public  LimelightPipelineData pipelineData;
+  public    LimelightPipelineData pipelineData;
   /**
    * {@link NetworkTable} for the {@link Limelight}
    */
-  protected NetworkTable      limelightTable;
+  protected NetworkTable          limelightTable;
   /**
    * {@link Limelight} to fetch data for.
    */
-  private Limelight             limelight;
+  private   Limelight             limelight;
   /**
    * The limelight.results {@link LimelightResults} JSON data
    */
-  protected NetworkTableEntry results;
+  protected NetworkTableEntry     results;
   /**
    * Raw AprilTag detection from NetworkTables.
    */
-  protected NetworkTableEntry rawfiducials;
+  protected NetworkTableEntry     rawfiducials;
   /**
    * Raw Neural Detector limelight.results from NetworkTables.
    */
-  protected NetworkTableEntry rawDetections;
+  protected NetworkTableEntry     rawDetections;
   /**
    * Neural Clasifier result class name.
    */
-  protected NetworkTableEntry classifierClass;
+  protected NetworkTableEntry     classifierClass;
   /**
    * Primary neural detect result class name.
    */
-  protected NetworkTableEntry detectorClass;
+  protected NetworkTableEntry     detectorClass;
   /**
    * {@link Pose3d} object representing the camera's position and orientation relative to the robot.
    */
-  protected DoubleArrayEntry  camera2RobotPose3d;
+  protected DoubleArrayEntry      camera2RobotPose3d;
   /**
    * Barcodes read by the {@link Limelight}.
    */
-  protected StringArrayEntry  barcodeData;
+  protected StringArrayEntry      barcodeData;
   /**
    * Custom Python script set data for {@link Limelight}.
    */
-  protected DoubleArrayEntry  pythonScriptDataSet;
+  protected DoubleArrayEntry      pythonScriptDataSet;
   /**
    * Custom Python script output data for {@link Limelight}.
    */
-  protected DoubleArrayEntry  pythonScriptData;
+  protected DoubleArrayEntry      pythonScriptData;
   /**
    * Object mapper for limelight.results JSON.
    */
-  protected ObjectMapper      resultsObjectMapper;
+  protected ObjectMapper          resultsObjectMapper;
+  /**
+   * IMU data: [robot_yaw, roll, pitch, internal_yaw, roll_rate, pitch_rate, yaw_rate, accel_x, accel_y, accel_z]
+   */
+  protected DoubleArrayEntry      imuData;
+  /**
+   * Uses counter-based rising edge detection. Increment value (0→1→2→3) to trigger snapshots. Rate-limited to once per
+   * 10 frames
+   */
+  protected NetworkTableEntry     snapshot;
 
   /**
    * Construct the {@link LimelightData} class to retrieve read-only data.
@@ -90,6 +99,8 @@ public class LimelightData
     resultsObjectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     limelight = camera;
     limelightTable = limelight.getNTTable();
+    snapshot = limelightTable.getEntry("snapshot");
+    imuData = limelightTable.getDoubleArrayTopic("imu").getEntry(new double[10]);
     results = limelightTable.getEntry("json");
     rawfiducials = limelightTable.getEntry("rawfiducials");
     rawDetections = limelightTable.getEntry("rawdetections");
@@ -101,6 +112,15 @@ public class LimelightData
     pythonScriptDataSet = limelightTable.getDoubleArrayTopic("llrobot").getEntry(new double[0]);
     targetData = new LimelightTargetData(camera);
     pipelineData = new LimelightPipelineData(camera);
+  }
+
+  /**
+   * Take snapshot. Rate limited to once per 10 frames.
+   */
+  public void takeSnapshot()
+  {
+    var val = (int) snapshot.getNumber(0);
+    snapshot.setNumber(((val + 1) % 4));
   }
 
   /**

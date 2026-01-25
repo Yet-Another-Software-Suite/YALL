@@ -16,6 +16,9 @@ import limelight.networktables.target.Barcode;
 import limelight.networktables.target.RetroreflectiveTape;
 import limelight.networktables.target.pipeline.NeuralClassifier;
 import limelight.networktables.target.pipeline.NeuralDetector;
+import limelight.results.HardwareReport;
+import limelight.results.IMUResults;
+import limelight.results.RewindStats;
 
 /**
  * {@link Limelight} Results object, parsed from a {@link Limelight}'s JSON limelight.results output.
@@ -134,6 +137,41 @@ public class LimelightResults
    */
   @JsonProperty("Barcode")
   public Barcode[]             targets_Barcode;
+  /**
+   * Hardware report
+   */
+  @JsonProperty("hw")
+  public HardwareReport        hardware;
+  /**
+   * Limelight IMU results
+   */
+  @JsonProperty("imu")
+  public IMUResults imuResults;
+  /**
+   * Rewind stats (Limelight 4 only)
+   */
+  @JsonProperty("rewind")
+  public RewindStats rewindStats;
+  /**
+   * Image source setting value.
+   */
+  @JsonProperty("imgsrc")
+  public String imageSource;
+  /**
+   * Hardware type identifier.
+   */
+  @JsonProperty("hwtype")
+  public String hardwareType;
+  /**
+   * 1 if web UI needs refresh, 0 otherwise.
+   */
+  @JsonProperty("uirefesh")
+  public  int uiRefresh;
+  /**
+   * 	1 if NetworkTables pipeline control is disabled, 0 otherwise.
+   */
+  @JsonProperty("ignorent")
+  public  int ignoreNetworkTables;
 
   /**
    * Construct a LimelightResults object for JSON Parsing.

@@ -96,6 +96,24 @@ public class LimelightSettings
    * pitch(degrees), yaw(degrees)]
    */
   private DoubleArrayEntry  cameraToRobot;
+  /**
+   * Frames to skip between processed frames for thermal management
+   */
+  private NetworkTableEntry throttleSet;
+  /**
+   * Keystone perspective correction [horizontal, vertical] (-0.95 to 0.95)
+   */
+  private DoubleArrayEntry  keystone;
+  /**
+   * Triggers rewind capture [counter, duration_seconds]. Increment counter to trigger. Max 165s via NT. Rate-limited to
+   * once every 2 seconds; dropped if flush in progress
+   */
+  private DoubleArrayEntry  rewindCapture;
+  /**
+   * Controls rewind buffer recording. 1 = recording enabled, 0 = recording paused
+   */
+  private NetworkTableEntry rewindEnable;
+
 
   /**
    * Create a {@link LimelightSettings} object with all configurable features of a {@link Limelight}.
@@ -108,6 +126,10 @@ public class LimelightSettings
     limelightTable = limelight.getNTTable();
     ledMode = limelightTable.getEntry("ledMode");
 
+    rewindEnable = limelightTable.getEntry("rewind_enable_set");
+    rewindCapture = limelightTable.getDoubleArrayTopic("rewind_capture").getEntry(new double[2]);
+    keystone = limelightTable.getDoubleArrayTopic("keystone_set").getEntry(new double[2]);
+    throttleSet = limelightTable.getEntry("throttle_set");
     pipelineIndex = limelightTable.getEntry("pipeline");
     priorityTagID = limelightTable.getEntry("priorityid");
     streamMode = limelightTable.getEntry("stream");
@@ -190,7 +212,7 @@ public class LimelightSettings
   }
 
   /**
-   * Set the IMU Mode based on the {@link ImuMode} enum. 
+   * Set the IMU Mode based on the {@link ImuMode} enum.
    * <p> This method changes the Limelight - normally immediately.
    *
    * @param mode {@link ImuMode} to use.
@@ -203,8 +225,8 @@ public class LimelightSettings
   }
 
   /**
-   * Set the IMU Assist filter alpha/strength value. Higher values will cause the internal imu to converge on
-   * assist source more rapidly.
+   * Set the IMU Assist filter alpha/strength value. Higher values will cause the internal imu to converge on assist
+   * source more rapidly.
    * <p> This method changes the Limelight - normally immediately.
    *
    * @param alpha Assist alpha value (0.001 by default).
@@ -373,31 +395,51 @@ public class LimelightSettings
      */
     QuadrupleDownscale
   }
+
   /**
    * IMU Mode Enum for the {@link Limelight}
    */
   public enum ImuMode
   {
     /**
-     * Use external IMU yaw submitted via {@link LimelightSettings#withRobotOrientation(Orientation3d)} for MT2 localization. The internal IMU is ignored entirely.
+     * Use external IMU yaw submitted via {@link LimelightSettings#withRobotOrientation(Orientation3d)} for MT2
+     * localization. The internal IMU is ignored entirely.
      */
     ExternalImu,
     /**
-     * Use external IMU yaw submitted via {@link LimelightSettings#withRobotOrientation(Orientation3d)} for MT2 localization. The internal IMU is synced with the external IMU.
+     * Use external IMU yaw submitted via {@link LimelightSettings#withRobotOrientation(Orientation3d)} for MT2
+     * localization. The internal IMU is synced with the external IMU.
      */
     SyncInternalImu,
     /**
-     * Use internal IMU for MT2 localization. Ignores external IMU updates from {@link LimelightSettings#withRobotOrientation(Orientation3d)}.
+     * Use internal IMU for MT2 localization. Ignores external IMU updates from
+     * {@link LimelightSettings#withRobotOrientation(Orientation3d)}.
      */
     InternalImu,
     /**
-     * Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous heading correction.
+     * Use internal IMU for MT2 localization. The internal IMU will utilize filtered MT1 yaw estimates for continuous
+     * heading correction.
      */
     InternalImuMT1Assist,
     /**
-     * Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading correction.
+     * Use internal IMU for MT2 localization. The internal IMU will utilize the external IMU for continuous heading
+     * correction.
      */
     InternalImuExternalAssist
   }
 
+  /**
+   * Rewind state.
+   */
+  enum RewindState
+  {
+    /**
+     * Enable rewind
+     */
+    ENABLED,
+    /**
+     * Disable rewind
+     */
+    DISABLED
+  }
 }

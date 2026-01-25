@@ -4,12 +4,13 @@ import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Seconds;
 import static limelight.networktables.LimelightUtils.getLimelightURLString;
 
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,27 +19,28 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import limelight.networktables.LimelightData;
 import limelight.networktables.LimelightPoseEstimator;
+import limelight.networktables.LimelightPoseEstimator.EstimationMode;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.LimelightSettings;
-import limelight.networktables.LimelightPoseEstimator.EstimationMode;
 
 /**
  * Limelight Camera class.
  */
-public class Limelight {
+public class Limelight
+{
 
   /**
    * {@link Limelight} name.
    */
-  public final String limelightName;
+  public final String            limelightName;
   /**
    * {@link Limelight} data from NetworkTables.
    */
-  private LimelightData limelightData;
+  private      LimelightData     limelightData;
   /**
    * {@link Limelight} settings that we apply.
    */
-  private LimelightSettings settings;
+  private      LimelightSettings settings;
 
   static final long ONE_SECOND_IN_MILI = (long) Seconds.of(1).in(Milliseconds);
 
@@ -47,9 +49,11 @@ public class Limelight {
    *
    * @param name Name of the limelight
    */
-  public Limelight(String name) {
-    if (!isAvailable(name) && !RobotBase.isSimulation()) {
-      DriverStation.reportWarning("Limelight "+name+" is not available", true);
+  public Limelight(String name)
+  {
+    if (!isAvailable(name) && !RobotBase.isSimulation())
+    {
+      DriverStation.reportWarning("Limelight " + name + " is not available", true);
       //throw new RuntimeException("Limelight not available");
     }
 
@@ -61,46 +65,47 @@ public class Limelight {
   /**
    * Verify limelight name exists as a table in NT.
    * <p>
-   * This check is expected to be run once during robot construction and is not
-   * intended to be checked in the iterative
+   * This check is expected to be run once during robot construction and is not intended to be checked in the iterative
    * loop.
    * <p>
-   * Use check "yourLimelightObject.getData().targetData.getTargetStatus())"" for
-   * the validity of an iteration for 2d
+   * Use check "yourLimelightObject.getData().targetData.getTargetStatus())"" for the validity of an iteration for 2d
    * targeting.
    * <p>
-   * For valid 3d pose check
-   * "yourLimelightPoseEstimatorObject.getPoseEstimate().get().hasData"
+   * For valid 3d pose check "yourLimelightPoseEstimatorObject.getPoseEstimate().get().hasData"
    *
    * @param limelightName Limelight Name to check for table existence.
    * @return true if an NT table exists with requested LL name.
-   *         <p>
-   *         false and issues a WPILib Error Alert if requested LL doesn't appear
-   *         as an NT table.
+   * <p>
+   * false and issues a WPILib Error Alert if requested LL doesn't appear as an NT table.
    */
   @SuppressWarnings("resource")
-  public static boolean isAvailable(String limelightName) {
+  public static boolean isAvailable(String limelightName)
+  {
     // LL sends key "getpipe" if it's on so check that
     // put in a delay if needed to help assure NT has latched onto the LL if it is
     // transmitting
-    for (int i = 1; i <= 15; i++) {
-      if (NetworkTableInstance.getDefault().getTable(limelightName).containsKey("getpipe")) {
+    for (int i = 1; i <= 15; i++)
+    {
+      if (NetworkTableInstance.getDefault().getTable(limelightName).containsKey("getpipe"))
+      {
         return true;
       }
       // System.out.println("waiting " + i + " of 15 seconds for limelight to
       // attach");
-      try {
+      try
+      {
         Thread.sleep(ONE_SECOND_IN_MILI);
-      } catch (InterruptedException e) {
+      } catch (InterruptedException e)
+      {
         e.printStackTrace();
       }
     }
     String errMsg = "Your limelight name \"" + limelightName +
-        "\" is invalid.  doesn't exist on the network (no getpipe key).\n" +
-        "These may be available:" +
-        NetworkTableInstance.getDefault().getTable("/").getSubTables().stream()
-            .filter(ntName -> ((String) (ntName)).startsWith("limelight"))
-            .collect(Collectors.joining("\n"));
+                    "\" is invalid.  doesn't exist on the network (no getpipe key).\n" +
+                    "These may be available:" +
+                    NetworkTableInstance.getDefault().getTable("/").getSubTables().stream()
+                                        .filter(ntName -> ((String) (ntName)).startsWith("limelight"))
+                                        .collect(Collectors.joining("\n"));
     new Alert(errMsg, AlertType.kError).set(true);
     return false;
   }
@@ -111,25 +116,23 @@ public class Limelight {
    * @param estimationMode Estimation mode to use (MEGATAG1 / MEGATAG2).
    * @return {@link LimelightPoseEstimator}
    */
-  public LimelightPoseEstimator createPoseEstimator(EstimationMode estimationMode) {
+  public LimelightPoseEstimator createPoseEstimator(EstimationMode estimationMode)
+  {
     return new LimelightPoseEstimator(this, estimationMode);
   }
 
   /**
    * Get the {@link LimelightSettings} preparatory to changing settings.
    * <p>
-   * While this method does get current settings from the LL there are
-   * no getters provided for the settings so they are useless, dead data. This
-   * merely provides a stub for the various
-   * ".withXXXX" settings to attach to.
+   * While this method does get current settings from the LL there are no getters provided for the settings so they are
+   * useless, dead data. This merely provides a stub for the various ".withXXXX" settings to attach to.
    * <p>
-   * This method may be used as often as needed and may contain none or more
-   * chained ".withXXXX" settings.
+   * This method may be used as often as needed and may contain none or more chained ".withXXXX" settings.
    *
-   * @return object used as the target of the various ".withXXXX" settings
-   *         methods.
+   * @return object used as the target of the various ".withXXXX" settings methods.
    */
-  public LimelightSettings getSettings() {
+  public LimelightSettings getSettings()
+  {
     return settings;
   }
 
@@ -138,7 +141,8 @@ public class Limelight {
    *
    * @return {@link LimelightData} object.
    */
-  public LimelightData getData() {
+  public LimelightData getData()
+  {
     return limelightData;
   }
 
@@ -147,23 +151,29 @@ public class Limelight {
    *
    * @param snapshotname Snapshot name to save.
    */
-  public void snapshot(String snapshotname) {
+  public void snapshot(String snapshotname)
+  {
     CompletableFuture.supplyAsync(() -> {
       URL url = getLimelightURLString(limelightName, "capturesnapshot");
-      try {
+      try
+      {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        if (snapshotname != null && snapshotname != "") {
+        if (snapshotname != null && snapshotname != "")
+        {
           connection.setRequestProperty("snapname", snapshotname);
         }
 
         int responseCode = connection.getResponseCode();
-        if (responseCode == 200) {
+        if (responseCode == 200)
+        {
           return true;
-        } else {
+        } else
+        {
           System.err.println("Bad LL Request");
         }
-      } catch (IOException e) {
+      } catch (IOException e)
+      {
         System.err.println(e.getMessage());
       }
       return false;
@@ -171,19 +181,20 @@ public class Limelight {
   }
 
   /**
-   * Gets the latest JSON {@link LimelightResults} output and returns a
-   * LimelightResults object.
+   * Gets the latest JSON {@link LimelightResults} output and returns a LimelightResults object.
    *
    * @return LimelightResults object containing all current target data
    */
-  public Optional<LimelightResults> getLatestResults() {
+  public Optional<LimelightResults> getLatestResults()
+  {
     return limelightData.getResults();
   }
 
   /**
    * Flush the NetworkTable data to server.
    */
-  public void flush() {
+  public void flush()
+  {
     NetworkTableInstance.getDefault().flush();
   }
 
@@ -192,7 +203,31 @@ public class Limelight {
    *
    * @return {@link NetworkTable} for this limelight.
    */
-  public NetworkTable getNTTable() {
+  public NetworkTable getNTTable()
+  {
     return NetworkTableInstance.getDefault().getTable(limelightName);
+  }
+
+
+  /**
+   * Sets up port forwarding for a Limelight 3A/3G connected via USB. This allows access to the Limelight web interface
+   * and video stream when connected to the robot over USB.
+   * <p>
+   * For usbIndex 0: ports 5800-5809 forward to 172.29.0.1 For usbIndex 1: ports 5810-5819 forward to 172.29.1.1 etc.
+   * <p>
+   * Call this method once during robot initialization. To access the interface of the camera with usbIndex0, you would
+   * go to roboRIO-(teamnum)-FRC.local:5801. Port 5811 for usb index 1
+   *
+   * @param usbIndex The USB index of the Limelight (0, 1, 2, etc.)
+   */
+  public static void setupPortForwardingUSB(int usbIndex)
+  {
+    String ip       = "172.29." + usbIndex + ".1";
+    int    basePort = 5800 + (usbIndex * 10);
+
+    for (int i = 0; i < 10; i++)
+    {
+      PortForwarder.add(basePort + i, ip, 5800 + i);
+    }
   }
 }
