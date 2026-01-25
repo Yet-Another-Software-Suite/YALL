@@ -143,8 +143,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="networktables/LimelightResults.html" title="class in limelight.networktables">LimelightResults</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getLatestResults()" class="member-name-link">getLatestResults</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Gets the latest JSON <a href="networktables/LimelightResults.html" title="class in limelight.networktables"><code>LimelightResults</code></a> output and returns a
- LimelightResults object.</div>
+<div class="block">Gets the latest JSON <a href="networktables/LimelightResults.html" title="class in limelight.networktables"><code>LimelightResults</code></a> output and returns a LimelightResults object.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link">NetworkTable</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getNTTable()" class="member-name-link">getNTTable</a>()</code></div>
@@ -161,9 +160,14 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Verify limelight name exists as a table in NT.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#snapshot(java.lang.String)" class="member-name-link">snapshot</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;snapshotname)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#setupPortForwardingUSB(int)" class="member-name-link">setupPortForwardingUSB</a><wbr>(int&nbsp;usbIndex)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Sets up port forwarding for a Limelight 3A/3G connected via USB.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#snapshot(java.lang.String)" class="member-name-link">snapshot</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;snapshotname)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Asynchronously take a snapshot in limelight.</div>
 </div>
 </div>
@@ -223,24 +227,20 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAvailable</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;limelightName)</span></div>
 <div class="block">Verify limelight name exists as a table in NT.
  <p>
- This check is expected to be run once during robot construction and is not
- intended to be checked in the iterative
+ This check is expected to be run once during robot construction and is not intended to be checked in the iterative
  loop.
  <p>
- Use check "yourLimelightObject.getData().targetData.getTargetStatus())"" for
- the validity of an iteration for 2d
+ Use check "yourLimelightObject.getData().targetData.getTargetStatus())"" for the validity of an iteration for 2d
  targeting.
  <p>
- For valid 3d pose check
- "yourLimelightPoseEstimatorObject.getPoseEstimate().get().hasData"</div>
+ For valid 3d pose check "yourLimelightPoseEstimatorObject.getPoseEstimate().get().hasData"</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>limelightName</code> - Limelight Name to check for table existence.</dd>
 <dt>Returns:</dt>
 <dd>true if an NT table exists with requested LL name.
-         <p>
-         false and issues a WPILib Error Alert if requested LL doesn't appear
-         as an NT table.</dd>
+ <p>
+ false and issues a WPILib Error Alert if requested LL doesn't appear as an NT table.</dd>
 </dl>
 </section>
 </li>
@@ -263,17 +263,13 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></span>&nbsp;<span class="element-name">getSettings</span>()</div>
 <div class="block">Get the <a href="networktables/LimelightSettings.html" title="class in limelight.networktables"><code>LimelightSettings</code></a> preparatory to changing settings.
  <p>
- While this method does get current settings from the LL there are
- no getters provided for the settings so they are useless, dead data. This
- merely provides a stub for the various
- ".withXXXX" settings to attach to.
+ While this method does get current settings from the LL there are no getters provided for the settings so they are
+ useless, dead data. This merely provides a stub for the various ".withXXXX" settings to attach to.
  <p>
- This method may be used as often as needed and may contain none or more
- chained ".withXXXX" settings.</div>
+ This method may be used as often as needed and may contain none or more chained ".withXXXX" settings.</div>
 <dl class="notes">
 <dt>Returns:</dt>
-<dd>object used as the target of the various ".withXXXX" settings
-         methods.</dd>
+<dd>object used as the target of the various ".withXXXX" settings methods.</dd>
 </dl>
 </section>
 </li>
@@ -303,8 +299,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getLatestResults()">
 <h3>getLatestResults</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="networktables/LimelightResults.html" title="class in limelight.networktables">LimelightResults</a>&gt;</span>&nbsp;<span class="element-name">getLatestResults</span>()</div>
-<div class="block">Gets the latest JSON <a href="networktables/LimelightResults.html" title="class in limelight.networktables"><code>LimelightResults</code></a> output and returns a
- LimelightResults object.</div>
+<div class="block">Gets the latest JSON <a href="networktables/LimelightResults.html" title="class in limelight.networktables"><code>LimelightResults</code></a> output and returns a LimelightResults object.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>LimelightResults object containing all current target data</dd>
@@ -326,6 +321,23 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd><a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/networktables/NetworkTable.html" title="class or interface in edu.wpi.first.networktables" class="external-link"><code>NetworkTable</code></a> for this limelight.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="setupPortForwardingUSB(int)">
+<h3>setupPortForwardingUSB</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setupPortForwardingUSB</span><wbr><span class="parameters">(int&nbsp;usbIndex)</span></div>
+<div class="block">Sets up port forwarding for a Limelight 3A/3G connected via USB. This allows access to the Limelight web interface
+ and video stream when connected to the robot over USB.
+ <p>
+ For usbIndex 0: ports 5800-5809 forward to 172.29.0.1 For usbIndex 1: ports 5810-5819 forward to 172.29.1.1 etc.
+ <p>
+ Call this method once during robot initialization. To access the interface of the camera with usbIndex0, you would
+ go to roboRIO-(teamnum)-FRC.local:5801. Port 5811 for usb index 1</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>usbIndex</code> - The USB index of the Limelight (0, 1, 2, etc.)</dd>
 </dl>
 </section>
 </li>
