@@ -290,9 +290,9 @@ public class LimelightSettings
    * @param idFilter Array of AprilTag ID's to track
    * @return {@link LimelightSettings} for chaining.
    */
-  public LimelightSettings withArilTagIdFilter(List<Double> idFilter)
+  public LimelightSettings withAprilTagIdFilter(List<Integer> idFilter)
   {
-    fiducialIDFiltersOverride.set(idFilter.stream().mapToDouble(Double::doubleValue).toArray());
+    fiducialIDFiltersOverride.set(idFilter.stream().mapToDouble(Integer::doubleValue).toArray());
     return this;
   }
 
