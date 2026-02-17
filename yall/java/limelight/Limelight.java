@@ -83,7 +83,7 @@ public class Limelight
     // LL sends key "getpipe" if it's on so check that
     // put in a delay if needed to help assure NT has latched onto the LL if it is
     // transmitting
-    for (int i = 1; i <= 15; i++)
+    for (int i = 1; i <= 2; i++)
     {
       if (NetworkTableInstance.getDefault().getTable(limelightName).containsKey("getpipe"))
       {
