@@ -90,8 +90,8 @@ loadScripts(document, 'script');</script>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;<a href="LimelightPoseEstimator.EstimationMode.html" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a>&gt;</span></div>
 <div class="block">Represents the pose estimation mode used by the Limelight camera.
  <p>
- Each mode corresponds to a different vision pipeline for AprilTag-based
- localization, with distinct methods for combining visual and robot data.</div>
+ Each mode corresponds to a different vision pipeline for AprilTag-based localization, with distinct methods for
+ combining visual and robot data.</div>
 </section>
 <section class="summary">
 <ul class="summary-list">
@@ -171,9 +171,8 @@ the order they are declared.</div>
 <div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="LimelightPoseEstimator.EstimationMode.html" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a></span>&nbsp;<span class="element-name">MEGATAG1</span></div>
 <div class="block">Uses the original Limelight MegaTag1 pipeline for pose estimation.
  <p>
- MegaTag1 estimates the robot's pose using data from a single detected
- AprilTag. It relies entirely on visual information from the camera,
- without using any external robot state data.</div>
+ MegaTag1 estimates the robot's pose using data from a single detected AprilTag. It relies entirely on visual
+ information from the camera, without using any external robot state data.</div>
 </section>
 </li>
 <li>
@@ -182,10 +181,9 @@ the order they are declared.</div>
 <div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="LimelightPoseEstimator.EstimationMode.html" title="enum class in limelight.networktables">LimelightPoseEstimator.EstimationMode</a></span>&nbsp;<span class="element-name">MEGATAG2</span></div>
 <div class="block">Uses the Limelight MegaTag2 pipeline for pose estimation.
  <p>
- MegaTag2 fuses AprilTag data with the robot's current heading (from a
- gyro or odometry source) to refine the estimated pose. This results in
- smoother and more accurate global localization, especially when tags
- are viewed from oblique angles or at long range.</div>
+ MegaTag2 fuses AprilTag data with the robot's current heading (from a gyro or odometry source) to refine the
+ estimated pose. This results in smoother and more accurate global localization, especially when tags are viewed
+ from oblique angles or at long range.</div>
 <dl class="notes">
 <dt>See Also:</dt>
 <dd>
