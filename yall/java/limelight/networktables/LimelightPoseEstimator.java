@@ -177,7 +177,8 @@ public class LimelightPoseEstimator
      */
     public Optional<PoseEstimate> get(Limelight camera)
     {
-      poseEstimate.putIfAbsent(camera.limelightName, new PoseEstimate(camera, entry, isMegaTag2));
+      if (!poseEstimate.containsKey(camera.limelightName))
+      {poseEstimate.putIfAbsent(camera.limelightName, new PoseEstimate(camera, entry, isMegaTag2));}
       return poseEstimate.get(camera.limelightName).getPoseEstimate();
     }
 
