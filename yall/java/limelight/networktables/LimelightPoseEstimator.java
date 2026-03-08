@@ -155,7 +155,7 @@ public class LimelightPoseEstimator
     /**
      * Current {@link PoseEstimate}
      */
-    private       HashMap<String, PoseEstimate> poseEstimate;
+    private       HashMap<String, PoseEstimate> poseEstimate =  new HashMap<>();
 
     /**
      * Create {@link BotPose} enum with given entry names and megatag2 state.
