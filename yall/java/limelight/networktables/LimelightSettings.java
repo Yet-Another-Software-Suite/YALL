@@ -146,7 +146,7 @@ public class LimelightSettings
   /**
    * Configures the throttle value. Set to 100-200 while disabled to reduce thermal output/temperature.
    *
-   * @param throttle Defaults to 0. Your Limelgiht will process one frame after skipping <throttle> frames.
+   * @param throttle Defaults to 0. Your Limelgiht will process one frame after skipping __throttle__ frames.
    */
   public LimelightSettings withThrottle(double throttle)
   {
