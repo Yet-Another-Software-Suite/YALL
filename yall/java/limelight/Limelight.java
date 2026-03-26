@@ -146,6 +146,17 @@ public class Limelight
   }
 
   /**
+   * Triggers a rewind capture with the specified duration. Maximum duration is 165 seconds. Rate-limited on the
+   * Limelight.
+   *
+   * @param durationSeconds Duration of rewind capture in seconds (max 165)
+   */
+  public void rewindCapture(double durationSeconds)
+  {
+    settings.rewindCapture(durationSeconds);
+  }
+
+  /**
    * Asynchronously take a snapshot in limelight.
    *
    * @param snapshotname Snapshot name to save.

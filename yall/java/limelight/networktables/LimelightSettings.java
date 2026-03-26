@@ -144,6 +144,56 @@ public class LimelightSettings
   }
 
   /**
+   * Configures the throttle value. Set to 100-200 while disabled to reduce thermal output/temperature.
+   *
+   * @param throttle Defaults to 0. Your Limelgiht will process one frame after skipping <throttle> frames.
+   */
+  public LimelightSettings withThrottle(double throttle)
+  {
+    throttleSet.setNumber(throttle);
+    return this;
+  }
+
+  /**
+   * Enables or pauses the rewind buffer recording.
+   *
+   * @param state True to enable recording, false to pause
+   */
+  public LimelightSettings withRewindEnable(RewindState state)
+  {
+    rewindEnable.setNumber(state.ordinal());
+    return this;
+  }
+
+  /**
+   * Triggers a rewind capture with the specified duration. Maximum duration is 165 seconds. Rate-limited on the
+   * Limelight.
+   *
+   * @param durationSeconds Duration of rewind capture in seconds (max 165)
+   */
+  public void rewindCapture(double durationSeconds)
+  {
+    double[] currentArray = rewindCapture.get();
+    double   counter      = (currentArray.length > 0) ? currentArray[0] : 0;
+    double[] entries      = new double[2];
+    entries[0] = counter + 1;
+    entries[1] = Math.min(durationSeconds, 165);
+    rewindCapture.set(entries);
+  }
+
+  /**
+   * Sets the keystone modification for the crop window.
+   *
+   * @param horizontal Horizontal keystone value (-0.95 to 0.95)
+   * @param vertical   Vertical keystone value (-0.95 to 0.95)
+   */
+  public LimelightSettings withKeystone(double horizontal, double vertical)
+  {
+    keystone.set(new double[]{horizontal, vertical});
+    return this;
+  }
+
+  /**
    * Set the {@link Limelight} {@link LEDMode}.
    * <p> This method changes the Limelight - normally immediately.
    *
@@ -434,12 +484,12 @@ public class LimelightSettings
   enum RewindState
   {
     /**
-     * Enable rewind
-     */
-    ENABLED,
-    /**
      * Disable rewind
      */
-    DISABLED
+    DISABLED,
+    /**
+     * Enable rewind
+     */
+    ENABLED
   }
 }
