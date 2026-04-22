@@ -266,6 +266,7 @@ public class LimelightResults
    * Get the current botpose as a {@link Pose3d} object.
    *
    * @return {@link Pose3d} object representing the botpose.
+   * @implNote This only returns MegaTag1 poses.
    */
   public Pose3d getBotPose3d()
   {
@@ -287,6 +288,7 @@ public class LimelightResults
    *
    * @param alliance Alliance color to get the botpose for.
    * @return {@link Pose3d} object representing the botpose.
+   * @implNote This only returns MegaTag1 poses.
    */
   public Pose3d getBotPose3d(DriverStation.Alliance alliance)
   {
