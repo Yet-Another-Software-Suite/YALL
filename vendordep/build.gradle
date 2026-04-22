@@ -6,14 +6,14 @@ plugins {
     id 'google-test'
     id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
     id 'edu.wpi.first.NativeUtils' version '2026.0.1'
-    id "edu.wpi.first.GradleRIO" version "2026.1.1" // Version supplied here
+    id "edu.wpi.first.GradleRIO" version "2026.2.1" // Version supplied here
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
     id "com.diffplug.spotless" version "6.11.0"
 }
 
 // WPILib Version
-ext.wpilibVersion = "2026.1.1"
+ext.wpilibVersion = "2026.2.1"
 ext.releasePath = "$buildDir/maven"
 ext.pubVersion = System.getenv("releaseVersion") ?: System.getenv("releaseName") ?: "test"
 
@@ -106,6 +106,10 @@ javadoc {
     options {
         links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/",
                 'https://github.wpilib.org/allwpilib/docs/release/java/'
+        tags 'todo:X"',
+                'apiNote:a:API Note:',
+                'implSpec:a:Implementation Requirements:',
+                'implNote:a:Implementation Note:'
     }
 }
 ext.getCurrentArch = {

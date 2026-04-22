@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
+import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.StringArrayEntry;
@@ -44,13 +45,21 @@ public class LimelightData
    */
   protected NetworkTableEntry     results;
   /**
+   * 3D distance from the camera to the current target (or active POI) in meters
+   */
+  protected DoubleEntry           targetDistance;
+  /**
    * Raw AprilTag detection from NetworkTables.
    */
-  protected NetworkTableEntry     rawfiducials;
+  protected NetworkTableEntry     rawFiducials;
   /**
    * Raw Neural Detector limelight.results from NetworkTables.
    */
   protected NetworkTableEntry     rawDetections;
+  /**
+   * Raw OCR output for each region
+   */
+  protected NetworkTableEntry     rawOCR;
   /**
    * Neural Clasifier result class name.
    */
@@ -84,8 +93,12 @@ public class LimelightData
    */
   protected DoubleArrayEntry      imuData;
   /**
-   * Uses counter-based rising edge detection. Increment value (0->1->2->3) to trigger snapshots. Rate-limited to once per
-   * 10 frames
+   * Internal IMU yaw offset (diagnostics)
+   */
+  protected DoubleEntry           imuYawOffset;
+  /**
+   * Uses counter-based rising edge detection. Increment value (0->1->2->3) to trigger snapshots. Rate-limited to once
+   * per 10 frames
    */
   protected NetworkTableEntry     snapshot;
 
@@ -101,9 +114,12 @@ public class LimelightData
     limelightTable = limelight.getNTTable();
     snapshot = limelightTable.getEntry("snapshot");
     imuData = limelightTable.getDoubleArrayTopic("imu").getEntry(new double[10]);
+    imuYawOffset = limelightTable.getDoubleTopic("imu_yaw_offset").getEntry(0.0);
+    targetDistance = limelightTable.getDoubleTopic("tdist").getEntry(0.0);
     results = limelightTable.getEntry("json");
-    rawfiducials = limelightTable.getEntry("rawfiducials");
+    rawFiducials = limelightTable.getEntry("rawfiducials");
     rawDetections = limelightTable.getEntry("rawdetections");
+    rawOCR = limelightTable.getEntry("rawocr");
     classifierClass = limelightTable.getEntry("tcclass");
     detectorClass = limelightTable.getEntry("tdclass");
     camera2RobotPose3d = limelightTable.getDoubleArrayTopic("camerapose_robotspace").getEntry(new double[0]);
@@ -218,7 +234,7 @@ public class LimelightData
    */
   public RawFiducial[] getRawFiducials()
   {
-    var rawFiducialArray = rawfiducials.getDoubleArray(new double[0]);
+    var rawFiducialArray = rawFiducials.getDoubleArray(new double[0]);
     int valsPerEntry     = 7;
     if (rawFiducialArray.length % valsPerEntry != 0)
     {
