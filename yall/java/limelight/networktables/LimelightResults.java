@@ -29,87 +29,132 @@ public class LimelightResults
   /**
    * Error message, if any.
    */
-  public String error;
-
+  public String                error;
+  /**
+   * Horizontal Offset From Crosshair To Target (LL1: -27 degrees to 27 degrees / LL2: -29.8 to 29.8 degrees).
+   */
+  @JsonProperty("tx")
+  public double                tx;
+  /**
+   * Vertical Offset From Crosshair To Target (LL1: -20.5 degrees to 20.5 degrees / LL2: -24.85 to 24.85 degrees).
+   */
+  @JsonProperty("ty")
+  public double                ty;
+  /**
+   * Horizontal Offset From Principal Pixel To Target (degrees).
+   */
+  @JsonProperty("txnc")
+  public double                txnc;
+  /**
+   * Vertical Offset From Principal Pixel To Target (degrees).
+   */
+  @JsonProperty("tync")
+  public double                tync;
+  /**
+   * Undistorted, normalized area of target (0-100).
+   */
+  @JsonProperty("ta")
+  public double                ta;
   /**
    * Current pipeline index
    */
   @JsonProperty("pID")
-  public double pipelineID;
-
+  public double                pipelineID;
+  /**
+   * Current Pipeline Type e.g. "pipe_color".
+   */
+  @JsonProperty("pTYPE")
+  public String                pipeline_type;
   /**
    * Targeting latency (milliseconds consumed by tracking loop this frame)
    */
   @JsonProperty("tl")
-  public double latency_pipeline;
-
+  public double                latency_pipeline;
   /**
    * Capture latency (milliseconds between the end of the exposure of the middle row to the beginning of the tracking
    * loop)
    */
   @JsonProperty("cl")
-  public double latency_capture;
-
-  public double latency_jsonParse;
-
+  public double                latency_capture;
   /**
-   * Timestamp in milliseconds from boot.
+   * Timestamp in milliseconds from boot (legacy).
    */
   @JsonProperty("ts")
-  public double timestamp_LIMELIGHT_publish;
-
+  public double                timestamp_LIMELIGHT_publish;
+  /**
+   * Timestamp in milliseconds from RIO.
+   */
   @JsonProperty("ts_rio")
-  public double timestamp_RIOFPGA_capture;
-
+  public double                timestamp_RIOFPGA_capture;
+  /**
+   * NetworkTables server time in microseconds (0 if not connected).
+   */
+  @JsonProperty("ts_nt")
+  public double                timestamp_NT;
+  /**
+   * System wall clock timestamp in microseconds since epoch.
+   */
+  @JsonProperty("ts_sys")
+  public double                timestamp_System;
+  /**
+   * Frame index (counter starting at 0).
+   */
+  @JsonProperty("fidx")
+  public double                frame_index;
   /**
    * Validity indicator. 1 = valid targets, 0 = no valid targets
    */
   @JsonProperty("v")
   @JsonFormat(shape = Shape.NUMBER)
-  public boolean valid;
-
+  public boolean               valid;
   /**
    * Botpose (MegaTag): x,y,z, roll, pitch, yaw (meters, degrees)
    */
   @JsonProperty("botpose")
-  public double[] botpose;
-
+  public double[]              botpose;
   /**
-   * Botpose (MegaTag, WPI Red driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
+   * Botpose (MegaTag1, WPI Red driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
    */
   @JsonProperty("botpose_wpired")
-  public double[] botpose_wpired;
-
+  public double[]              botpose_wpired;
   /**
-   * Botpose (MegaTag, WPI Blue driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
+   * Botpose (MegaTag1, WPI Blue driverstation): x,y,z, roll, pitch, yaw (meters, degrees)
    */
   @JsonProperty("botpose_wpiblue")
-  public double[] botpose_wpiblue;
-
+  public double[]              botpose_wpiblue;
+  /**
+   * Botpose (MegaTag2): x,y,z, roll, pitch, yaw (meters, degrees).
+   */
+  @JsonProperty("botpose_orb")
+  public double[] botpose_mt2;
+  /**
+   * Botpose (MegaTag2, WPI Blue driverstation): x,y,z, roll, pitch, yaw (meters, degrees).
+   */
+  @JsonProperty("botpose_orb_wpiblue")
+  public double[] botpose_mt2_blue;
   /**
    * Number of tags used to compute botpose
    */
   @JsonProperty("botpose_tagcount")
-  public double botpose_tagcount;
-
+  public double                botpose_tagcount;
   /**
    * Max distance between tags used to compute botpose (meters)
    */
   @JsonProperty("botpose_span")
-  public double botpose_span;
-
+  public double                botpose_span;
   /**
    * Max distance between tags used to compute botpose (meters)
    */
   @JsonProperty("botpose_avgdist")
-  public double botpose_avgdist;
-
+  public double                botpose_avgdist;
   /**
    * Average area of tags used to compute botpose
    */
   @JsonProperty("botpose_avgarea")
-  public double botpose_avgarea;
-
+  public double                botpose_avgarea;
+  /**
+   * Camera pose in robot space [x, y, z, roll, pitch, yaw] (meters, degrees).
+   */
   @JsonProperty("t6c_rs")
   public double[]              camerapose_robotspace;
   /**
@@ -146,41 +191,68 @@ public class LimelightResults
    * Limelight IMU results
    */
   @JsonProperty("imu")
-  public IMUResults imuResults;
+  public IMUResults            imuResults;
   /**
    * Rewind stats (Limelight 4 only)
    */
   @JsonProperty("rewind")
-  public RewindStats rewindStats;
+  public RewindStats           rewindStats;
   /**
    * Image source setting value.
    */
   @JsonProperty("imgsrc")
-  public String imageSource;
+  public String                imageSource;
   /**
    * Hardware type identifier.
    */
   @JsonProperty("hwtype")
-  public String hardwareType;
+  public String                hardwareType;
   /**
    * 1 if web UI needs refresh, 0 otherwise.
    */
   @JsonProperty("uirefesh")
-  public  int uiRefresh;
+  public int                   uiRefresh;
   /**
-   * 	1 if NetworkTables pipeline control is disabled, 0 otherwise.
+   * 1 if NetworkTables pipeline control is disabled, 0 otherwise.
    */
   @JsonProperty("ignorent")
-  public  int ignoreNetworkTables;
+  public int                   ignoreNetworkTables;
+  /**
+   * 3D distance from camera to target (or POI) in Meters
+   */
+  @JsonProperty("tdist")
+  public double                targetDistance;
+  /**
+   * Output data from python SnapScript Pipelines (array of 8 doubles).
+   */
+  @JsonProperty("PythonOut")
+  public double[]              PythonOut;
+  /**
+   * MT1 Standard Deviation [x, y, z, roll, pitch, yaw] (meters, degrees).
+   */
+  @JsonProperty("stdev_mt1")
+  public double[]              stdev_mt1;
+  /**
+   * MT2 Standard Deviation [x, y, z, roll, pitch, yaw] (meters, degrees).
+   */
+  @JsonProperty("stdev_mt2")
+  public double[]              stdev_mt2;
+  /* Unsupported */
+  public double                focus_metric;
 
   /**
    * Construct a LimelightResults object for JSON Parsing.
    */
   public LimelightResults()
   {
+    stdev_mt1 = new double[6];
+    stdev_mt2 = new double[6];
+    PythonOut = new double[8];
     botpose = new double[6];
     botpose_wpired = new double[6];
     botpose_wpiblue = new double[6];
+    botpose_mt2 = new double[6];
+    botpose_mt2_blue = new double[6];
     camerapose_robotspace = new double[6];
     targets_Retro = new RetroreflectiveTape[0];
     targets_Fiducials = new AprilTagFiducial[0];
@@ -198,6 +270,16 @@ public class LimelightResults
   public Pose3d getBotPose3d()
   {
     return toPose3D(botpose);
+  }
+
+  /**
+   * Get the current Megatag2 pose as a {@link Pose3d} object.
+   *
+   * @return {@link Pose3d} object representing the botpose_orb.
+   */
+  public Pose3d getMT2Pose3d()
+  {
+    return toPose3D(botpose_mt2);
   }
 
   /**
@@ -252,8 +334,6 @@ public class LimelightResults
     StringBuilder str = new StringBuilder();
     str.append("Partial JSON LimelightResults\n");
     str.append("error " + error + "\n");
-    str.append("latency_jsonParse " + latency_jsonParse + "\n");
-
     str.append("pID " + pipelineID + "\n");
     str.append("tl " + latency_pipeline + "\n");
     str.append("cl " + latency_capture + "\n");
