@@ -146,7 +146,9 @@ public class LimelightSettings
   /**
    * Configures the throttle value. Set to 100-200 while disabled to reduce thermal output/temperature.
    *
-   * @param throttle Defaults to 0. Your Limelgiht will process one frame after skipping __throttle__ frames.
+   * @param throttle Defaults to 0. Your Limelight will process one frame after skipping __throttle__ frames.
+   * @implNote We recommend setting this to 100-200 while disabled. Sets number of frames to skip between processed
+   * frames to reduce temperature rise. Outputs are not zeroed during skipped frames.
    */
   public LimelightSettings withThrottle(double throttle)
   {
@@ -392,7 +394,27 @@ public class LimelightSettings
     /**
      * LED Mode Force On.
      */
-    ForceOn
+    ForceOn,
+    /**
+     * Force Left LEDs on
+     */
+    ForceLeftOn,
+    /**
+     * Force Right LEDs on
+     */
+    ForceRightOn,
+    /**
+     * Bounce halves
+     */
+    BounceHalves,
+    /**
+     * Force left blink
+     */
+    ForceLeftBlink,
+    /**
+     * Force right blink
+     */
+    ForceRightBlink,
   }
 
   /**

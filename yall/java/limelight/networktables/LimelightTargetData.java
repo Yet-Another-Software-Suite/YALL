@@ -3,10 +3,12 @@ package limelight.networktables;
 
 import static limelight.networktables.LimelightUtils.toPose3D;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import java.util.Arrays;
 import limelight.Limelight;
 
 public class LimelightTargetData
@@ -79,6 +81,11 @@ public class LimelightTargetData
    * Current Neural class ID.
    */
   private NetworkTableEntry neuralClassID;
+  /**
+   * MegaTag Standard Deviations [MT1x, MT1y, MT1z, MT1roll, MT1pitch, MT1Yaw, MT2x, MT2y, MT2z, MT2roll, MT2pitch,
+   * MT2yaw]
+   */
+  private DoubleArrayEntry  stddevs;
 
   /**
    * Construct data for targets.
@@ -98,12 +105,30 @@ public class LimelightTargetData
     horizontalOffsetFromPrincipal = limelightTable.getEntry("txnc");
     verticalOffsetFromPrincipal = limelightTable.getEntry("tync");
     targetArea = limelightTable.getEntry("ta");
+    stddevs = limelightTable.getDoubleArrayTopic("stddevs").getEntry(new double[0]);
     targetMetrics = limelightTable.getDoubleArrayTopic("t2d").getEntry(new double[0]);
     target2RobotPose = limelightTable.getDoubleArrayTopic("targetpose_robotspace").getEntry(new double[0]);
     target2CameraPose = limelightTable.getDoubleArrayTopic("targetpose_cameraspace").getEntry(new double[0]);
     camera2TargetPose = limelightTable.getDoubleArrayTopic("camerapose_targetspace").getEntry(new double[0]);
     robot2TargetPose = limelightTable.getDoubleArrayTopic("botpose_targetspace").getEntry(new double[0]);
 
+  }
+
+  /**
+   * Get the MegaTag standard deviations.
+   *
+   * @return Pair of {@link Pose3d} objects representing the MegaTag standard deviations. Pair.of(MT1, MT2)
+   */
+  public Pair<Pose3d, Pose3d> getStandardDeviations()
+  {
+    double[] standardDeviation = stddevs.get(new double[0]);
+    if (standardDeviation.length < 12)
+    {
+      return new Pair<>(new Pose3d(), new Pose3d());
+    }
+    double[] mt1 = Arrays.copyOfRange(standardDeviation, 0, 6);
+    double[] mt2 = Arrays.copyOfRange(standardDeviation, 6, 12);
+    return Pair.of(toPose3D(mt1), toPose3D(mt2));
   }
 
   /**
