@@ -283,7 +283,10 @@ loadScripts(document, 'script');</script>
 <div class="block">Configures the throttle value. Set to 100-200 while disabled to reduce thermal output/temperature.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>throttle</code> - Defaults to 0. Your Limelgiht will process one frame after skipping __throttle__ frames.</dd>
+<dd><code>throttle</code> - Defaults to 0. Your Limelight will process one frame after skipping __throttle__ frames.</dd>
+<dt>Implementation Note:</dt>
+<dd>We recommend setting this to 100-200 while disabled. Sets number of frames to skip between processed
+ frames to reduce temperature rise. Outputs are not zeroed during skipped frames.</dd>
 </dl>
 </section>
 </li>
