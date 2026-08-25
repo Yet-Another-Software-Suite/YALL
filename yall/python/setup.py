@@ -10,6 +10,7 @@ setup(
         "robotpy-wpimath",
         "wpilib",
         "pyntcore",
+        "robotpy-apriltag",
     ],
     python_requires=">=3.8",
 )

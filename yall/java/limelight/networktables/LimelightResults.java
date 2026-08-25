@@ -6,6 +6,7 @@ import static limelight.networktables.LimelightUtils.toPose3D;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -268,6 +269,7 @@ public class LimelightResults
    * @return {@link Pose3d} object representing the botpose.
    * @implNote This only returns MegaTag1 poses.
    */
+  @JsonIgnore
   public Pose3d getBotPose3d()
   {
     return toPose3D(botpose);
@@ -278,6 +280,7 @@ public class LimelightResults
    *
    * @return {@link Pose3d} object representing the botpose_orb.
    */
+  @JsonIgnore
   public Pose3d getMT2Pose3d()
   {
     return toPose3D(botpose_mt2);
@@ -306,6 +309,7 @@ public class LimelightResults
    *
    * @return {@link Pose2d} object representing the botpose.
    */
+  @JsonIgnore
   public Pose2d getBotPose2d()
   {
     return toPose2D(botpose);

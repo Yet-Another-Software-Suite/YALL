@@ -3,6 +3,7 @@ package limelight.networktables.target;
 import static limelight.networktables.LimelightUtils.toPose2D;
 import static limelight.networktables.LimelightUtils.toPose3D;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -103,10 +104,53 @@ public class AprilTagFiducial
   }
 
   /**
+   * Create a fully populated AprilTagFiducial object, e.g. for {@link limelight.sim.LimelightSim}.
+   *
+   * @param fiducialID            Fiducial tag ID.
+   * @param fiducialFamily        Fiducial family (e.g. "36h11").
+   * @param ta                    Target area as a percentage of the image (0-100).
+   * @param tx                    X-coordinate relative to crosshair, in degrees.
+   * @param ty                    Y-coordinate relative to crosshair, in degrees.
+   * @param txPixels              X-coordinate relative to crosshair, in pixels.
+   * @param tyPixels              Y-coordinate relative to crosshair, in pixels.
+   * @param txNoCrosshair         X-coordinate relative to principal pixel, in degrees.
+   * @param tyNoCrosshair         Y-coordinate relative to principal pixel, in degrees.
+   * @param ts                    Timestamp in milliseconds from boot.
+   * @param cameraPoseTargetSpace Camera pose in target space [x,y,z,roll,pitch,yaw].
+   * @param robotPoseFieldSpace   Robot pose in field space [x,y,z,roll,pitch,yaw].
+   * @param robotPoseTargetSpace  Robot pose in target space [x,y,z,roll,pitch,yaw].
+   * @param targetPoseCameraSpace Target pose in camera space [x,y,z,roll,pitch,yaw].
+   * @param targetPoseRobotSpace  Target pose in robot space [x,y,z,roll,pitch,yaw].
+   */
+  public AprilTagFiducial(double fiducialID, String fiducialFamily, double ta, double tx, double ty,
+                          double txPixels, double tyPixels, double txNoCrosshair, double tyNoCrosshair, double ts,
+                          double[] cameraPoseTargetSpace, double[] robotPoseFieldSpace,
+                          double[] robotPoseTargetSpace, double[] targetPoseCameraSpace,
+                          double[] targetPoseRobotSpace)
+  {
+    this.fiducialID = fiducialID;
+    this.fiducialFamily = fiducialFamily;
+    this.ta = ta;
+    this.tx = tx;
+    this.ty = ty;
+    this.tx_pixels = txPixels;
+    this.ty_pixels = tyPixels;
+    this.tx_nocrosshair = txNoCrosshair;
+    this.ty_nocrosshair = tyNoCrosshair;
+    this.ts = ts;
+    this.cameraPose_TargetSpace = cameraPoseTargetSpace;
+    this.robotPose_FieldSpace = robotPoseFieldSpace;
+    this.robotPose_TargetSpace = robotPoseTargetSpace;
+    this.targetPose_CameraSpace = targetPoseCameraSpace;
+    this.targetPose_RobotSpace = targetPoseRobotSpace;
+  }
+
+  /**
    * Get the AprilTag's 3D pose in target space
    *
    * @return {@link Pose3d} object representing the AprilTag's position and orientation relative to the camera
    */
+  @JsonIgnore
   public Pose3d getCameraPose_TargetSpace()
   {
     return toPose3D(cameraPose_TargetSpace);
@@ -117,6 +161,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose3d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose3d getRobotPose_FieldSpace()
   {
     return toPose3D(robotPose_FieldSpace);
@@ -127,6 +172,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose3d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose3d getRobotPose_TargetSpace()
   {
     return toPose3D(robotPose_TargetSpace);
@@ -137,6 +183,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose3d} object representing the AprilTag's position and orientation relative to the camera
    */
+  @JsonIgnore
   public Pose3d getTargetPose_CameraSpace()
   {
     return toPose3D(targetPose_CameraSpace);
@@ -147,6 +194,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose3d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose3d getTargetPose_RobotSpace()
   {
     return toPose3D(targetPose_RobotSpace);
@@ -157,6 +205,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose2d} object representing the AprilTag's position and orientation relative to the camera
    */
+  @JsonIgnore
   public Pose2d getCameraPose_TargetSpace2D()
   {
     return toPose2D(cameraPose_TargetSpace);
@@ -167,6 +216,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose2d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose2d getRobotPose_FieldSpace2D()
   {
     return toPose2D(robotPose_FieldSpace);
@@ -177,6 +227,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose2d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose2d getRobotPose_TargetSpace2D()
   {
     return toPose2D(robotPose_TargetSpace);
@@ -187,6 +238,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose2d} object representing the AprilTag's position and orientation relative to the camera
    */
+  @JsonIgnore
   public Pose2d getTargetPose_CameraSpace2D()
   {
     return toPose2D(targetPose_CameraSpace);
@@ -197,6 +249,7 @@ public class AprilTagFiducial
    *
    * @return {@link Pose2d} object representing the AprilTag's position and orientation relative to the robot
    */
+  @JsonIgnore
   public Pose2d getTargetPose_RobotSpace2D()
   {
     return toPose2D(targetPose_RobotSpace);

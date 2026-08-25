@@ -576,10 +576,10 @@ class LimelightData:
             json_result = self.results.getString("")
             if len(json_result) <= 0:
                 return None
-            limelight_results: LimelightResults = json.loads(
-                json_result, object_hook=LimelightResults.fromJson
-            )
-            return limelight_results
+            # object_hook would run on every nested object (each fiducial/target dict too), not just the
+            # top level one, so parse to a plain dict tree first and hand the whole thing to fromJson.
+            parsed: dict = json.loads(json_result)
+            return LimelightResults.fromJson(parsed)
         except Exception as e:
             print(f"lljson error: {e}")
             # DriverStation.reportError(f"lljson error: {e}", True)
@@ -980,8 +980,8 @@ class Limelight:
         if not Limelight.isAvailable(name) and not RobotBase.isSimulation():
             raise RuntimeError("Limelight not available")
         self.limelightName: Final[str] = name
-        self.__limelightData: LimelightData
-        self.__settings: LimelightSettings
+        self.__limelightData: LimelightData = LimelightData(self)
+        self.__settings: LimelightSettings = LimelightSettings(self)
 
     @classmethod
     def isAvailable(cls, limelightName: str) -> bool:
@@ -1048,7 +1048,7 @@ class Limelight:
         executor.submit(task)
 
     def getLatestResults(self) -> Optional[LimelightResults]:
-        self.__limelightData.getResults()
+        return self.__limelightData.getResults()
 
     def flush(self) -> None:
         ntcore.NetworkTableInstance.getDefault().flush()
