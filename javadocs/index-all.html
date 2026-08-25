@@ -83,6 +83,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Create the AprilTagFiducial object</div>
 </dd>
+<dt><a href="limelight/networktables/target/AprilTagFiducial.html#%3Cinit%3E(double,java.lang.String,double,double,double,double,double,double,double,double,double%5B%5D,double%5B%5D,double%5B%5D,double%5B%5D,double%5B%5D)" class="member-name-link">AprilTagFiducial(double, String, double, double, double, double, double, double, double, double, double[], double[], double[], double[], double[])</a> - Constructor for class limelight.networktables.target.<a href="limelight/networktables/target/AprilTagFiducial.html" title="class in limelight.networktables.target">AprilTagFiducial</a></dt>
+<dd>
+<div class="block">Create a fully populated AprilTagFiducial object, e.g.</div>
+</dd>
 <dt><a href="limelight/networktables/PoseEstimate.html#avgTagArea" class="member-name-link">avgTagArea</a> - Variable in class limelight.networktables.<a href="limelight/networktables/PoseEstimate.html" title="class in limelight.networktables">PoseEstimate</a></dt>
 <dd>
 <div class="block">Avg area in percent of image</div>
@@ -809,6 +813,11 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Results package for detections and fiducials(AprilTags)</div>
 </dd>
+<dt><a href="limelight/sim/package-summary.html">limelight.sim</a> - package limelight.sim</dt>
+<dd>
+<div class="block">Simulation support for <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a>, publishing simulated AprilTag/fiducial detections to the same
+ NetworkTables keys a real Limelight would populate.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightData.html" class="type-name-link" title="class in limelight.networktables">LimelightData</a> - Class in <a href="limelight/networktables/package-summary.html">limelight.networktables</a></dt>
 <dd>
 <div class="block">Data retrieval class for <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
@@ -876,6 +885,31 @@ loadScripts(document, 'script');</script>
 <dt><a href="limelight/networktables/LimelightSettings.StreamMode.html" class="type-name-link" title="enum class in limelight.networktables">LimelightSettings.StreamMode</a> - Enum Class in <a href="limelight/networktables/package-summary.html">limelight.networktables</a></dt>
 <dd>
 <div class="block">Stream mode for the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html" class="type-name-link" title="class in limelight.sim">LimelightSim</a> - Class in <a href="limelight/sim/package-summary.html">limelight.sim</a></dt>
+<dd>
+<div class="block">Simulates a <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> running the AprilTag/fiducial pipeline, publishing to the same NetworkTables keys a
+ real Limelight would populate ("tx", "ty", "ta", "tv", "tid", "botpose*", "rawfiducials", "t2d",
+ "targetpose_*"/"camerapose_*"/"botpose_targetspace", "tl"/"cl"/"getpipe"/"getpipetype", "json", ...) so that code
+ written against <a href="limelight/networktables/LimelightData.html" title="class in limelight.networktables"><code>LimelightData</code></a>, <a href="limelight/networktables/LimelightTargetData.html" title="class in limelight.networktables"><code>LimelightTargetData</code></a>
+ and <a href="limelight/networktables/LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> behaves the same in simulation as on real hardware.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html#%3Cinit%3E(limelight.Limelight)" class="member-name-link">LimelightSim(Limelight)</a> - Constructor for class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Construct a <a href="limelight/sim/LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> using default camera settings, the current
+ season's AprilTag field layout and no robot-to-camera offset.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html#%3Cinit%3E(limelight.Limelight,limelight.sim.LimelightSimSettings)" class="member-name-link">LimelightSim(Limelight, LimelightSimSettings)</a> - Constructor for class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Construct a <a href="limelight/sim/LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a>.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html" class="type-name-link" title="class in limelight.sim">LimelightSimSettings</a> - Class in <a href="limelight/sim/package-summary.html">limelight.sim</a></dt>
+<dd>
+<div class="block">Configurable properties describing a simulated <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> camera, used by <a href="limelight/sim/LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a>.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#%3Cinit%3E()" class="member-name-link">LimelightSimSettings()</a> - Constructor for class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Construct <a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim"><code>LimelightSimSettings</code></a> with defaults approximating a Limelight 3.</div>
 </dd>
 <dt><a href="limelight/networktables/LimelightData.html#limelightTable" class="member-name-link">limelightTable</a> - Variable in class limelight.networktables.<a href="limelight/networktables/LimelightData.html" title="class in limelight.networktables">LimelightData</a></dt>
 <dd>
@@ -953,6 +987,10 @@ loadScripts(document, 'script');</script>
 </dl>
 <h2 class="title" id="I:P">P</h2>
 <dl class="index">
+<dt><a href="limelight/sim/LimelightSimSettings.html#perfect()" class="member-name-link">perfect()</a> - Static method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Create <a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim"><code>LimelightSimSettings</code></a> with all noise and latency zeroed out, useful for deterministic testing.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.StreamMode.html#PictureInPictureMain" class="member-name-link">PictureInPictureMain</a> - Enum constant in enum class limelight.networktables.<a href="limelight/networktables/LimelightSettings.StreamMode.html" title="enum class in limelight.networktables">LimelightSettings.StreamMode</a></dt>
 <dd>
 <div class="block">Picture in picture, with secondary in corner.</div>
@@ -1491,6 +1529,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">1 if web UI needs refresh, 0 otherwise.</div>
 </dd>
+<dt><a href="limelight/sim/LimelightSim.html#update(edu.wpi.first.math.geometry.Pose2d)" class="member-name-link">update(Pose2d)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Update the simulated <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
+ the resulting NetworkTables data.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html#update(edu.wpi.first.math.geometry.Pose3d)" class="member-name-link">update(Pose3d)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Update the simulated <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
+ the resulting NetworkTables data.</div>
+</dd>
 </dl>
 <h2 class="title" id="I:V">V</h2>
 <dl class="index">
@@ -1555,6 +1603,14 @@ the order they are declared.</div>
 </dl>
 <h2 class="title" id="I:W">W</h2>
 <dl class="index">
+<dt><a href="limelight/sim/LimelightSimSettings.html#withAngleNoise(double)" class="member-name-link">withAngleNoise(double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the noise applied to tx/ty/txnc/tync readings.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html#withAprilTagFieldLayout(edu.wpi.first.apriltag.AprilTagFieldLayout)" class="member-name-link">withAprilTagFieldLayout(AprilTagFieldLayout)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Override the AprilTag field layout used to source simulated targets.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withAprilTagIdFilter(java.util.List)" class="member-name-link">withAprilTagIdFilter(List&lt;Integer&gt;)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Set the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> AprilTagID filter/override of which to track.</div>
@@ -1567,6 +1623,10 @@ the order they are declared.</div>
 <dd>
 <div class="block">Set the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> offset.</div>
 </dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withCaptureLatency(double)" class="member-name-link">withCaptureLatency(double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the simulated capture latency ("cl").</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withCropWindow(double,double,double,double)" class="member-name-link">withCropWindow(double, double, double, double)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Sets the crop window for the camera.</div>
@@ -1574,6 +1634,10 @@ the order they are declared.</div>
 <dt><a href="limelight/networktables/LimelightSettings.html#withFiducialDownscalingOverride(limelight.networktables.LimelightSettings.DownscalingOverride)" class="member-name-link">withFiducialDownscalingOverride(LimelightSettings.DownscalingOverride)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Sets the downscaling factor for AprilTag detection.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withFOV(double,double)" class="member-name-link">withFOV(double, double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the simulated camera's field of view.</div>
 </dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withImuAssistAlpha(double)" class="member-name-link">withImuAssistAlpha(double)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
@@ -1591,13 +1655,41 @@ the order they are declared.</div>
 <dd>
 <div class="block">Set the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a> <a href="limelight/networktables/LimelightSettings.LEDMode.html" title="enum class in limelight.networktables"><code>LimelightSettings.LEDMode</code></a>.</div>
 </dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withMaxDetectionRange(double)" class="member-name-link">withMaxDetectionRange(double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the maximum distance a tag may be detected from.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withMaxTagIncidenceAngle(double)" class="member-name-link">withMaxTagIncidenceAngle(double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the maximum angle of incidence a tag may be viewed at before it is considered too edge-on to detect.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withPipelineIndex(int)" class="member-name-link">withPipelineIndex(int)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Set the current pipeline index for the <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
 </dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withPipelineLatency(double,double)" class="member-name-link">withPipelineLatency(double, double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the simulated pipeline processing latency ("tl").</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withPipelineType(java.lang.String)" class="member-name-link">withPipelineType(String)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the pipeline type string reported by "getpipetype".</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withPoseNoise(double,double)" class="member-name-link">withPoseNoise(double, double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the noise applied to botpose translation and rotation readings, for a single tag seen at 1 meter.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withPriorityTagId(int)" class="member-name-link">withPriorityTagId(int)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Set the Priority Tag ID for <a href="limelight/Limelight.html" title="class in limelight"><code>Limelight</code></a></div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withRandomSeed(long)" class="member-name-link">withRandomSeed(long)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the seed used for the deterministic noise source.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withResolution(double,double)" class="member-name-link">withResolution(double, double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the simulated sensor resolution.</div>
 </dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withRewindEnable(limelight.networktables.LimelightSettings.RewindState)" class="member-name-link">withRewindEnable(LimelightSettings.RewindState)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
@@ -1608,9 +1700,21 @@ the order they are declared.</div>
 <div class="block">Set the current robot <a href="limelight/networktables/Orientation3d.html" title="class in limelight.networktables"><code>Orientation3d</code></a> (normally given by the robot gyro) for LL to use in its MegaTag2
  determination.</div>
 </dd>
+<dt><a href="limelight/sim/LimelightSim.html#withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)" class="member-name-link">withRobotToCameraTransform(Transform3d)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Set the transform from the robot's origin to the camera's lens.</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSim.html#withSettings(limelight.sim.LimelightSimSettings)" class="member-name-link">withSettings(LimelightSimSettings)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSim.html" title="class in limelight.sim">LimelightSim</a></dt>
+<dd>
+<div class="block">Set the camera properties/noise/latency configuration.</div>
+</dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withStreamMode(limelight.networktables.LimelightSettings.StreamMode)" class="member-name-link">withStreamMode(LimelightSettings.StreamMode)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>
 <div class="block">Set the Stream mode based on the <a href="limelight/networktables/LimelightSettings.StreamMode.html" title="enum class in limelight.networktables"><code>LimelightSettings.StreamMode</code></a> enum</div>
+</dd>
+<dt><a href="limelight/sim/LimelightSimSettings.html#withTagSize(double)" class="member-name-link">withTagSize(double)</a> - Method in class limelight.sim.<a href="limelight/sim/LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a></dt>
+<dd>
+<div class="block">Set the physical size of the AprilTags being detected.</div>
 </dd>
 <dt><a href="limelight/networktables/LimelightSettings.html#withThrottle(double)" class="member-name-link">withThrottle(double)</a> - Method in class limelight.networktables.<a href="limelight/networktables/LimelightSettings.html" title="class in limelight.networktables">LimelightSettings</a></dt>
 <dd>

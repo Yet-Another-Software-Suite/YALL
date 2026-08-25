@@ -156,6 +156,24 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">Create the AprilTagFiducial object</div>
 </div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(double,java.lang.String,double,double,double,double,double,double,double,double,double%5B%5D,double%5B%5D,double%5B%5D,double%5B%5D,double%5B%5D)" class="member-name-link">AprilTagFiducial</a><wbr>(double&nbsp;fiducialID,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;fiducialFamily,
+ double&nbsp;ta,
+ double&nbsp;tx,
+ double&nbsp;ty,
+ double&nbsp;txPixels,
+ double&nbsp;tyPixels,
+ double&nbsp;txNoCrosshair,
+ double&nbsp;tyNoCrosshair,
+ double&nbsp;ts,
+ double[]&nbsp;cameraPoseTargetSpace,
+ double[]&nbsp;robotPoseFieldSpace,
+ double[]&nbsp;robotPoseTargetSpace,
+ double[]&nbsp;targetPoseCameraSpace,
+ double[]&nbsp;targetPoseRobotSpace)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Create a fully populated AprilTagFiducial object, e.g.</div>
+</div>
 </div>
 </section>
 </li>
@@ -320,6 +338,45 @@ loadScripts(document, 'script');</script>
 <h3>AprilTagFiducial</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AprilTagFiducial</span>()</div>
 <div class="block">Create the AprilTagFiducial object</div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(double,java.lang.String,double,double,double,double,double,double,double,double,double[],double[],double[],double[],double[])">
+<h3>AprilTagFiducial</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AprilTagFiducial</span><wbr><span class="parameters">(double&nbsp;fiducialID,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;fiducialFamily,
+ double&nbsp;ta,
+ double&nbsp;tx,
+ double&nbsp;ty,
+ double&nbsp;txPixels,
+ double&nbsp;tyPixels,
+ double&nbsp;txNoCrosshair,
+ double&nbsp;tyNoCrosshair,
+ double&nbsp;ts,
+ double[]&nbsp;cameraPoseTargetSpace,
+ double[]&nbsp;robotPoseFieldSpace,
+ double[]&nbsp;robotPoseTargetSpace,
+ double[]&nbsp;targetPoseCameraSpace,
+ double[]&nbsp;targetPoseRobotSpace)</span></div>
+<div class="block">Create a fully populated AprilTagFiducial object, e.g. for <a href="../../sim/LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>fiducialID</code> - Fiducial tag ID.</dd>
+<dd><code>fiducialFamily</code> - Fiducial family (e.g. "36h11").</dd>
+<dd><code>ta</code> - Target area as a percentage of the image (0-100).</dd>
+<dd><code>tx</code> - X-coordinate relative to crosshair, in degrees.</dd>
+<dd><code>ty</code> - Y-coordinate relative to crosshair, in degrees.</dd>
+<dd><code>txPixels</code> - X-coordinate relative to crosshair, in pixels.</dd>
+<dd><code>tyPixels</code> - Y-coordinate relative to crosshair, in pixels.</dd>
+<dd><code>txNoCrosshair</code> - X-coordinate relative to principal pixel, in degrees.</dd>
+<dd><code>tyNoCrosshair</code> - Y-coordinate relative to principal pixel, in degrees.</dd>
+<dd><code>ts</code> - Timestamp in milliseconds from boot.</dd>
+<dd><code>cameraPoseTargetSpace</code> - Camera pose in target space [x,y,z,roll,pitch,yaw].</dd>
+<dd><code>robotPoseFieldSpace</code> - Robot pose in field space [x,y,z,roll,pitch,yaw].</dd>
+<dd><code>robotPoseTargetSpace</code> - Robot pose in target space [x,y,z,roll,pitch,yaw].</dd>
+<dd><code>targetPoseCameraSpace</code> - Target pose in camera space [x,y,z,roll,pitch,yaw].</dd>
+<dd><code>targetPoseRobotSpace</code> - Target pose in robot space [x,y,z,roll,pitch,yaw].</dd>
+</dl>
 </section>
 </li>
 </ul>
