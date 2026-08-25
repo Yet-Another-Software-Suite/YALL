@@ -161,6 +161,26 @@ visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
 });
 ```
 
+### Example 3: Simulation
+
+`LimelightSim` projects AprilTags from the current season's field onto a simulated camera and publishes the same
+NetworkTables keys real Limelight hardware would (`tx`/`ty`/`ta`/`tv`/`tid`, `botpose*`, `rawfiducials`, `t2d`,
+`targetpose_*`/`camerapose_*`, `json`, ...), so code written against `Limelight`/`LimelightData`/`LimelightPoseEstimator`
+behaves the same in simulation as on real hardware. No extra vendor dependencies are required.
+
+```java
+Limelight limelight = new Limelight("limelight");
+LimelightSim limelightSim = new LimelightSim(limelight);
+limelightSim.withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslation(), cameraOffset.getRotation()));
+
+// in Robot#simulationPeriodic()
+limelightSim.update(drivebase.getPose());
+```
+
+Camera resolution/FOV, tag size, detection range, latency and noise are all configurable via `LimelightSimSettings`,
+but ship with sensible Limelight 3-like defaults so the snippet above is enough to get started. Only the
+AprilTag/fiducial pipeline is simulated.
+
 ## Contributing
 
 We welcome contributions from the FRC community! To contribute to the Yet Another Limelight Library project, please follow these steps:

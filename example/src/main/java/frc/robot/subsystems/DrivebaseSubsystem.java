@@ -53,7 +53,7 @@ public class DrivebaseSubsystem extends SubsystemBase
 
   private AHRS navx;
 
-  private double                         driveGearRatio      = 1.0;
+  private double                         driveGearRatio      = 7.0;
   private double                         wheelDiameterMeters = Inches.of(4).in(Meters);
   private double                         trackWidth          = Units.inchesToMeters(20);
   private DifferentialDrivePoseEstimator differentialDrivePoseEstimator;
@@ -169,7 +169,7 @@ public class DrivebaseSubsystem extends SubsystemBase
   public Command drive(DoubleSupplier left, DoubleSupplier right)
   {
     return run(() -> {
-      differentialDrive.tankDrive(left.getAsDouble() * 0.8, right.getAsDouble() * 0.8);
+      differentialDrive.arcadeDrive(left.getAsDouble() * 0.8, right.getAsDouble() * 0.8);
     });
   }
 
