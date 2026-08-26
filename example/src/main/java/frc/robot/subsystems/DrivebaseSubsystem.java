@@ -121,7 +121,7 @@ public class DrivebaseSubsystem extends SubsystemBase
     poseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
 
     limelightSim = new LimelightSim(limelight)
-        .withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslation(), cameraOffset.getRotation()));
+        .withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslation(), cameraOffset.getRotation())).withField2d(field2d);
 
     SmartDashboard.putData("Field", field2d);
     lastSimTimestampSeconds = Timer.getFPGATimestamp();
