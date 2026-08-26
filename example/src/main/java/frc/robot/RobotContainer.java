@@ -22,7 +22,7 @@ public class RobotContainer
 
   private void configureBindings()
   {
-    drivebaseSubsystem.setDefaultCommand(drivebaseSubsystem.drive(()->-driver.getRawAxis(1), ()->driver.getRawAxis(0)));
+    drivebaseSubsystem.setDefaultCommand(drivebaseSubsystem.drive(()->-driver.getRawAxis(1), ()->-driver.getRawAxis(0)));
   }
 
   public Command getAutonomousCommand()

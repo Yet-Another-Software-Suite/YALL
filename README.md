@@ -193,6 +193,10 @@ We welcome contributions from the FRC community! To contribute to the Yet Anothe
 
 Please make sure your code follows the project's style guidelines and includes tests for new features.
 
+## Credits
+
+Thanks to FRC Team 9738 for writing the original YALL Python port and the `LimelightSim` raycasting visualization, both merged in from their work.
+
 ## License
 
 Yet Another Limelight Library is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

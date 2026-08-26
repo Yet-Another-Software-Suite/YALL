@@ -41,6 +41,7 @@ import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
 import limelight.networktables.target.pipeline.NeuralClassifier;
 import limelight.sim.LimelightSim;
+import limelight.sim.LimelightSimSettings;
 import yams.gearing.MechanismGearing;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -119,8 +120,8 @@ public class DrivebaseSubsystem extends SubsystemBase
              .withCameraOffset(cameraOffset)
              .save();
     poseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
-
     limelightSim = new LimelightSim(limelight)
+        .withField2d(field2d)
         .withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslation(), cameraOffset.getRotation())).withField2d(field2d);
 
     SmartDashboard.putData("Field", field2d);
