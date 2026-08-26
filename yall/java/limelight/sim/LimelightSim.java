@@ -15,8 +15,10 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,9 @@ import limelight.networktables.target.AprilTagFiducial;
  * <pre>{@code
  * Limelight limelight = new Limelight("limelight");
  * LimelightSim limelightSim = new LimelightSim(limelight);
+ *
+ * // Optional Field2d visualization:
+ * limelightSim.withField2d(field);
  *
  * // in Robot#simulationPeriodic()
  * limelightSim.update(drivebase.getPose());
@@ -62,71 +67,96 @@ public class LimelightSim
   /**
    * {@link Limelight} being simulated.
    */
-  private final Limelight             limelight;
+  private final Limelight limelight;
+
   /**
    * {@link NetworkTable} for the {@link Limelight} being simulated.
    */
-  private final NetworkTable          table;
+  private final NetworkTable table;
+
   /**
    * Deterministic noise source.
    */
-  private       Random                noise;
+  private Random noise;
+
   /**
    * Camera properties/noise/latency configuration.
    */
-  private       LimelightSimSettings  settings;
+  private LimelightSimSettings settings;
+
   /**
    * Transform from the robot's origin to the camera's lens.
    */
-  private       Transform3d           robotToCamera = new Transform3d();
+  private Transform3d robotToCamera = new Transform3d();
+
   /**
    * AprilTag field layout used to source simulated targets.
    */
-  private       AprilTagFieldLayout   fieldLayout;
+  private AprilTagFieldLayout fieldLayout;
+
+  /**
+   * Optional Field2d used to visualize simulated AprilTag raycasts.
+   */
+  private Field2d field2d;
+
+  /**
+   * Field2d object containing the simulated raycast path.
+   *
+   * <p>
+   * The path is:
+   *
+   * <pre>
+   * robot -> tag1 -> robot -> tag2 -> robot -> ...
+   * </pre>
+   */
+  private FieldObject2d raycasts;
+
   /**
    * Jackson mapper used to publish the "json" results entry.
    */
-  private final ObjectMapper          jsonMapper    = new ObjectMapper();
+  private final ObjectMapper jsonMapper = new ObjectMapper();
+
   /**
    * Heartbeat counter, incremented once per {@link #update(Pose3d)} call.
    */
-  private       long                  heartbeat     = 0;
+  private long heartbeat = 0;
+
   /**
    * Frame index counter, incremented once per {@link #update(Pose3d)} call.
    */
-  private       long                  frameIndex    = 0;
+  private long frameIndex = 0;
 
-  private final NetworkTableEntry     tvEntry;
-  private final NetworkTableEntry     txEntry;
-  private final NetworkTableEntry     tyEntry;
-  private final NetworkTableEntry     txncEntry;
-  private final NetworkTableEntry     tyncEntry;
-  private final NetworkTableEntry     taEntry;
-  private final NetworkTableEntry     tidEntry;
-  private final NetworkTableEntry     tlEntry;
-  private final NetworkTableEntry     clEntry;
-  private final NetworkTableEntry     tdistEntry;
-  private final NetworkTableEntry     hbEntry;
-  private final NetworkTableEntry     getpipeEntry;
-  private final NetworkTableEntry     getpipetypeEntry;
-  private final NetworkTableEntry     jsonEntry;
-  private final NetworkTableEntry     pipelineIndexEntry;
-  private final DoubleArrayEntry      t2dEntry;
-  private final DoubleArrayEntry      rawFiducialsEntry;
-  private final DoubleArrayEntry      targetPoseRobotSpaceEntry;
-  private final DoubleArrayEntry      targetPoseCameraSpaceEntry;
-  private final DoubleArrayEntry      cameraPoseTargetSpaceEntry;
-  private final DoubleArrayEntry      botPoseTargetSpaceEntry;
-  private final DoubleArrayEntry      cameraPoseRobotSpaceEntry;
-  private final DoubleArrayEntry      stddevsEntry;
-  private final DoubleArrayEntry      imuEntry;
-  private final DoubleArrayEntry      botposeEntry;
-  private final DoubleArrayEntry      botposeRedEntry;
-  private final DoubleArrayEntry      botposeBlueEntry;
-  private final DoubleArrayEntry      botposeOrbEntry;
-  private final DoubleArrayEntry      botposeOrbBlueEntry;
-  private final DoubleArrayEntry      botposeOrbRedEntry;
-  private final DoubleArrayEntry      robotOrientationSetEntry;
+  private final NetworkTableEntry tvEntry;
+  private final NetworkTableEntry txEntry;
+  private final NetworkTableEntry tyEntry;
+  private final NetworkTableEntry txncEntry;
+  private final NetworkTableEntry tyncEntry;
+  private final NetworkTableEntry taEntry;
+  private final NetworkTableEntry tidEntry;
+  private final NetworkTableEntry tlEntry;
+  private final NetworkTableEntry clEntry;
+  private final NetworkTableEntry tdistEntry;
+  private final NetworkTableEntry hbEntry;
+  private final NetworkTableEntry getpipeEntry;
+  private final NetworkTableEntry getpipetypeEntry;
+  private final NetworkTableEntry jsonEntry;
+  private final NetworkTableEntry pipelineIndexEntry;
+  private final DoubleArrayEntry t2dEntry;
+  private final DoubleArrayEntry rawFiducialsEntry;
+  private final DoubleArrayEntry targetPoseRobotSpaceEntry;
+  private final DoubleArrayEntry targetPoseCameraSpaceEntry;
+  private final DoubleArrayEntry cameraPoseTargetSpaceEntry;
+  private final DoubleArrayEntry botPoseTargetSpaceEntry;
+  private final DoubleArrayEntry cameraPoseRobotSpaceEntry;
+  private final DoubleArrayEntry stddevsEntry;
+  private final DoubleArrayEntry imuEntry;
+  private final DoubleArrayEntry botposeEntry;
+  private final DoubleArrayEntry botposeRedEntry;
+  private final DoubleArrayEntry botposeBlueEntry;
+  private final DoubleArrayEntry botposeOrbEntry;
+  private final DoubleArrayEntry botposeOrbBlueEntry;
+  private final DoubleArrayEntry botposeOrbRedEntry;
+  private final DoubleArrayEntry robotOrientationSetEntry;
 
   /**
    * Construct a {@link LimelightSim} for the given {@link Limelight} using default camera settings, the current
@@ -143,7 +173,7 @@ public class LimelightSim
    * Construct a {@link LimelightSim} for the given {@link Limelight}.
    *
    * @param limelight {@link Limelight} to simulate.
-   * @param settings  Camera settings to use.
+   * @param settings Camera settings to use.
    */
   public LimelightSim(Limelight limelight, LimelightSimSettings settings)
   {
@@ -213,6 +243,40 @@ public class LimelightSim
   }
 
   /**
+   * Set the {@link Field2d} used to visualize simulated AprilTag raycasts.
+   *
+   * <p>
+   * The simulator does not set the built-in robot pose on the {@link Field2d}. Instead, it creates a single
+   * {@link FieldObject2d} named {@code "Limelight Raycasts"} containing the path:
+   *
+   * <pre>
+   * robot -> tag1 -> robot -> tag2 -> robot -> ...
+   * </pre>
+   *
+   * <p>
+   * If {@code null} is supplied, visualization is disabled and any existing raycast path is cleared.
+   *
+   * @param field2d {@link Field2d} to draw the raycasts on.
+   * @return {@link LimelightSim} for chaining.
+   */
+  public LimelightSim withField2d(Field2d field2d)
+  {
+    this.field2d = field2d;
+
+    if (field2d == null)
+    {
+      raycasts = null;
+    }
+    else
+    {
+      raycasts = field2d.getObject("Limelight Raycasts");
+      raycasts.setPoses();
+    }
+
+    return this;
+  }
+
+  /**
    * Set the camera properties/noise/latency configuration.
    *
    * @param settings {@link LimelightSimSettings} to use.
@@ -256,74 +320,186 @@ public class LimelightSim
     Pose3d cameraPose = robotPose.plus(robotToCamera);
 
     List<TagObservation> visible = new ArrayList<>();
+
     for (AprilTag tag : fieldLayout.getTags())
     {
       project(cameraPose, robotPose, tag).ifPresent(visible::add);
     }
+
     visible.sort((a, b) -> Double.compare(b.ta, a.ta));
 
-    int      tagCount   = visible.size();
+    drawRaycasts(robotPose, visible);
+
+    int tagCount = visible.size();
     TagObservation primary = tagCount > 0 ? visible.get(0) : null;
 
     double avgTagDist = 0;
     double avgTagArea = 0;
-    double tagSpan    = 0;
+    double tagSpan = 0;
+
     for (TagObservation obs : visible)
     {
       avgTagDist += obs.distToCamera;
       avgTagArea += obs.ta;
     }
+
     if (tagCount > 0)
     {
       avgTagDist /= tagCount;
       avgTagArea /= tagCount;
     }
+
     for (int i = 0; i < visible.size(); i++)
     {
       for (int j = i + 1; j < visible.size(); j++)
       {
-        tagSpan = Math.max(tagSpan, visible.get(i).pose.getTranslation()
-                                                        .getDistance(visible.get(j).pose.getTranslation()));
+        tagSpan = Math.max(
+            tagSpan,
+            visible.get(i).pose.getTranslation()
+                .getDistance(visible.get(j).pose.getTranslation())
+        );
       }
     }
 
-    double tlMs = Math.max(0, settings.avgPipelineLatencyMs + noise.nextGaussian() * settings.latencyStdDevMs);
+    double tlMs = Math.max(
+        0,
+        settings.avgPipelineLatencyMs
+            + noise.nextGaussian() * settings.latencyStdDevMs
+    );
+
     double clMs = settings.avgCaptureLatencyMs;
     double totalLatencyMs = tlMs + clMs;
 
     double translationStdDev = tagCount > 0
-                               ? settings.translationNoiseStdDevMeters * (1 + avgTagDist) / Math.sqrt(tagCount)
+                               ? settings.translationNoiseStdDevMeters
+                                     * (1 + avgTagDist)
+                                     / Math.sqrt(tagCount)
                                : 0;
-    double rotationStdDev = tagCount > 0 ? settings.rotationNoiseStdDevDegrees / Math.sqrt(tagCount) : 0;
 
-    Pose3d mt1Pose = tagCount > 0 ? addNoise(robotPose, translationStdDev, rotationStdDev) : robotPose;
-    Pose3d mt2Pose = tagCount > 0 ? addNoise(robotPose, translationStdDev / 2.0, 0) : robotPose;
+    double rotationStdDev = tagCount > 0
+                            ? settings.rotationNoiseStdDevDegrees
+                                  / Math.sqrt(tagCount)
+                            : 0;
+
+    Pose3d mt1Pose = tagCount > 0
+                     ? addNoise(robotPose, translationStdDev, rotationStdDev)
+                     : robotPose;
+
+    Pose3d mt2Pose = tagCount > 0
+                     ? addNoise(robotPose, translationStdDev / 2.0, 0)
+                     : robotPose;
+
     double[] suppliedOrientation = robotOrientationSetEntry.get();
+
     if (suppliedOrientation.length >= 1)
     {
       Rotation3d groundTruthRotation = mt2Pose.getRotation();
-      mt2Pose = new Pose3d(mt2Pose.getTranslation(),
-                           new Rotation3d(groundTruthRotation.getX(), groundTruthRotation.getY(),
-                                         Math.toRadians(suppliedOrientation[0])));
+
+      mt2Pose = new Pose3d(
+          mt2Pose.getTranslation(),
+          new Rotation3d(
+              groundTruthRotation.getX(),
+              groundTruthRotation.getY(),
+              Math.toRadians(suppliedOrientation[0])
+          )
+      );
     }
 
     Pose3d mt1PoseRed = flipToRed(mt1Pose);
     Pose3d mt2PoseRed = flipToRed(mt2Pose);
 
     publishScalarEntries(primary, tagCount, tlMs, clMs);
-    publishArrayEntries(robotPose, cameraPose, visible, primary, tagCount, tagSpan, avgTagDist, avgTagArea,
-                        totalLatencyMs, translationStdDev, rotationStdDev, mt1Pose, mt1PoseRed, mt2Pose, mt2PoseRed);
-    publishJson(robotPose, cameraPose, visible, tagCount, tagSpan, avgTagDist, avgTagArea, tlMs, clMs, primary,
-               mt1Pose, mt1PoseRed, mt2Pose);
+
+    publishArrayEntries(
+        robotPose,
+        cameraPose,
+        visible,
+        primary,
+        tagCount,
+        tagSpan,
+        avgTagDist,
+        avgTagArea,
+        totalLatencyMs,
+        translationStdDev,
+        rotationStdDev,
+        mt1Pose,
+        mt1PoseRed,
+        mt2Pose,
+        mt2PoseRed
+    );
+
+    publishJson(
+        robotPose,
+        cameraPose,
+        visible,
+        tagCount,
+        tagSpan,
+        avgTagDist,
+        avgTagArea,
+        tlMs,
+        clMs,
+        primary,
+        mt1Pose,
+        mt1PoseRed,
+        mt2Pose
+    );
 
     heartbeat++;
     frameIndex++;
   }
 
   /**
+   * Draw the simulated robot-to-tag raycasts onto the configured Field2d.
+   *
+   * <p>
+   * A single FieldObject2d is used. The poses are ordered as:
+   *
+   * <pre>
+   * robot -> tag1 -> robot -> tag2 -> robot -> tag3 -> ...
+   * </pre>
+   *
+   * <p>
+   * This produces separate-looking rays because the robot position is inserted between each tag.
+   *
+   * @param robotPose Ground-truth robot pose.
+   * @param visible Currently visible AprilTags.
+   */
+  private void drawRaycasts(
+      Pose3d robotPose,
+      List<TagObservation> visible)
+  {
+    if (raycasts == null)
+    {
+      return;
+    }
+
+    Pose2d robot = robotPose.toPose2d();
+
+    if (visible.isEmpty())
+    {
+      raycasts.setPoses();
+      return;
+    }
+
+    List<Pose2d> poses = new ArrayList<>(visible.size() * 2);
+
+    for (TagObservation observation : visible)
+    {
+      poses.add(robot);
+      poses.add(observation.pose.toPose2d());
+    }
+
+    raycasts.setPoses(poses.toArray(new Pose2d[0]));
+  }
+
+  /**
    * Publish the scalar ("primary target") NT entries.
    */
-  private void publishScalarEntries(TagObservation primary, int tagCount, double tlMs, double clMs)
+  private void publishScalarEntries(
+      TagObservation primary,
+      int tagCount,
+      double tlMs,
+      double clMs)
   {
     tvEntry.setDouble(tagCount > 0 ? 1 : 0);
     txEntry.setDouble(primary != null ? primary.tx : 0);
@@ -336,7 +512,9 @@ public class LimelightSim
     clEntry.setDouble(clMs);
     tdistEntry.setDouble(primary != null ? primary.distToCamera : 0);
     hbEntry.setDouble(heartbeat);
+
     double pipelineIndex = pipelineIndexEntry.getDouble(0);
+
     getpipeEntry.setDouble(pipelineIndex);
     getpipetypeEntry.setString(settings.pipelineType);
   }
@@ -345,17 +523,31 @@ public class LimelightSim
    * Publish the array-valued NT entries (rawfiducials, t2d, botpose family, target/camera relative poses, stddevs,
    * imu).
    */
-  private void publishArrayEntries(Pose3d robotPose, Pose3d cameraPose, List<TagObservation> visible,
-                                   TagObservation primary, int tagCount, double tagSpan, double avgTagDist,
-                                   double avgTagArea, double totalLatencyMs, double translationStdDev,
-                                   double rotationStdDev, Pose3d mt1Pose, Pose3d mt1PoseRed, Pose3d mt2Pose,
-                                   Pose3d mt2PoseRed)
+  private void publishArrayEntries(
+      Pose3d robotPose,
+      Pose3d cameraPose,
+      List<TagObservation> visible,
+      TagObservation primary,
+      int tagCount,
+      double tagSpan,
+      double avgTagDist,
+      double avgTagArea,
+      double totalLatencyMs,
+      double translationStdDev,
+      double rotationStdDev,
+      Pose3d mt1Pose,
+      Pose3d mt1PoseRed,
+      Pose3d mt2Pose,
+      Pose3d mt2PoseRed)
   {
     double[] rawFiducials = new double[7 * tagCount];
+
     for (int i = 0; i < visible.size(); i++)
     {
       TagObservation obs = visible.get(i);
+
       int base = i * 7;
+
       rawFiducials[base] = obs.id;
       rawFiducials[base + 1] = obs.tx;
       rawFiducials[base + 2] = obs.ty;
@@ -364,37 +556,124 @@ public class LimelightSim
       rawFiducials[base + 5] = obs.distToRobot;
       rawFiducials[base + 6] = obs.ambiguity;
     }
+
     rawFiducialsEntry.set(rawFiducials);
 
-    botposeEntry.set(botPoseArray(mt1Pose, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+    botposeEntry.set(
+        botPoseArray(
+            mt1Pose,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
+
     botposeBlueEntry.set(
-        botPoseArray(mt1Pose, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+        botPoseArray(
+            mt1Pose,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
+
     botposeRedEntry.set(
-        botPoseArray(mt1PoseRed, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+        botPoseArray(
+            mt1PoseRed,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
+
     botposeOrbEntry.set(
-        botPoseArray(mt2Pose, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+        botPoseArray(
+            mt2Pose,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
+
     botposeOrbBlueEntry.set(
-        botPoseArray(mt2Pose, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+        botPoseArray(
+            mt2Pose,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
+
     botposeOrbRedEntry.set(
-        botPoseArray(mt2PoseRed, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials));
+        botPoseArray(
+            mt2PoseRed,
+            totalLatencyMs,
+            tagCount,
+            tagSpan,
+            avgTagDist,
+            avgTagArea,
+            rawFiducials
+        )
+    );
 
     double[] t2d = new double[]{
-        tagCount > 0 ? 1 : 0, tagCount, totalLatencyMs, 0, primary != null ? primary.tx : 0,
-        primary != null ? primary.ty : 0, primary != null ? primary.tx : 0, primary != null ? primary.ty : 0,
-        primary != null ? primary.ta : 0, primary != null ? primary.id : -1, -1, -1,
-        primary != null ? primary.apparentWidthPixels : 0, primary != null ? primary.apparentWidthPixels : 0,
-        primary != null ? primary.apparentWidthPixels : 0, primary != null ? primary.apparentWidthPixels : 0, 0
-        };
+        tagCount > 0 ? 1 : 0,
+        tagCount,
+        totalLatencyMs,
+        0,
+        primary != null ? primary.tx : 0,
+        primary != null ? primary.ty : 0,
+        primary != null ? primary.tx : 0,
+        primary != null ? primary.ty : 0,
+        primary != null ? primary.ta : 0,
+        primary != null ? primary.id : -1,
+        -1,
+        -1,
+        primary != null ? primary.apparentWidthPixels : 0,
+        primary != null ? primary.apparentWidthPixels : 0,
+        primary != null ? primary.apparentWidthPixels : 0,
+        primary != null ? primary.apparentWidthPixels : 0,
+        0
+    };
+
     t2dEntry.set(t2d);
 
     if (primary != null)
     {
       Pose3d tagPose = primary.pose;
-      targetPoseRobotSpaceEntry.set(pose3dToArray(tagPose.relativeTo(robotPose)));
-      targetPoseCameraSpaceEntry.set(pose3dToArray(tagPose.relativeTo(cameraPose)));
-      cameraPoseTargetSpaceEntry.set(pose3dToArray(cameraPose.relativeTo(tagPose)));
-      botPoseTargetSpaceEntry.set(pose3dToArray(robotPose.relativeTo(tagPose)));
-    } else
+
+      targetPoseRobotSpaceEntry.set(
+          pose3dToArray(tagPose.relativeTo(robotPose))
+      );
+
+      targetPoseCameraSpaceEntry.set(
+          pose3dToArray(tagPose.relativeTo(cameraPose))
+      );
+
+      cameraPoseTargetSpaceEntry.set(
+          pose3dToArray(cameraPose.relativeTo(tagPose))
+      );
+
+      botPoseTargetSpaceEntry.set(
+          pose3dToArray(robotPose.relativeTo(tagPose))
+      );
+    }
+    else
     {
       targetPoseRobotSpaceEntry.set(new double[0]);
       targetPoseCameraSpaceEntry.set(new double[0]);
@@ -403,31 +682,69 @@ public class LimelightSim
     }
 
     cameraPoseRobotSpaceEntry.set(
-        pose3dToArray(new Pose3d(robotToCamera.getTranslation(), robotToCamera.getRotation())));
+        pose3dToArray(
+            new Pose3d(
+                robotToCamera.getTranslation(),
+                robotToCamera.getRotation()
+            )
+        )
+    );
 
     stddevsEntry.set(new double[]{
-        translationStdDev, translationStdDev, translationStdDev, rotationStdDev, rotationStdDev, rotationStdDev,
-        translationStdDev / 2.0, translationStdDev / 2.0, translationStdDev / 2.0, 0, 0, 0
-        });
+        translationStdDev,
+        translationStdDev,
+        translationStdDev,
+        rotationStdDev,
+        rotationStdDev,
+        rotationStdDev,
+        translationStdDev / 2.0,
+        translationStdDev / 2.0,
+        translationStdDev / 2.0,
+        0,
+        0,
+        0
+    });
 
     double robotYawDeg = Math.toDegrees(robotPose.getRotation().getZ());
     double robotPitchDeg = Math.toDegrees(robotPose.getRotation().getY());
     double robotRollDeg = Math.toDegrees(robotPose.getRotation().getX());
+
     imuEntry.set(new double[]{
-        robotYawDeg, robotRollDeg, robotPitchDeg, robotYawDeg, 0, 0, 0, 0, 0, 0
-        });
+        robotYawDeg,
+        robotRollDeg,
+        robotPitchDeg,
+        robotYawDeg,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    });
   }
 
   /**
    * Build the JSON "json" results entry.
    */
-  private void publishJson(Pose3d robotPose, Pose3d cameraPose, List<TagObservation> visible, int tagCount,
-                           double tagSpan, double avgTagDist, double avgTagArea, double tlMs, double clMs,
-                           TagObservation primary, Pose3d mt1Pose, Pose3d mt1PoseRed, Pose3d mt2Pose)
+  private void publishJson(
+      Pose3d robotPose,
+      Pose3d cameraPose,
+      List<TagObservation> visible,
+      int tagCount,
+      double tagSpan,
+      double avgTagDist,
+      double avgTagArea,
+      double tlMs,
+      double clMs,
+      TagObservation primary,
+      Pose3d mt1Pose,
+      Pose3d mt1PoseRed,
+      Pose3d mt2Pose)
   {
     double nowSeconds = Timer.getFPGATimestamp();
 
     LimelightResults results = new LimelightResults();
+
     results.error = "";
     results.tx = primary != null ? primary.tx : 0;
     results.ty = primary != null ? primary.ty : 0;
@@ -453,55 +770,97 @@ public class LimelightSim
     results.botpose_span = tagSpan;
     results.botpose_avgdist = avgTagDist;
     results.botpose_avgarea = avgTagArea;
-    results.camerapose_robotspace = pose3dToArray(new Pose3d(robotToCamera.getTranslation(),
-                                                              robotToCamera.getRotation()));
-    results.targetDistance = primary != null ? primary.distToCamera : 0;
+
+    results.camerapose_robotspace = pose3dToArray(
+        new Pose3d(
+            robotToCamera.getTranslation(),
+            robotToCamera.getRotation()
+        )
+    );
+
+    results.targetDistance =
+        primary != null ? primary.distToCamera : 0;
+
     results.hardwareType = "sim";
 
-    AprilTagFiducial[] fiducials = new AprilTagFiducial[visible.size()];
+    AprilTagFiducial[] fiducials =
+        new AprilTagFiducial[visible.size()];
+
     for (int i = 0; i < visible.size(); i++)
     {
       TagObservation obs = visible.get(i);
-      fiducials[i] = new AprilTagFiducial(obs.id, "36h11", obs.ta, obs.tx, obs.ty, obs.tx * obs.pixelsPerDegree,
-                                          obs.ty * obs.pixelsPerDegree, obs.tx, obs.ty,
-                                          nowSeconds * 1000.0,
-                                          pose3dToArray(cameraPose.relativeTo(obs.pose)),
-                                          pose3dToArray(robotPose),
-                                          pose3dToArray(robotPose.relativeTo(obs.pose)),
-                                          pose3dToArray(obs.pose.relativeTo(cameraPose)),
-                                          pose3dToArray(obs.pose.relativeTo(robotPose)));
+
+      fiducials[i] = new AprilTagFiducial(
+          obs.id,
+          "36h11",
+          obs.ta,
+          obs.tx,
+          obs.ty,
+          obs.tx * obs.pixelsPerDegree,
+          obs.ty * obs.pixelsPerDegree,
+          obs.tx,
+          obs.ty,
+          nowSeconds * 1000.0,
+          pose3dToArray(cameraPose.relativeTo(obs.pose)),
+          pose3dToArray(robotPose),
+          pose3dToArray(robotPose.relativeTo(obs.pose)),
+          pose3dToArray(obs.pose.relativeTo(cameraPose)),
+          pose3dToArray(obs.pose.relativeTo(robotPose))
+      );
     }
+
     results.targets_Fiducials = fiducials;
 
     try
     {
-      jsonEntry.setString(jsonMapper.writeValueAsString(results));
-    } catch (Exception e)
+      jsonEntry.setString(
+          jsonMapper.writeValueAsString(results)
+      );
+    }
+    catch (Exception e)
     {
       jsonEntry.setString("");
     }
   }
 
   /**
-   * Build the flat "botpose*" NT array: [x,y,z,roll,pitch,yaw, latency, tagCount, tagSpan, avgDist, avgArea,
+   * Build the flat "botpose*" NT array:
+   * [x,y,z,roll,pitch,yaw, latency, tagCount, tagSpan, avgDist, avgArea,
    * (id,txnc,tync,ta,distToCamera,distToRobot,ambiguity)*tagCount].
    */
-  private double[] botPoseArray(Pose3d pose, double latencyMs, int tagCount, double tagSpan, double avgTagDist,
-                                double avgTagArea, double[] rawFiducials)
+  private double[] botPoseArray(
+      Pose3d pose,
+      double latencyMs,
+      int tagCount,
+      double tagSpan,
+      double avgTagDist,
+      double avgTagArea,
+      double[] rawFiducials)
   {
     if (tagCount == 0)
     {
       return new double[0];
     }
+
     double[] pose6 = pose3dToArray(pose);
     double[] result = new double[11 + rawFiducials.length];
+
     System.arraycopy(pose6, 0, result, 0, 6);
+
     result[6] = latencyMs;
     result[7] = tagCount;
     result[8] = tagSpan;
     result[9] = avgTagDist;
     result[10] = avgTagArea;
-    System.arraycopy(rawFiducials, 0, result, 11, rawFiducials.length);
+
+    System.arraycopy(
+        rawFiducials,
+        0,
+        result,
+        11,
+        rawFiducials.length
+    );
+
     return result;
   }
 
@@ -512,86 +871,217 @@ public class LimelightSim
   private Pose3d flipToRed(Pose3d bluePose)
   {
     Rotation3d rotation = bluePose.getRotation();
-    return new Pose3d(fieldLayout.getFieldLength() - bluePose.getX(), fieldLayout.getFieldWidth() - bluePose.getY(),
-                      bluePose.getZ(),
-                      new Rotation3d(rotation.getX(), rotation.getY(), rotation.getZ() + Math.PI));
+
+    return new Pose3d(
+        fieldLayout.getFieldLength() - bluePose.getX(),
+        fieldLayout.getFieldWidth() - bluePose.getY(),
+        bluePose.getZ(),
+        new Rotation3d(
+            rotation.getX(),
+            rotation.getY(),
+            rotation.getZ() + Math.PI
+        )
+    );
   }
 
   /**
    * Apply Gaussian noise to a pose's translation and yaw.
    */
-  private Pose3d addNoise(Pose3d pose, double translationStdDev, double rotationStdDevDegrees)
+  private Pose3d addNoise(
+      Pose3d pose,
+      double translationStdDev,
+      double rotationStdDevDegrees)
   {
     if (translationStdDev <= 0 && rotationStdDevDegrees <= 0)
     {
       return pose;
     }
-    double x = pose.getX() + noise.nextGaussian() * translationStdDev;
-    double y = pose.getY() + noise.nextGaussian() * translationStdDev;
-    double z = pose.getZ() + noise.nextGaussian() * translationStdDev * 0.5;
+
+    double x =
+        pose.getX()
+            + noise.nextGaussian() * translationStdDev;
+
+    double y =
+        pose.getY()
+            + noise.nextGaussian() * translationStdDev;
+
+    double z =
+        pose.getZ()
+            + noise.nextGaussian()
+            * translationStdDev
+            * 0.5;
+
     Rotation3d rotation = pose.getRotation();
-    double     yaw       = rotation.getZ() + Math.toRadians(noise.nextGaussian() * rotationStdDevDegrees);
-    return new Pose3d(x, y, z, new Rotation3d(rotation.getX(), rotation.getY(), yaw));
+
+    double yaw =
+        rotation.getZ()
+            + Math.toRadians(
+                noise.nextGaussian()
+                    * rotationStdDevDegrees
+            );
+
+    return new Pose3d(
+        x,
+        y,
+        z,
+        new Rotation3d(
+            rotation.getX(),
+            rotation.getY(),
+            yaw
+        )
+    );
   }
 
   /**
    * Project a field {@link AprilTag} into the simulated camera, returning an observation if it is within the
    * configured field of view, range and incidence angle.
    */
-  private Optional<TagObservation> project(Pose3d cameraPose, Pose3d robotPose, AprilTag tag)
+  private Optional<TagObservation> project(
+      Pose3d cameraPose,
+      Pose3d robotPose,
+      AprilTag tag)
   {
-    Pose3d      tagPose = tag.pose;
-    Transform3d camToTag = new Transform3d(cameraPose, tagPose);
-    double      x        = camToTag.getX();
-    double      y        = camToTag.getY();
-    double      z        = camToTag.getZ();
+    Pose3d tagPose = tag.pose;
+
+    Transform3d camToTag =
+        new Transform3d(cameraPose, tagPose);
+
+    double x = camToTag.getX();
+    double y = camToTag.getY();
+    double z = camToTag.getZ();
 
     if (x <= 0.02)
     {
       return Optional.empty();
     }
 
-    double distance = camToTag.getTranslation().getNorm();
+    double distance =
+        camToTag.getTranslation().getNorm();
+
     if (distance > settings.maxDetectionRangeMeters)
     {
       return Optional.empty();
     }
 
-    double halfHFovDeg = settings.horizontalFOV.getDegrees() / 2.0;
-    double halfVFovDeg = settings.verticalFOV.getDegrees() / 2.0;
-    // tx positive = target right of crosshair, ty positive = target below crosshair (Limelight convention)
-    double yawDeg = Math.toDegrees(Math.atan2(-y, x));
-    double pitchDeg = Math.toDegrees(Math.atan2(-z, Math.hypot(x, y)));
-    if (Math.abs(yawDeg) > halfHFovDeg || Math.abs(pitchDeg) > halfVFovDeg)
+    double halfHFovDeg =
+        settings.horizontalFOV.getDegrees() / 2.0;
+
+    double halfVFovDeg =
+        settings.verticalFOV.getDegrees() / 2.0;
+
+    // tx positive = target right of crosshair
+    // ty positive = target below crosshair
+    // Limelight convention.
+    double yawDeg =
+        Math.toDegrees(Math.atan2(-y, x));
+
+    double pitchDeg =
+        Math.toDegrees(
+            Math.atan2(
+                -z,
+                Math.hypot(x, y)
+            )
+        );
+
+    if (Math.abs(yawDeg) > halfHFovDeg
+        || Math.abs(pitchDeg) > halfVFovDeg)
     {
       return Optional.empty();
     }
 
-    Translation3d tagNormal = new Translation3d(1, 0, 0).rotateBy(tagPose.getRotation());
-    Translation3d tagToCam  = cameraPose.getTranslation().minus(tagPose.getTranslation());
-    double dot = tagNormal.getX() * tagToCam.getX() + tagNormal.getY() * tagToCam.getY()
-                + tagNormal.getZ() * tagToCam.getZ();
-    double incidenceDeg = Math.toDegrees(Math.acos(MathUtil.clamp(dot / tagToCam.getNorm(), -1, 1)));
-    if (incidenceDeg > settings.maxTagIncidenceAngleDegrees)
+    Translation3d tagNormal =
+        new Translation3d(1, 0, 0)
+            .rotateBy(tagPose.getRotation());
+
+    Translation3d tagToCam =
+        cameraPose.getTranslation()
+            .minus(tagPose.getTranslation());
+
+    double dot =
+        tagNormal.getX() * tagToCam.getX()
+            + tagNormal.getY() * tagToCam.getY()
+            + tagNormal.getZ() * tagToCam.getZ();
+
+    double incidenceDeg =
+        Math.toDegrees(
+            Math.acos(
+                MathUtil.clamp(
+                    dot / tagToCam.getNorm(),
+                    -1,
+                    1
+                )
+            )
+        );
+
+    if (incidenceDeg
+        > settings.maxTagIncidenceAngleDegrees)
     {
       return Optional.empty();
     }
 
-    double fx = (settings.resolutionWidth / 2.0) / Math.tan(Math.toRadians(halfHFovDeg));
-    double apparentWidthPx = fx * settings.tagSizeMeters * Math.cos(Math.toRadians(incidenceDeg)) / x;
-    double areaPx = apparentWidthPx * apparentWidthPx;
-    double ta = MathUtil.clamp(areaPx / (settings.resolutionWidth * settings.resolutionHeight) * 100.0, 0, 100);
+    double fx =
+        (settings.resolutionWidth / 2.0)
+            / Math.tan(Math.toRadians(halfHFovDeg));
 
-    double noisyYaw = yawDeg + noise.nextGaussian() * settings.angleNoiseStdDevDegrees;
-    double noisyPitch = pitchDeg + noise.nextGaussian() * settings.angleNoiseStdDevDegrees;
+    double apparentWidthPx =
+        fx
+            * settings.tagSizeMeters
+            * Math.cos(Math.toRadians(incidenceDeg))
+            / x;
 
-    double distToRobot = robotPose.getTranslation().getDistance(tagPose.getTranslation());
-    double ambiguity = MathUtil.clamp(noise.nextDouble() * 0.05 + (incidenceDeg / 90.0) * 0.15, 0, 1);
-    double pixelsPerDegree = (settings.resolutionWidth / 2.0) / halfHFovDeg;
+    double areaPx =
+        apparentWidthPx * apparentWidthPx;
+
+    double ta =
+        MathUtil.clamp(
+            areaPx
+                / (settings.resolutionWidth
+                   * settings.resolutionHeight)
+                * 100.0,
+            0,
+            100
+        );
+
+    double noisyYaw =
+        yawDeg
+            + noise.nextGaussian()
+            * settings.angleNoiseStdDevDegrees;
+
+    double noisyPitch =
+        pitchDeg
+            + noise.nextGaussian()
+            * settings.angleNoiseStdDevDegrees;
+
+    double distToRobot =
+        robotPose.getTranslation()
+            .getDistance(tagPose.getTranslation());
+
+    double ambiguity =
+        MathUtil.clamp(
+            noise.nextDouble() * 0.05
+                + (incidenceDeg / 90.0) * 0.15,
+            0,
+            1
+        );
+
+    double pixelsPerDegree =
+        (settings.resolutionWidth / 2.0)
+            / halfHFovDeg;
 
     return Optional.of(
-        new TagObservation(tag.ID, tagPose, ta, noisyYaw, noisyPitch, distance, distToRobot, ambiguity,
-                           apparentWidthPx, pixelsPerDegree));
+        new TagObservation(
+            tag.ID,
+            tagPose,
+            ta,
+            noisyYaw,
+            noisyPitch,
+            distance,
+            distToRobot,
+            ambiguity,
+            apparentWidthPx,
+            pixelsPerDegree
+        )
+    );
   }
 
   /**
@@ -599,8 +1089,7 @@ public class LimelightSim
    */
   private static class TagObservation
   {
-
-    final int    id;
+    final int id;
     final Pose3d pose;
     final double ta;
     final double tx;
@@ -611,8 +1100,17 @@ public class LimelightSim
     final double apparentWidthPixels;
     final double pixelsPerDegree;
 
-    TagObservation(int id, Pose3d pose, double ta, double tx, double ty, double distToCamera, double distToRobot,
-                  double ambiguity, double apparentWidthPixels, double pixelsPerDegree)
+    TagObservation(
+        int id,
+        Pose3d pose,
+        double ta,
+        double tx,
+        double ty,
+        double distToCamera,
+        double distToRobot,
+        double ambiguity,
+        double apparentWidthPixels,
+        double pixelsPerDegree)
     {
       this.id = id;
       this.pose = pose;
@@ -626,5 +1124,4 @@ public class LimelightSim
       this.pixelsPerDegree = pixelsPerDegree;
     }
   }
-
 }
