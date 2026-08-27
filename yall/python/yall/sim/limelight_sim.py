@@ -24,7 +24,7 @@ def _defaultFieldLayout() -> robotpy_apriltag.AprilTagFieldLayout:
     # on older installs.
     fieldEnum = getattr(robotpy_apriltag.AprilTagField, "kDefaultField", None)
     if fieldEnum is None:
-        members = [f for f in robotpy_apriltag.AprilTagField if f.name != "kNumFields"]
+        members = [f for f in robotpy_apriltag.AprilTagField if f.name != "kNumFields"]  # pyright: ignore
         fieldEnum = members[-1]
     return robotpy_apriltag.AprilTagFieldLayout.loadField(fieldEnum)
 
@@ -100,6 +100,8 @@ class LimelightSim:
         self.__robotToCamera: geometry.Transform3d = geometry.Transform3d()
         self.__heartbeat: int = 0
         self.__frameIndex: int = 0
+        self.__field2d: Optional[wpilib.Field2d] = None
+        self.__raycasts: Optional[wpilib.FieldObject2d] = None
 
         self.__tv: ntcore.NetworkTableEntry = self.__table.getEntry("tv")
         self.__tx: ntcore.NetworkTableEntry = self.__table.getEntry("tx")
@@ -113,32 +115,44 @@ class LimelightSim:
         self.__tdist: ntcore.NetworkTableEntry = self.__table.getEntry("tdist")
         self.__hb: ntcore.NetworkTableEntry = self.__table.getEntry("hb")
         self.__getpipe: ntcore.NetworkTableEntry = self.__table.getEntry("getpipe")
-        self.__getpipetype: ntcore.NetworkTableEntry = self.__table.getEntry("getpipetype")
+        self.__getpipetype: ntcore.NetworkTableEntry = self.__table.getEntry(
+            "getpipetype"
+        )
         self.__json: ntcore.NetworkTableEntry = self.__table.getEntry("json")
-        self.__pipelineIndex: ntcore.NetworkTableEntry = self.__table.getEntry("pipeline")
+        self.__pipelineIndex: ntcore.NetworkTableEntry = self.__table.getEntry(
+            "pipeline"
+        )
 
-        self.__t2d: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic("t2d").getEntry([])
+        self.__t2d: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
+            "t2d"
+        ).getEntry([])
         self.__rawFiducials: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
             "rawfiducials"
         ).getEntry([])
-        self.__targetPoseRobotSpace: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "targetpose_robotspace"
+        self.__targetPoseRobotSpace: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("targetpose_robotspace").getEntry([])
+        )
+        self.__targetPoseCameraSpace: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("targetpose_cameraspace").getEntry([])
+        )
+        self.__cameraPoseTargetSpace: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("camerapose_targetspace").getEntry([])
+        )
+        self.__botPoseTargetSpace: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("botpose_targetspace").getEntry([])
+        )
+        self.__cameraPoseRobotSpace: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("camerapose_robotspace").getEntry([])
+        )
+        self.__stddevs: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
+            "stddevs"
         ).getEntry([])
-        self.__targetPoseCameraSpace: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "targetpose_cameraspace"
+        self.__imu: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
+            "imu"
+        ).getEntry([0.0] * 10)
+        self.__botpose: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
+            "botpose"
         ).getEntry([])
-        self.__cameraPoseTargetSpace: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "camerapose_targetspace"
-        ).getEntry([])
-        self.__botPoseTargetSpace: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "botpose_targetspace"
-        ).getEntry([])
-        self.__cameraPoseRobotSpace: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "camerapose_robotspace"
-        ).getEntry([])
-        self.__stddevs: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic("stddevs").getEntry([])
-        self.__imu: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic("imu").getEntry([0.0] * 10)
-        self.__botpose: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic("botpose").getEntry([])
         self.__botposeRed: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
             "botpose_wpired"
         ).getEntry([])
@@ -148,17 +162,44 @@ class LimelightSim:
         self.__botposeOrb: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
             "botpose_orb"
         ).getEntry([])
-        self.__botposeOrbBlue: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "botpose_orb_wpiblue"
-        ).getEntry([])
-        self.__botposeOrbRed: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "botpose_orb_wpired"
-        ).getEntry([])
-        self.__robotOrientationSet: ntcore.DoubleArrayEntry = self.__table.getDoubleArrayTopic(
-            "robot_orientation_set"
-        ).getEntry([])
+        self.__botposeOrbBlue: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("botpose_orb_wpiblue").getEntry([])
+        )
+        self.__botposeOrbRed: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("botpose_orb_wpired").getEntry([])
+        )
+        self.__robotOrientationSet: ntcore.DoubleArrayEntry = (
+            self.__table.getDoubleArrayTopic("robot_orientation_set").getEntry([])
+        )
 
-    def withRobotToCameraTransform(self, robotToCamera: geometry.Transform3d) -> "LimelightSim":
+    def withField2d(self, field: wpilib.Field2d) -> "LimelightSim":
+        """
+        Set the :class:`Field2d` used to visualize simulated AprilTag raycasts.
+
+        The simulator does not set the built-in robot pose on the :class:`Field2d`.
+        Instead, it creates a single :class:`FieldObject2d` named ``"Limelight Raycasts"``
+        containing the path::
+
+            robot -> tag1 -> robot -> tag2 -> robot -> ...
+
+        If ``None`` is supplied, visualization is disabled and any existing raycast
+        path is cleared.
+
+        :param field2d: :class:`Field2d` to draw the raycasts on.
+        :return: :class:`LimelightSim` for chaining.
+        """
+        self.__field2d = field
+        if field is None:
+            self.__raycasts = None
+        else:
+            self.__raycasts = self.__field2d.getObject("Limelight Raycasts")
+            self.__raycasts.setPoses([])
+
+        return self
+
+    def withRobotToCameraTransform(
+        self, robotToCamera: geometry.Transform3d
+    ) -> "LimelightSim":
         """
         Set the transform from the robot's origin to the camera's lens. Equivalent in effect to
         LimelightSettings.withCameraOffset() on real hardware.
@@ -200,6 +241,7 @@ class LimelightSim:
             if observation is not None:
                 visible.append(observation)
         visible.sort(key=lambda observation: observation.ta, reverse=True)
+        self.drawRaycasts(robotPose, visible)
 
         tagCount = len(visible)
         primary = visible[0] if tagCount > 0 else None
@@ -216,24 +258,44 @@ class LimelightSim:
         tagSpan = 0.0
         for i in range(len(visible)):
             for j in range(i + 1, len(visible)):
-                distance = visible[i].pose.translation().distance(visible[j].pose.translation())
+                distance = (
+                    visible[i]
+                    .pose.translation()
+                    .distance(visible[j].pose.translation())
+                )
                 tagSpan = max(tagSpan, distance)
 
         tlMs = max(
-            0.0, self.__settings.avgPipelineLatencyMs + self.__rng.gauss(0, 1) * self.__settings.latencyStdDevMs
+            0.0,
+            self.__settings.avgPipelineLatencyMs
+            + self.__rng.gauss(0, 1) * self.__settings.latencyStdDevMs,
         )
         clMs = self.__settings.avgCaptureLatencyMs
         totalLatencyMs = tlMs + clMs
 
         translationStdDev = (
-            self.__settings.translationNoiseStdDevMeters * (1 + avgTagDist) / math.sqrt(tagCount)
+            self.__settings.translationNoiseStdDevMeters
+            * (1 + avgTagDist)
+            / math.sqrt(tagCount)
             if tagCount > 0
             else 0.0
         )
-        rotationStdDev = self.__settings.rotationNoiseStdDevDegrees / math.sqrt(tagCount) if tagCount > 0 else 0.0
+        rotationStdDev = (
+            self.__settings.rotationNoiseStdDevDegrees / math.sqrt(tagCount)
+            if tagCount > 0
+            else 0.0
+        )
 
-        mt1Pose = self.__addNoise(robotPose, translationStdDev, rotationStdDev) if tagCount > 0 else robotPose
-        mt2Pose = self.__addNoise(robotPose, translationStdDev / 2.0, 0.0) if tagCount > 0 else robotPose
+        mt1Pose = (
+            self.__addNoise(robotPose, translationStdDev, rotationStdDev)
+            if tagCount > 0
+            else robotPose
+        )
+        mt2Pose = (
+            self.__addNoise(robotPose, translationStdDev / 2.0, 0.0)
+            if tagCount > 0
+            else robotPose
+        )
 
         suppliedOrientation = self.__robotOrientationSet.get()
         if len(suppliedOrientation) >= 1:
@@ -241,7 +303,9 @@ class LimelightSim:
             mt2Pose = geometry.Pose3d(
                 mt2Pose.translation(),
                 geometry.Rotation3d(
-                    groundTruthRotation.X(), groundTruthRotation.Y(), math.radians(suppliedOrientation[0])
+                    groundTruthRotation.X(),
+                    groundTruthRotation.Y(),
+                    math.radians(suppliedOrientation[0]),
                 ),
             )
 
@@ -286,7 +350,11 @@ class LimelightSim:
         self.__frameIndex += 1
 
     def __publishScalarEntries(
-        self, primary: Optional[_TagObservation], tagCount: int, tlMs: float, clMs: float
+        self,
+        primary: Optional[_TagObservation],
+        tagCount: int,
+        tlMs: float,
+        clMs: float,
     ) -> None:
         self.__tv.setDouble(1 if tagCount > 0 else 0)
         self.__tx.setDouble(primary.tx if primary else 0.0)
@@ -338,7 +406,13 @@ class LimelightSim:
 
         def botPoseArray(pose: geometry.Pose3d) -> List[float]:
             return self.__botPoseArray(
-                pose, totalLatencyMs, tagCount, tagSpan, avgTagDist, avgTagArea, rawFiducials
+                pose,
+                totalLatencyMs,
+                tagCount,
+                tagSpan,
+                avgTagDist,
+                avgTagArea,
+                rawFiducials,
             )
 
         self.__botpose.set(botPoseArray(mt1Pose))
@@ -373,18 +447,30 @@ class LimelightSim:
 
         if primary is not None:
             tagPose = primary.pose
-            self.__targetPoseRobotSpace.set(LimelightUtils.pose3dToArray(tagPose.relativeTo(robotPose)))
-            self.__targetPoseCameraSpace.set(LimelightUtils.pose3dToArray(tagPose.relativeTo(cameraPose)))
-            self.__cameraPoseTargetSpace.set(LimelightUtils.pose3dToArray(cameraPose.relativeTo(tagPose)))
-            self.__botPoseTargetSpace.set(LimelightUtils.pose3dToArray(robotPose.relativeTo(tagPose)))
+            self.__targetPoseRobotSpace.set(
+                LimelightUtils.pose3dToArray(tagPose.relativeTo(robotPose))
+            )
+            self.__targetPoseCameraSpace.set(
+                LimelightUtils.pose3dToArray(tagPose.relativeTo(cameraPose))
+            )
+            self.__cameraPoseTargetSpace.set(
+                LimelightUtils.pose3dToArray(cameraPose.relativeTo(tagPose))
+            )
+            self.__botPoseTargetSpace.set(
+                LimelightUtils.pose3dToArray(robotPose.relativeTo(tagPose))
+            )
         else:
             self.__targetPoseRobotSpace.set([])
             self.__targetPoseCameraSpace.set([])
             self.__cameraPoseTargetSpace.set([])
             self.__botPoseTargetSpace.set([])
 
-        cameraInRobotSpace = geometry.Pose3d(self.__robotToCamera.translation(), self.__robotToCamera.rotation())
-        self.__cameraPoseRobotSpace.set(LimelightUtils.pose3dToArray(cameraInRobotSpace))
+        cameraInRobotSpace = geometry.Pose3d(
+            self.__robotToCamera.translation(), self.__robotToCamera.rotation()
+        )
+        self.__cameraPoseRobotSpace.set(
+            LimelightUtils.pose3dToArray(cameraInRobotSpace)
+        )
 
         self.__stddevs.set(
             [
@@ -406,7 +492,20 @@ class LimelightSim:
         robotYawDeg = math.degrees(robotPose.rotation().Z())
         robotPitchDeg = math.degrees(robotPose.rotation().Y())
         robotRollDeg = math.degrees(robotPose.rotation().X())
-        self.__imu.set([robotYawDeg, robotRollDeg, robotPitchDeg, robotYawDeg, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        self.__imu.set(
+            [
+                robotYawDeg,
+                robotRollDeg,
+                robotPitchDeg,
+                robotYawDeg,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ]
+        )
 
     def __publishJson(
         self,
@@ -441,15 +540,25 @@ class LimelightSim:
                     "tx_nocross": observation.tx,
                     "ty_nocross": observation.ty,
                     "ts": nowSeconds * 1000.0,
-                    "t6c_ts": LimelightUtils.pose3dToArray(cameraPose.relativeTo(tagPose)),
+                    "t6c_ts": LimelightUtils.pose3dToArray(
+                        cameraPose.relativeTo(tagPose)
+                    ),
                     "t6r_fs": LimelightUtils.pose3dToArray(robotPose),
-                    "t6r_ts": LimelightUtils.pose3dToArray(robotPose.relativeTo(tagPose)),
-                    "t6t_cs": LimelightUtils.pose3dToArray(tagPose.relativeTo(cameraPose)),
-                    "t6t_rs": LimelightUtils.pose3dToArray(tagPose.relativeTo(robotPose)),
+                    "t6r_ts": LimelightUtils.pose3dToArray(
+                        robotPose.relativeTo(tagPose)
+                    ),
+                    "t6t_cs": LimelightUtils.pose3dToArray(
+                        tagPose.relativeTo(cameraPose)
+                    ),
+                    "t6t_rs": LimelightUtils.pose3dToArray(
+                        tagPose.relativeTo(robotPose)
+                    ),
                 }
             )
 
-        cameraInRobotSpace = geometry.Pose3d(self.__robotToCamera.translation(), self.__robotToCamera.rotation())
+        cameraInRobotSpace = geometry.Pose3d(
+            self.__robotToCamera.translation(), self.__robotToCamera.rotation()
+        )
 
         payload = {
             "error": "",
@@ -534,7 +643,10 @@ class LimelightSim:
         )
 
     def __addNoise(
-        self, pose: geometry.Pose3d, translationStdDev: float, rotationStdDevDegrees: float
+        self,
+        pose: geometry.Pose3d,
+        translationStdDev: float,
+        rotationStdDevDegrees: float,
     ) -> geometry.Pose3d:
         """Apply Gaussian noise to a pose's translation and yaw."""
         if translationStdDev <= 0 and rotationStdDevDegrees <= 0:
@@ -543,11 +655,18 @@ class LimelightSim:
         y = pose.Y() + self.__rng.gauss(0, 1) * translationStdDev
         z = pose.Z() + self.__rng.gauss(0, 1) * translationStdDev * 0.5
         rotation = pose.rotation()
-        yaw = rotation.Z() + math.radians(self.__rng.gauss(0, 1) * rotationStdDevDegrees)
-        return geometry.Pose3d(x, y, z, geometry.Rotation3d(rotation.X(), rotation.Y(), yaw))
+        yaw = rotation.Z() + math.radians(
+            self.__rng.gauss(0, 1) * rotationStdDevDegrees
+        )
+        return geometry.Pose3d(
+            x, y, z, geometry.Rotation3d(rotation.X(), rotation.Y(), yaw)
+        )
 
     def __project(
-        self, cameraPose: geometry.Pose3d, robotPose: geometry.Pose3d, tag: robotpy_apriltag.AprilTag
+        self,
+        cameraPose: geometry.Pose3d,
+        robotPose: geometry.Pose3d,
+        tag: robotpy_apriltag.AprilTag,
     ) -> Optional[_TagObservation]:
         """
         Project a field AprilTag into the simulated camera, returning an observation if it is within the
@@ -576,24 +695,74 @@ class LimelightSim:
 
         tagNormal = geometry.Translation3d(1, 0, 0).rotateBy(tagPose.rotation())
         tagToCam = cameraPose.translation() - tagPose.translation()
-        dot = tagNormal.X() * tagToCam.X() + tagNormal.Y() * tagToCam.Y() + tagNormal.Z() * tagToCam.Z()
+        dot = (
+            tagNormal.X() * tagToCam.X()
+            + tagNormal.Y() * tagToCam.Y()
+            + tagNormal.Z() * tagToCam.Z()
+        )
         incidenceDeg = math.degrees(math.acos(_clamp(dot / tagToCam.norm(), -1.0, 1.0)))
         if incidenceDeg > self.__settings.maxTagIncidenceAngleDegrees:
             return None
 
-        fx = (self.__settings.resolutionWidth / 2.0) / math.tan(math.radians(halfHFovDeg))
-        apparentWidthPx = fx * self.__settings.tagSizeMeters * math.cos(math.radians(incidenceDeg)) / x
+        fx = (self.__settings.resolutionWidth / 2.0) / math.tan(
+            math.radians(halfHFovDeg)
+        )
+        apparentWidthPx = (
+            fx
+            * self.__settings.tagSizeMeters
+            * math.cos(math.radians(incidenceDeg))
+            / x
+        )
         areaPx = apparentWidthPx * apparentWidthPx
-        ta = _clamp(areaPx / (self.__settings.resolutionWidth * self.__settings.resolutionHeight) * 100.0, 0.0, 100.0)
+        ta = _clamp(
+            areaPx
+            / (self.__settings.resolutionWidth * self.__settings.resolutionHeight)
+            * 100.0,
+            0.0,
+            100.0,
+        )
 
-        noisyYaw = yawDeg + self.__rng.gauss(0, 1) * self.__settings.angleNoiseStdDevDegrees
-        noisyPitch = pitchDeg + self.__rng.gauss(0, 1) * self.__settings.angleNoiseStdDevDegrees
+        noisyYaw = (
+            yawDeg + self.__rng.gauss(0, 1) * self.__settings.angleNoiseStdDevDegrees
+        )
+        noisyPitch = (
+            pitchDeg + self.__rng.gauss(0, 1) * self.__settings.angleNoiseStdDevDegrees
+        )
 
         distToRobot = robotPose.translation().distance(tagPose.translation())
-        ambiguity = _clamp(self.__rng.random() * 0.05 + (incidenceDeg / 90.0) * 0.15, 0.0, 1.0)
+        ambiguity = _clamp(
+            self.__rng.random() * 0.05 + (incidenceDeg / 90.0) * 0.15, 0.0, 1.0
+        )
         pixelsPerDegree = (self.__settings.resolutionWidth / 2.0) / halfHFovDeg
 
         return _TagObservation(
-            tag.ID, tagPose, ta, noisyYaw, noisyPitch, distance, distToRobot, ambiguity, apparentWidthPx,
+            tag.ID,
+            tagPose,
+            ta,
+            noisyYaw,
+            noisyPitch,
+            distance,
+            distToRobot,
+            ambiguity,
+            apparentWidthPx,
             pixelsPerDegree,
         )
+
+    def drawRaycasts(
+        self, robotPose: geometry.Pose3d, visible: List[_TagObservation]
+    ) -> None:
+        if self.__raycasts is None:
+            return
+
+        robot = robotPose.toPose2d()
+        if len(visible) == 0:
+            self.__raycasts.setPoses([])
+            return
+
+        poses = []
+
+        for observation in visible:
+            poses.append(robot)
+            poses.append(observation.pose.toPose2d())
+
+        self.__raycasts.setPoses(poses)
