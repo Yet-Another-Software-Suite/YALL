@@ -3,8 +3,8 @@
   <groupId>yall</groupId>
   <artifactId>YALL-java</artifactId>
   <versioning>
-    <latest>2026.8.25</latest>
-    <release>2026.8.25</release>
+    <latest>2026.8.30</latest>
+    <release>2026.8.30</release>
     <versions>
       <version>2025.9.6</version>
       <version>2026.1.7</version>
@@ -20,7 +20,8 @@
       <version>2026.3.26</version>
       <version>2026.4.22</version>
       <version>2026.8.25</version>
+      <version>2026.8.30</version>
     </versions>
-    <lastUpdated>20260825235902</lastUpdated>
+    <lastUpdated>20260830154340</lastUpdated>
   </versioning>
 </metadata>

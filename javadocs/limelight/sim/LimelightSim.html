@@ -78,37 +78,34 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">LimelightSim</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Simulates a <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> running the AprilTag/fiducial pipeline, publishing to the same NetworkTables keys a
- real Limelight would populate ("tx", "ty", "ta", "tv", "tid", "botpose*", "rawfiducials", "t2d",
- "targetpose_*"/"camerapose_*"/"botpose_targetspace", "tl"/"cl"/"getpipe"/"getpipetype", "json", ...) so that code
- written against <a href="../networktables/LimelightData.html" title="class in limelight.networktables"><code>LimelightData</code></a>, <a href="../networktables/LimelightTargetData.html" title="class in limelight.networktables"><code>LimelightTargetData</code></a>
- and <a href="../networktables/LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> behaves the same in simulation as on real hardware.
+<div class="block">Simulates a <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> running the AprilTag/fiducial pipeline, publishing to the same NetworkTables keys a real Limelight would populate ("tx", "ty", "ta", "tv", "tid", "botpose*",
+ "rawfiducials", "t2d", "targetpose_*"/"camerapose_*"/"botpose_targetspace", "tl"/"cl"/"getpipe"/"getpipetype", "json", ...) so that code written against
+ <a href="../networktables/LimelightData.html" title="class in limelight.networktables"><code>LimelightData</code></a>, <a href="../networktables/LimelightTargetData.html" title="class in limelight.networktables"><code>LimelightTargetData</code></a> and <a href="../networktables/LimelightPoseEstimator.html" title="class in limelight.networktables"><code>LimelightPoseEstimator</code></a> behaves the same in simulation as on
+ real hardware.
  <p>
  Minimal usage:
  <pre><code>
  Limelight limelight = new Limelight("limelight");
  LimelightSim limelightSim = new LimelightSim(limelight);
 
+ // Optional Field2d visualization:
+ limelightSim.withField2d(field);
+
  // in Robot#simulationPeriodic()
  limelightSim.update(drivebase.getPose());
  </code></pre>
- By default the current season's official AprilTag field is used and the camera is assumed to be mounted at the
- robot's origin. Call <a href="#withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)"><code>withRobotToCameraTransform(Transform3d)</code></a> and/or
+ By default the current season's official AprilTag field is used and the camera is assumed to be mounted at the robot's origin. Call <a href="#withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)"><code>withRobotToCameraTransform(Transform3d)</code></a> and/or
  <a href="#withSettings(limelight.sim.LimelightSimSettings)"><code>withSettings(LimelightSimSettings)</code></a> to refine it.
  <p>
- The overall approach (a per camera simulation object that is fed the ground truth robot pose every loop and
- projects field targets into a simple pinhole camera model to publish simulated NetworkTables output) is modeled
- after PhotonVision's <code>VisionSystemSim</code>/<code>PhotonCameraSim</code> simulation classes. Credit to the PhotonVision
- project for that design; this implementation is a from scratch, self contained port of the idea onto the
- Limelight NetworkTables schema and does not depend on PhotonVision at runtime.
+ The overall approach (a per camera simulation object that is fed the ground truth robot pose every loop and projects field targets into a simple pinhole camera model to publish simulated
+ NetworkTables output) is modeled after PhotonVision's <code>VisionSystemSim</code>/<code>PhotonCameraSim</code> simulation classes. Credit to the PhotonVision project for that design; this implementation is
+ a from scratch, self contained port of the idea onto the Limelight NetworkTables schema and does not depend on PhotonVision at runtime.
  <p></div>
 <dl class="notes">
 <dt>Implementation Note:</dt>
-<dd>Only the fiducial/AprilTag pipeline is simulated (retroreflective, neural classifier/detector and
- barcode pipelines are not). Robot pose and tag geometry are known exactly by the simulator, so rather than
- re-deriving a pose estimate via solvePnP like the real Limelight firmware does, the published botpose values are
- the ground truth robot pose with configurable Gaussian noise applied. This is an approximation, not a physically
- derived uncertainty model.</dd>
+<dd>Only the fiducial/AprilTag pipeline is simulated (retroreflective, neural classifier/detector and barcode pipelines are not). Robot pose and tag geometry are known exactly by the
+ simulator, so rather than re-deriving a pose estimate via solvePnP like the real Limelight firmware does, the published botpose values are the ground truth robot pose with configurable Gaussian
+ noise applied. This is an approximation, not a physically derived uncertainty model.</dd>
 </dl>
 </section>
 <section class="summary">
@@ -123,8 +120,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(limelight.Limelight)" class="member-name-link">LimelightSim</a><wbr>(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;limelight)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Construct a <a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> using default camera settings, the current
- season's AprilTag field layout and no robot-to-camera offset.</div>
+<div class="block">Construct a <a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> using default camera settings, the current season's AprilTag field layout and no robot-to-camera offset.</div>
 </div>
 <div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(limelight.Limelight,limelight.sim.LimelightSimSettings)" class="member-name-link">LimelightSim</a><wbr>(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;limelight,
  <a href="LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a>&nbsp;settings)</code></div>
@@ -148,14 +144,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#update(edu.wpi.first.math.geometry.Pose2d)" class="member-name-link">update</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose2d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Pose2d</a>&nbsp;robotPoseMeters)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
- the resulting NetworkTables data.</div>
+<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing the resulting NetworkTables data.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#update(edu.wpi.first.math.geometry.Pose3d)" class="member-name-link">update</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Pose3d</a>&nbsp;robotPose)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
- the resulting NetworkTables data.</div>
+<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing the resulting NetworkTables data.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withAprilTagFieldLayout(edu.wpi.first.apriltag.AprilTagFieldLayout)" class="member-name-link">withAprilTagFieldLayout</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/apriltag/AprilTagFieldLayout.html" title="class or interface in edu.wpi.first.apriltag" class="external-link">AprilTagFieldLayout</a>&nbsp;fieldLayout)</code></div>
@@ -163,13 +157,18 @@ loadScripts(document, 'script');</script>
 <div class="block">Override the AprilTag field layout used to source simulated targets.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)" class="member-name-link">withRobotToCameraTransform</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Transform3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Transform3d</a>&nbsp;robotToCamera)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withField2d(edu.wpi.first.wpilibj.smartdashboard.Field2d)" class="member-name-link">withField2d</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link">Field2d</a>&nbsp;field2d)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Set the transform from the robot's origin to the camera's lens.</div>
+<div class="block">Set the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link"><code>Field2d</code></a> used to visualize simulated AprilTag raycasts.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withSettings(limelight.sim.LimelightSimSettings)" class="member-name-link">withSettings</a><wbr>(<a href="LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a>&nbsp;settings)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)" class="member-name-link">withRobotToCameraTransform</a><wbr>(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Transform3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Transform3d</a>&nbsp;robotToCamera)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Set the transform from the robot's origin to the camera's lens.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withSettings(limelight.sim.LimelightSimSettings)" class="member-name-link">withSettings</a><wbr>(<a href="LimelightSimSettings.html" title="class in limelight.sim">LimelightSimSettings</a>&nbsp;settings)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the camera properties/noise/latency configuration.</div>
 </div>
 </div>
@@ -193,8 +192,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="&lt;init&gt;(limelight.Limelight)">
 <h3>LimelightSim</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LimelightSim</span><wbr><span class="parameters">(<a href="../Limelight.html" title="class in limelight">Limelight</a>&nbsp;limelight)</span></div>
-<div class="block">Construct a <a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> using default camera settings, the current
- season's AprilTag field layout and no robot-to-camera offset.</div>
+<div class="block">Construct a <a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for the given <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> using default camera settings, the current season's AprilTag field layout and no robot-to-camera offset.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>limelight</code> - <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> to simulate.</dd>
@@ -226,8 +224,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withRobotToCameraTransform(edu.wpi.first.math.geometry.Transform3d)">
 <h3>withRobotToCameraTransform</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></span>&nbsp;<span class="element-name">withRobotToCameraTransform</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Transform3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Transform3d</a>&nbsp;robotToCamera)</span></div>
-<div class="block">Set the transform from the robot's origin to the camera's lens. Equivalent in effect to
- <a href="../networktables/LimelightSettings.html#withCameraOffset(edu.wpi.first.math.geometry.Pose3d)"><code>LimelightSettings.withCameraOffset(Pose3d)</code></a> on real hardware.</div>
+<div class="block">Set the transform from the robot's origin to the camera's lens. Equivalent in effect to <a href="../networktables/LimelightSettings.html#withCameraOffset(edu.wpi.first.math.geometry.Pose3d)"><code>LimelightSettings.withCameraOffset(Pose3d)</code></a> on real hardware.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>robotToCamera</code> - Transform from the robot origin to the camera.</dd>
@@ -240,11 +237,33 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="withAprilTagFieldLayout(edu.wpi.first.apriltag.AprilTagFieldLayout)">
 <h3>withAprilTagFieldLayout</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></span>&nbsp;<span class="element-name">withAprilTagFieldLayout</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/apriltag/AprilTagFieldLayout.html" title="class or interface in edu.wpi.first.apriltag" class="external-link">AprilTagFieldLayout</a>&nbsp;fieldLayout)</span></div>
-<div class="block">Override the AprilTag field layout used to source simulated targets. Defaults to the current season's official
- field.</div>
+<div class="block">Override the AprilTag field layout used to source simulated targets. Defaults to the current season's official field.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>fieldLayout</code> - <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/apriltag/AprilTagFieldLayout.html" title="class or interface in edu.wpi.first.apriltag" class="external-link"><code>AprilTagFieldLayout</code></a> to use.</dd>
+<dt>Returns:</dt>
+<dd><a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for chaining.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="withField2d(edu.wpi.first.wpilibj.smartdashboard.Field2d)">
+<h3>withField2d</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="LimelightSim.html" title="class in limelight.sim">LimelightSim</a></span>&nbsp;<span class="element-name">withField2d</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link">Field2d</a>&nbsp;field2d)</span></div>
+<div class="block">Set the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link"><code>Field2d</code></a> used to visualize simulated AprilTag raycasts.
+
+ <p>
+ The simulator does not set the built-in robot pose on the <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link"><code>Field2d</code></a>. Instead, it creates a single <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/FieldObject2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link"><code>FieldObject2d</code></a> named <code>"Limelight Raycasts"</code> containing the path:
+
+ <pre>
+ robot -> tag1 -> robot -> tag2 -> robot -> ...
+ </pre>
+
+ <p>
+ If <code>null</code> is supplied, visualization is disabled and any existing raycast path is cleared.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>field2d</code> - <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/smartdashboard/Field2d.html" title="class or interface in edu.wpi.first.wpilibj.smartdashboard" class="external-link"><code>Field2d</code></a> to draw the raycasts on.</dd>
 <dt>Returns:</dt>
 <dd><a href="LimelightSim.html" title="class in limelight.sim"><code>LimelightSim</code></a> for chaining.</dd>
 </dl>
@@ -267,8 +286,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="update(edu.wpi.first.math.geometry.Pose2d)">
 <h3>update</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">update</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose2d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Pose2d</a>&nbsp;robotPoseMeters)</span></div>
-<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
- the resulting NetworkTables data. Call this periodically, typically from <code>Robot#simulationPeriodic()</code>.
+<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing the resulting NetworkTables data. Call this periodically, typically from
+ <code>Robot#simulationPeriodic()</code>.
  <p>
  No-op if not running in simulation.</div>
 <dl class="notes">
@@ -281,8 +300,8 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="update(edu.wpi.first.math.geometry.Pose3d)">
 <h3>update</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">update</span><wbr><span class="parameters">(<a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/geometry/Pose3d.html" title="class or interface in edu.wpi.first.math.geometry" class="external-link">Pose3d</a>&nbsp;robotPose)</span></div>
-<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing
- the resulting NetworkTables data. Call this periodically, typically from <code>Robot#simulationPeriodic()</code>.
+<div class="block">Update the simulated <a href="../Limelight.html" title="class in limelight"><code>Limelight</code></a> with the robot's current pose, projecting visible AprilTags and publishing the resulting NetworkTables data. Call this periodically, typically from
+ <code>Robot#simulationPeriodic()</code>.
  <p>
  No-op if not running in simulation.</div>
 <dl class="notes">
