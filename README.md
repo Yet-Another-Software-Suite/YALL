@@ -177,6 +177,15 @@ limelightSim.withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslat
 limelightSim.update(drivebase.getPose());
 ```
 
+To see what the simulated camera sees, call `limelightSim.withVideoStream()` and open
+[http://localhost:1181](http://localhost:1181) in a browser (a second camera is on 1182, and so on). Visible tags are
+drawn as white squares labeled with their IDs. This idea comes from PhotonVision's simulated camera stream.
+
+To also see the field itself, pass a 3D model of it: `limelightSim.withVideoStream("C:/path/to/field.stl")`. Export
+FIRST's official field CAD from Onshape as a **binary STL in meters**; use a simplified model (around 100k triangles or
+fewer) so frames draw quickly. The model is only drawn on a background thread, so it never slows the robot loop and
+doesn't change any NetworkTables data.
+
 Camera resolution/FOV, tag size, detection range, latency and noise are all configurable via `LimelightSimSettings`,
 but ship with sensible Limelight 3-like defaults so the snippet above is enough to get started. Only the
 AprilTag/fiducial pipeline is simulated.

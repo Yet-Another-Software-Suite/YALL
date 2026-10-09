@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSource;
+import edu.wpi.first.cscore.OpenCvLoader;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -15,17 +18,28 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import limelight.Limelight;
 import limelight.networktables.LimelightResults;
 import limelight.networktables.target.AprilTagFiducial;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 /**
  * Simulates a {@link Limelight} running the AprilTag/fiducial pipeline, publishing to the same NetworkTables keys a real Limelight would populate ("tx", "ty", "ta", "tv", "tid", "botpose*",
@@ -105,6 +119,31 @@ public class LimelightSim
    * </pre>
    */
   private FieldObject2d raycasts;
+
+  /**
+   * Optional simulated camera stream, see {@link #withVideoStream()}. {@code null} when disabled.
+   */
+  private CvSource videoStream;
+
+  /**
+   * Image drawn and sent to {@link #videoStream} every {@link #update(Pose3d)}.
+   */
+  private Mat videoFrame;
+
+  /**
+   * Background thread that draws video frames, so drawing never slows down the robot loop. {@code null} when the video stream is disabled.
+   */
+  private ExecutorService videoThread;
+
+  /**
+   * Whether {@link #videoThread} is still drawing the previous frame.
+   */
+  private final AtomicBoolean drawingVideoFrame = new AtomicBoolean();
+
+  /**
+   * Optional field CAD model drawn behind the AprilTags in the video stream, see {@link #withVideoStream(String)}. {@code null} when not used.
+   */
+  private FieldModel fieldModel;
 
   /**
    * Jackson mapper used to publish the "json" results entry.
@@ -267,6 +306,63 @@ public class LimelightSim
   }
 
   /**
+   * Publish a simulated camera stream showing what this Limelight "sees": every visible AprilTag drawn as a white square labeled with its ID, plus a crosshair at the image center.
+   *
+   * <p>
+   * Open it in a browser at <a href="http://localhost:1181">http://localhost:1181</a>. Each additional stream gets the next port (1182, 1183, ...) in the order they are created. The stream is also
+   * published to NetworkTables, so dashboards like Elastic, Shuffleboard and AdvantageScope can show it as well.
+   *
+   * <p>
+   * Inspired by PhotonVision's {@code PhotonCameraSim} video stream. Drawing a frame every loop costs some CPU, so this is off unless called. No-op if not running in simulation.
+   *
+   * @return {@link LimelightSim} for chaining.
+   */
+  public LimelightSim withVideoStream()
+  {
+    if (RobotBase.isSimulation() && videoStream == null)
+    {
+      OpenCvLoader.forceStaticLoad();
+      videoStream = CameraServer.putVideo(limelight.limelightName + "-sim", (int) settings.resolutionWidth, (int) settings.resolutionHeight);
+      videoFrame = new Mat();
+      videoThread = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, limelight.limelightName + "-sim video");
+        thread.setDaemon(true); // Don't keep the simulation running after the robot code exits.
+        return thread;
+      });
+    }
+    return this;
+  }
+
+  /**
+   * Same as {@link #withVideoStream()}, but also draws a 3D model of the field (walls, field elements, ...) in the stream so it looks like what a real camera would see.
+   *
+   * <p>
+   * The model must be a binary STL file in meters, with its origin at the center of the field and Z pointing up. That is how FIRST's official field CAD is set up, so exporting it to STL from Onshape
+   * with units set to meters works as-is. FIRST's full CAD has millions of triangles and makes the simulation slow, so use a simplified model (around 100k triangles or fewer).
+   *
+   * <p>
+   * The model is only drawn: it does not block AprilTags or change any NetworkTables data. No-op if not running in simulation.
+   *
+   * @param stlPath Path to the field model STL file.
+   * @return {@link LimelightSim} for chaining.
+   */
+  public LimelightSim withVideoStream(String stlPath)
+  {
+    withVideoStream(); // Loads OpenCV, which FieldModel needs.
+    if (RobotBase.isSimulation())
+    {
+      try
+      {
+        fieldModel = new FieldModel(stlPath);
+      } catch (IOException e)
+      {
+        DriverStation.reportError("LimelightSim could not load field model: " + e.getMessage(), false);
+      }
+    }
+    return this;
+  }
+
+  /**
    * Set the camera properties/noise/latency configuration.
    *
    * @param settings {@link LimelightSimSettings} to use.
@@ -319,8 +415,9 @@ public class LimelightSim
     visible.sort((a, b) -> Double.compare(b.ta, a.ta));
 
     drawRaycasts(robotPose, visible);
+    startVideoFrame(cameraPose, visible);
 
-    int            tagCount = visible.size();
+    int           tagCount = visible.size();
     TagObservation primary  = tagCount > 0 ? visible.get(0) : null;
 
     double avgTagDist = 0;
@@ -436,6 +533,113 @@ public class LimelightSim
     }
 
     raycasts.setPoses(poses.toArray(new Pose2d[0]));
+  }
+
+  /**
+   * If {@link #withVideoStream()} was called, start drawing a video frame on the {@link #videoThread} and return immediately, so drawing (especially a large field model) never slows down the robot
+   * loop. If the previous frame is still being drawn, this frame is skipped.
+   *
+   * @param cameraPose Camera pose on the field.
+   * @param visible    Currently visible AprilTags.
+   */
+  private void startVideoFrame(Pose3d cameraPose, List<TagObservation> visible)
+  {
+    if (videoThread != null && drawingVideoFrame.compareAndSet(false, true))
+    {
+      videoThread.execute(() -> {
+        try
+        {
+          drawVideoFrame(cameraPose, visible);
+        } finally
+        {
+          drawingVideoFrame.set(false);
+        }
+      });
+    }
+  }
+
+  /**
+   * Draw what the simulated camera sees and send it to the video stream. Runs on the {@link #videoThread}.
+   *
+   * <p>
+   * Each visible tag's 4 corners are projected into the image with the same pinhole camera model used by {@link #project(Pose3d, Pose3d, AprilTag)}.
+   *
+   * @param cameraPose Camera pose on the field.
+   * @param visible    Currently visible AprilTags.
+   */
+  private void drawVideoFrame(Pose3d cameraPose, List<TagObservation> visible)
+  {
+    int width = (int) settings.resolutionWidth;
+    int height = (int) settings.resolutionHeight;
+    // NOTE IM NOT SURE EXACTLY WHERE LL GETS WIERD WITH ANGLES
+    Pose3d ll_adjusted_pose = new Pose3d(cameraPose.getTranslation(), new Rotation3d(-cameraPose.getRotation().getX(), -cameraPose.getRotation().getY(), -cameraPose.getRotation().getZ()));
+
+    videoFrame.create(height, width, CvType.CV_8UC3);
+    videoFrame.setTo(new Scalar(40, 40, 40)); // Dark gray background (OpenCV colors are BGR).
+
+    // Focal lengths in pixels, from the field of view.
+    double fx   = (width / 2.0) / Math.tan(settings.horizontalFOV.getRadians() / 2.0);
+    double fy   = (height / 2.0) / Math.tan(settings.verticalFOV.getRadians() / 2.0);
+    double half = settings.tagSizeMeters / 2.0;
+
+    if (fieldModel != null)
+    {
+      // The model's origin is the field center, WPILib's is the blue alliance corner.
+      Pose3d fieldCenter = new Pose3d(fieldLayout.getFieldLength() / 2.0, fieldLayout.getFieldWidth() / 2.0, 0, Rotation3d.kZero);
+      fieldModel.draw(videoFrame, ll_adjusted_pose.relativeTo(fieldCenter), fx, fy);
+    }
+
+    // Tag corners in the tag's own frame. A tag faces along its +X axis, so its face lies in the Y/Z plane.
+    double[][] cornerOffsets = {{-half, -half}, {half, -half}, {half, half}, {-half, half}};
+
+    Scalar green = new Scalar(0, 255, 0);
+    Scalar white = new Scalar(255, 255, 255);
+
+    for (TagObservation obs : visible)
+    {
+      Point[] pixels       = new Point[4];
+      boolean behindCamera = false;
+
+      for (int i = 0; i < 4; i++)
+      {
+        // Corner relative to the camera: X forward, Y left, Z up.
+        Translation3d corner = obs.pose.transformBy(new Transform3d(0, cornerOffsets[i][0], cornerOffsets[i][1], Rotation3d.kZero)).relativeTo(ll_adjusted_pose).getTranslation();
+
+        if (corner.getX() <= 0)
+        {
+          behindCamera = true;
+          break;
+        }
+
+        // Pinhole projection. Image X grows to the right and image Y grows downward.
+        pixels[i] = new Point(width / 2.0 - fx * corner.getY() / corner.getX(), height / 2.0 - fy * corner.getZ() / corner.getX());
+      }
+
+      if (behindCamera)
+      {
+        continue;
+      }
+
+      MatOfPoint outline = new MatOfPoint(pixels);
+      Imgproc.fillConvexPoly(videoFrame, outline, white);
+      Imgproc.polylines(videoFrame, List.of(outline), true, green, 3);
+      outline.release();
+
+      // Label just above the tag's top-left.
+      Point label = new Point(width, height);
+      for (Point pixel : pixels)
+      {
+        label.x = Math.min(label.x, pixel.x);
+        label.y = Math.max(30, Math.min(label.y, pixel.y - 10)); // Keep the label on screen.
+      }
+      Imgproc.putText(videoFrame, "ID " + obs.id, label, Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, green, 2);
+    }
+
+    // Crosshair.
+    Imgproc.line(videoFrame, new Point(width / 2.0 - 20, height / 2.0), new Point(width / 2.0 + 20, height / 2.0), green, 2);
+    Imgproc.line(videoFrame, new Point(width / 2.0, height / 2.0 - 20), new Point(width / 2.0, height / 2.0 + 20), green, 2);
+
+    videoStream.putFrame(videoFrame);
   }
 
   /**
