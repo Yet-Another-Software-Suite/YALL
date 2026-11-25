@@ -8,7 +8,7 @@ The **pose filter** looks at every robot position a camera guesses and throws ou
 
 ![A field with six position guesses: one accepted, and five thrown out for being off the field, floating in the air, from tags too far away, too ambiguous, or taken while the robot spun too fast.](../.gitbook/assets/pose-filter-checks.png)
 
-Each camera's config holds a `VisionPoseFilter`. Build one, change the checks you want, and pass it in:
+Each camera's config holds a [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter). Build one, change the checks you want, and pass it in:
 
 ```java
 VisionCameraConfig config = new VisionCameraConfig()
@@ -19,7 +19,7 @@ VisionCameraConfig config = new VisionCameraConfig()
         .withMaxYawRate(null));                         // null turns a check off
 ```
 
-Every check is set with its `withX(...)` method and turned off by passing `null`. A new `VisionPoseFilter` starts with the defaults below. `VisionPoseFilter.acceptAll()` starts with every check off; only estimates that used no tags are still rejected.
+Every check is set with its `withX(...)` method and turned off by passing `null`. A new [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) starts with the defaults below. [`VisionPoseFilter.acceptAll()`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) starts with every check off; only estimates that used no tags are still rejected.
 
 ## The checks
 

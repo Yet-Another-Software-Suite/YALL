@@ -20,7 +20,7 @@ Each camera publishes to NetworkTables under `YALL/<camera name>`, updated by ev
 | `latencyMillis` | double | The newest frame's latency |
 | `connected` | boolean | Whether the camera is sending data |
 
-`VisionSystem` publishes `YALL/fusedPose` (`Pose3d`) when it has one.
+[`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes `YALL/fusedPose` (`Pose3d`) when it has one.
 
 Turn a camera's telemetry off with `config.withTelemetry(false)`.
 
@@ -33,7 +33,7 @@ Add `acceptedPoses` and `rejectedPoses` to a field view in AdvantageScope or Ela
 To see the simulated camera's picture, turn on its video stream: see [Simulating Cameras](../tutorials/simulating-cameras.md#see-what-the-camera-sees).
 
 
-PhotonVision publishes a debug field for each simulated world, `VisionSystemSim-YALL/Sim Field` for the default one, with the robot, the cameras and the targets they see. `VisionSim.getDefault().getDebugField()` returns the same `Field2d`.
+PhotonVision publishes a debug field for each simulated world, `VisionSystemSim-YALL/Sim Field` for the default one, with the robot, the cameras and the targets they see. [`VisionSim.getDefault().getDebugField()`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim) returns the same `Field2d`.
 
 ## Vendor telemetry
 

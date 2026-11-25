@@ -13,11 +13,11 @@ In this tutorial you add one camera to a robot program, run it in simulation, an
 
 ## The pieces, in one sentence each
 
-* **A camera** (`VisionCamera`) wraps your camera's own library (PhotonVision, Limelight or Synapse) so every camera works the same way.
-* **Its config** (`VisionCameraConfig`) says which camera it is and where it sits on the robot.
-* **The pose filter** (`VisionPoseFilter`) throws out bad position guesses. It has good defaults, so you can ignore it for now.
-* **The simulated world** (`VisionSim`) is a pretend field full of AprilTags that every camera sees when the program runs on your computer.
-* **A vision system** (`VisionSystem`) runs several cameras together. You need it once you have more than one camera.
+* **A camera** ([`VisionCamera`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-camera)) wraps your camera's own library (PhotonVision, Limelight or Synapse) so every camera works the same way.
+* **Its config** ([`VisionCameraConfig`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-camera-config)) says which camera it is and where it sits on the robot.
+* **The pose filter** ([`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter)) throws out bad position guesses. It has good defaults, so you can ignore it for now.
+* **The simulated world** ([`VisionSim`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim)) is a pretend field full of AprilTags that every camera sees when the program runs on your computer.
+* **A vision system** ([`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system)) runs several cameras together. You need it once you have more than one camera.
 
 {% hint style="info" %}
 **AprilTags** are the square black and white codes stuck around an FRC field. Each one has an ID number and a known spot on the field, so a camera that sees one can work out where the robot is.
@@ -27,7 +27,7 @@ In this tutorial you add one camera to a robot program, run it in simulation, an
 {% step %}
 ### Add the camera
 
-Open `first/robot/Robot.java` and add a camera as a field of the `Robot` class. This one is a PhotonVision camera named `front`. Use `LimelightWrapper` with `new Limelight("limelight")`, or `SynapseWrapper` with `new SynapseCamera("camera")`, for the other vendors.
+Open `first/robot/Robot.java` and add a camera as a field of the `Robot` class. This one is a PhotonVision camera named `front`. Use [`LimelightWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/limelight-wrapper) with `new Limelight("limelight")`, or [`SynapseWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/synapse-wrapper) with `new SynapseCamera("camera")`, for the other vendors.
 
 ```java
 private final VisionCamera camera =
@@ -110,7 +110,7 @@ Run the simulation (**WPILib: Simulate Robot Code**) and open a dashboard such a
 ## If it did not work
 
 * **The build fails on `PhotonCamera`, `Limelight` or `SynapseCamera`:** a vendordep is missing. See [How do I install YALL?](../how-to-guides/how-do-i-install-yall.md)
-* **`targetCount` stays 0:** check that `simulationPeriodic()` calls `VisionSim.getDefault().update(...)`, and that the pose faces some AprilTags.
+* **`targetCount` stays 0:** check that `simulationPeriodic()` calls [`VisionSim.getDefault().update(...)`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim), and that the pose faces some AprilTags.
 * **More problems:** [Troubleshooting](../how-to-guides/troubleshooting.md).
 
 ## The complete file

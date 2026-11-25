@@ -26,8 +26,8 @@ YALL builds against WPILib 2027 (alpha 8). This reference covers every public cl
 
 | Vendor | Library | Wrapper | Camera models |
 | --- | --- | --- | --- |
-| PhotonVision | PhotonLib (required) | `PhotonVisionWrapper` | `LUMA_P1`, `LUMA_P2`, `THRIFTYCAM`, `THRIFTIEST_CAM`, `ARDUCAM_OV9281` |
-| Limelight | LimelightLib 2 | `LimelightWrapper` | `LIMELIGHT_2`, `LIMELIGHT_2_PLUS`, `LIMELIGHT_3`, `LIMELIGHT_3A`, `LIMELIGHT_3G`, `LIMELIGHT_4` |
-| Synapse | SynapseLib | `SynapseWrapper` | any USB camera, for example `THRIFTYCAM`, `THRIFTIEST_CAM`, `ARDUCAM_OV9281` |
+| PhotonVision | PhotonLib (required) | [`PhotonVisionWrapper`](java-reference/cameras/photonvision-wrapper.md) | `LUMA_P1`, `LUMA_P2`, `THRIFTYCAM`, `THRIFTIEST_CAM`, `ARDUCAM_OV9281` |
+| Limelight | LimelightLib 2 | [`LimelightWrapper`](java-reference/cameras/limelight-wrapper.md) | `LIMELIGHT_2`, `LIMELIGHT_2_PLUS`, `LIMELIGHT_3`, `LIMELIGHT_3A`, `LIMELIGHT_3G`, `LIMELIGHT_4` |
+| Synapse | SynapseLib | [`SynapseWrapper`](java-reference/cameras/synapse-wrapper.md) | any USB camera, for example `THRIFTYCAM`, `THRIFTIEST_CAM`, `ARDUCAM_OV9281` |
 
 YALL requires PhotonLib and WPILib's CameraServer and AprilTag vendordeps, which PhotonVision's simulation needs. LimelightLib 2 and SynapseLib are needed only for the cameras you construct. Any other camera can be simulated with PhotonVision camera properties.

@@ -10,7 +10,7 @@ A **pose estimate** is a camera's guess at where the robot is. This page explain
 
 ## Where an estimate comes from
 
-Each camera frame with AprilTags can produce one `VisionPoseEstimate`. How the wrapper makes it depends on the vendor and the [pose estimation mode](../how-to-guides/how-do-i-choose-a-pose-estimation-mode.md):
+Each camera frame with AprilTags can produce one [`VisionPoseEstimate`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate). How the wrapper makes it depends on the vendor and the [pose estimation mode](../how-to-guides/how-do-i-choose-a-pose-estimation-mode.md):
 
 | Source | `TAGS_ONLY` | `HEADING_ASSISTED` |
 | --- | --- | --- |
@@ -44,7 +44,7 @@ Not every estimate is trustworthy. A single distant tag seen at a sharp angle ca
 
 ![A field with six position guesses: one accepted, and five thrown out for being off the field, floating in the air, from tags too far away, too ambiguous, or taken while the robot spun too fast.](../.gitbook/assets/pose-filter-checks.png)
 
-Every estimate goes through the camera's `VisionPoseFilter` in `update()`. The first failing check rejects it; the rest go to `getEstimatedPoses()`. Checks run in this order:
+Every estimate goes through the camera's [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) in `update()`. The first failing check rejects it; the rest go to `getEstimatedPoses()`. Checks run in this order:
 
 | Check | Default | Rejects when |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ A Limelight given a `PoseEstimateConfig` through `withVendorConfig` uses Limelig
 
 ![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The fused pose sits close to the sure one.](../.gitbook/assets/fusing-cameras.png)
 
-`VisionSystem.addVisionMeasurements` adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose weighted by their standard deviations. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
+[`VisionSystem.addVisionMeasurements`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose weighted by their standard deviations. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
 
 ## Read more
 

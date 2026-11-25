@@ -9,7 +9,7 @@ icon: qrcode
 * Tuning a PhotonVision camera: [2D AprilTag Tuning](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/2D-tracking-tuning.html), [3D Tracking](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/3D-tracking.html), [MultiTag Localization](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/multitag.html).
 * Tuning a Limelight: [Tracking AprilTags](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltags), [3D AprilTags](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d), [Robot Localization with MegaTag](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization), [MegaTag2](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization-megatag2).
 
-The rest of this page covers Limelight MegaTag2, plus the PhotonVision multi-tag setup. This page covers the setup steps that make Limelight MegaTag2 robot localization accurate, on top of the basic wiring already covered in the [AprilTag Pose Estimation tutorial](../tutorials/apriltag-pose-estimation.md) and [How do I choose a pose estimation mode?](../how-to-guides/how-do-i-choose-a-pose-estimation-mode.md) In YALL, MegaTag2 is a `LimelightWrapper` with `PoseEstimationMode.HEADING_ASSISTED`.
+The rest of this page covers Limelight MegaTag2, plus the PhotonVision multi-tag setup. This page covers the setup steps that make Limelight MegaTag2 robot localization accurate, on top of the basic wiring already covered in the [AprilTag Pose Estimation tutorial](../tutorials/apriltag-pose-estimation.md) and [How do I choose a pose estimation mode?](../how-to-guides/how-do-i-choose-a-pose-estimation-mode.md) In YALL, MegaTag2 is a [`LimelightWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/limelight-wrapper) with [`PoseEstimationMode.HEADING_ASSISTED`](https://yall.yassrobotics.com/api-reference/java-reference/yall/pose-estimation-mode).
 
 The field map, IMU and assist alpha steps are Limelight-specific. The camera offset, robot orientation and filtering steps apply to every camera.
 
@@ -30,7 +30,7 @@ PhotonVision's version of MegaTag is **MultiTag**, solved on the camera's comput
 1. **Camera offset**: `withRobotToCamera(...)` in the camera's config, measured accurately from the robot's center. YALL sends it to the Limelight, overriding the web interface's camera pose. Every localization result is only as good as this offset.
 2. **Field map**: upload the correct `.fmap` for the season's field to the Limelight.
 3. **Blue-corner origin**: MegaTag2 (2024+) always uses the blue-corner field origin; a mismatched origin convention silently rotates/flips every pose.
-4. **Robot orientation every loop**: `camera.setRobotOrientation(...)` (or `VisionSystem.setRobotOrientation(...)`) must be called every loop, in `Robot.robotPeriodic()`, *before* `update()`. This is the single most common MegaTag2 mistake. Skip it and you get stale or inaccurate poses with no error thrown.
+4. **Robot orientation every loop**: `camera.setRobotOrientation(...)` (or [`VisionSystem.setRobotOrientation(...)`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system)) must be called every loop, in `Robot.robotPeriodic()`, *before* `update()`. This is the single most common MegaTag2 mistake. Skip it and you get stale or inaccurate poses with no error thrown.
 
 ## Tuning the internal IMU (Limelight 4)
 

@@ -51,9 +51,9 @@ VisionSim(String name, Field field)
 | `resetRobotPose(Pose2d robotPose)` | `void` | Moves the simulated robot without processing frames, for example when resetting the robot pose. |
 | `addVisionTargets(String type, VisionTargetSim... targets)` | `void` | Adds targets other than the field's AprilTags, such as game pieces for object detection. Give each a class ID with `new VisionTargetSim(pose, model, classId, confidence)`. `type` names the group for the debug field. |
 | `removeVisionTargets(String type)` | `void` | Removes a group of targets added with `addVisionTargets`. |
-| `addCamera(PhotonCameraSim cameraSim, Transform3d robotToCamera)` | `void` | Adds a simulated camera. `VisionCamera` calls this; robot code doesn't need to. |
+| `addCamera(PhotonCameraSim cameraSim, Transform3d robotToCamera)` | `void` | Adds a simulated camera. [`VisionCamera`](../yall/vision-camera.md) calls this; robot code doesn't need to. |
 | `removeCamera(PhotonCameraSim cameraSim)` | `void` | Removes a simulated camera. |
-| `adjustCamera(PhotonCameraSim cameraSim, Transform3d robotToCamera)` | `void` | Moves a simulated camera. `VisionCamera.setRobotToCamera` calls this. |
+| `adjustCamera(PhotonCameraSim cameraSim, Transform3d robotToCamera)` | `void` | Moves a simulated camera. [`VisionCamera.setRobotToCamera`](../yall/vision-camera.md) calls this. |
 | `getDebugField()` | `Field2d` | A field drawing of the simulated robot, cameras and the targets they see. |
 | `getField()` | `Field` | The field whose AprilTags the cameras see. |
 | `getVisionSystemSim()` | `VisionSystemSim` | The PhotonVision simulation underneath, for settings YALL doesn't cover. |
@@ -70,7 +70,7 @@ VisionSim.getDefault().addVisionTargets(
 
 ## Simulated cameras
 
-Each simulated `VisionCamera` gets a PhotonVision `PhotonCameraSim`:
+Each simulated [`VisionCamera`](../yall/vision-camera.md) gets a PhotonVision `PhotonCameraSim`:
 
 * A [`PhotonVisionWrapper`](../cameras/photonvision-wrapper.md)'s simulation publishes to its own `PhotonCamera`.
 * Other cameras get a private `PhotonCamera` named `YALL-<camera name>`.

@@ -9,7 +9,7 @@ icon: chess-board
 * Tuning a PhotonVision camera: [Calibrating Your Camera](https://docs.photonvision.org/en/latest/docs/calibration/calibration.html) (PhotonVision's Cameras tab).
 * Tuning a Limelight: [ChArUco Camera Calibration](https://docs.limelightvision.io/docs/docs-limelight/getting-started/performing-charuco-camera-calibration). The steps below follow it.
 
-Every `VisionTarget.cameraToTarget()`, every `VisionPoseEstimate`, and AprilTag 3D tracking in general all depend on SolvePnP, which depends on an accurate camera intrinsic calibration. The factory calibration gets you close, and a ChArUco calibration done on your specific camera gets you accurate. If you're only using a target's yaw and pitch for visual servoing, you can skip this, since it's only worth doing when 3D pose accuracy matters.
+Every [`VisionTarget.cameraToTarget()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target), every [`VisionPoseEstimate`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate), and AprilTag 3D tracking in general all depend on SolvePnP, which depends on an accurate camera intrinsic calibration. The factory calibration gets you close, and a ChArUco calibration done on your specific camera gets you accurate. If you're only using a target's yaw and pitch for visual servoing, you can skip this, since it's only worth doing when 3D pose accuracy matters.
 
 ## Calibrate
 

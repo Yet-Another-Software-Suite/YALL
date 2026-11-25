@@ -13,7 +13,7 @@ icon: computer
 
 ## How it works
 
-* Every camera joins a simulated world, `VisionSim`: a pretend field with the season's AprilTags.
+* Every camera joins a simulated world, [`VisionSim`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim): a pretend field with the season's AprilTags.
 * Every loop, you tell the world where the robot **really** is.
 * Each camera that is due a picture works out what it would see from there, adds a little noise and **latency** (the delay between taking a picture and the result reaching your code), and hands your code the result.
 * Your code reads it with the same `update()` it uses on the real robot. Nothing else changes.
@@ -33,7 +33,7 @@ public void simulationPeriodic() {
 }
 ```
 
-Give it the robot's **true** pose: your drivetrain simulation's pose, never the pose estimator's guess. With several cameras in a `VisionSystem`, call `vision.updateSimulation(truePose)` instead.
+Give it the robot's **true** pose: your drivetrain simulation's pose, never the pose estimator's guess. With several cameras in a [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system), call `vision.updateSimulation(truePose)` instead.
 
 **Check it:** `YALL/<camera name>/targetCount` goes above 0 when the robot faces AprilTags.
 {% endstep %}
@@ -47,7 +47,7 @@ Cameras see different amounts of the field. Pick yours, so the simulation sees w
 config.withCameraModel(CameraModel.LIMELIGHT_3G);
 ```
 
-| `CameraModel` | Camera | Resolution | Field of view (wide × tall) | Frames per second |
+| [`CameraModel`](https://yall.yassrobotics.com/api-reference/java-reference/sim/camera-model) | Camera | Resolution | Field of view (wide × tall) | Frames per second |
 | --- | --- | --- | --- | --- |
 | `LIMELIGHT_2` | Limelight 2 | 1280x960 | 62.5° × 48.9° | 6 |
 | `LIMELIGHT_2_PLUS` | Limelight 2+ | 1280x960 | 62.5° × 48.9° | 7 |
@@ -114,7 +114,7 @@ Turn both settings off again when you're done looking: they slow the simulation 
 
 * **Nothing at `localhost:1181`:** `withSimulatedVideoStreams(true)` isn't set, or the simulation isn't running.
 * **The stream is black:** the camera faces away from every AprilTag. With `withSimulatedWireframe(true)` you can at least see the floor.
-* **`targetCount` stays 0:** `VisionSim.getDefault().update(...)` isn't called in `simulationPeriodic()`.
+* **`targetCount` stays 0:** [`VisionSim.getDefault().update(...)`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim) isn't called in `simulationPeriodic()`.
 * **More problems:** [Troubleshooting](../how-to-guides/troubleshooting.md).
 
 ## The complete file
@@ -221,7 +221,7 @@ public class Robot extends OpModeRobot {
 
 ### The debug field
 
-`VisionSim.getDefault().getDebugField()` returns a `Field2d` with the robot, the cameras and the targets they see. PhotonVision also publishes it as `VisionSystemSim-YALL/Sim Field`.
+[`VisionSim.getDefault().getDebugField()`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim) returns a `Field2d` with the robot, the cameras and the targets they see. PhotonVision also publishes it as `VisionSystemSim-YALL/Sim Field`.
 
 ### Any other camera
 

@@ -8,7 +8,7 @@ icon: crosshairs
 This page is about Limelight's crosshair. See Limelight's [Crosshair Calibration](https://docs.limelightvision.io/docs/docs-limelight/getting-started/crosshair) for the full guide.
 {% endhint %}
 
-The crosshair is the reference point Limelight's `tx`/`ty`, and so YALL's `VisionTarget.yawDegrees()` / `pitchDegrees()`, are measured against. If you're driving directly off `tx`/`ty` (visual servoing, not a full 3D pose), calibrating it correctly is what makes "`tx == 0`" actually mean "aligned with where I want to score," instead of just "aligned with the sensor's optical center."
+The crosshair is the reference point Limelight's `tx`/`ty`, and so YALL's [`VisionTarget.yawDegrees()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target) / `pitchDegrees()`, are measured against. If you're driving directly off `tx`/`ty` (visual servoing, not a full 3D pose), calibrating it correctly is what makes "`tx == 0`" actually mean "aligned with where I want to score," instead of just "aligned with the sensor's optical center."
 
 ## Single crosshair mode
 
@@ -55,7 +55,7 @@ Drive to the **farthest** scoring spot and click **Calibrate** for crosshair B.
 {% endstepper %}
 
 {% hint style="info" %}
-Crosshair calibration only affects `tx`/`ty` (and the yaw and pitch YALL reads from them). It has no effect on 3D pose data (`cameraToTarget()`, `VisionPoseEstimate`); that accuracy comes from [camera calibration](charuco-camera-calibration.md) instead.
+Crosshair calibration only affects `tx`/`ty` (and the yaw and pitch YALL reads from them). It has no effect on 3D pose data (`cameraToTarget()`, [`VisionPoseEstimate`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate)); that accuracy comes from [camera calibration](charuco-camera-calibration.md) instead.
 {% endhint %}
 
 ## Read more

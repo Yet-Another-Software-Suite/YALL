@@ -110,8 +110,8 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | --- | --- | --- |
 | `getRobotToCamera()` | `Optional<Transform3d>` | The robot-to-camera transform, if set. |
 | `getField()` | `Field` | The configured field, or `Fields.DEFAULT_FIELD`. |
-| `getPoseEstimationMode()` | `PoseEstimationMode` | The pose estimation mode. |
-| `getPoseFilter()` | `VisionPoseFilter` | The pose filter. |
+| `getPoseEstimationMode()` | [`PoseEstimationMode`](pose-estimation-mode.md) | The pose estimation mode. |
+| `getPoseFilter()` | [`VisionPoseFilter`](../filter/vision-pose-filter.md) | The pose filter. |
 | `getPipelineIndex()` | `Optional<Integer>` | The pipeline to switch to on creation, if set. |
 | `getCameraProperties()` | `Optional<SimCameraProperties>` | The camera properties, if set. |
 | `isSimulationEnabled()` | `boolean` | Whether the camera is simulated in simulation. |

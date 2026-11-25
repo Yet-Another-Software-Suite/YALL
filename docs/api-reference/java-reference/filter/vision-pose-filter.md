@@ -88,7 +88,7 @@ Cameras call these; robot code rarely needs to.
 | Method | Returns | Description |
 | --- | --- | --- |
 | `check(VisionPoseEstimate estimate, Field field, double nowSeconds, double yawRateDegreesPerSecond)` | `Optional<String>` | Why the estimate was rejected, or empty if it passes every enabled check. `field` is for the bounds check; `null` skips it. `nowSeconds` is the current `Timer.getMonotonicTimestamp()`. `yawRateDegreesPerSecond` is `NaN` if unknown. |
-| `applyStdDevs(VisionPoseEstimate estimate)` | `VisionPoseEstimate` | The estimate with its standard deviations filled in. |
+| `applyStdDevs(VisionPoseEstimate estimate)` | [`VisionPoseEstimate`](../results/vision-pose-estimate.md) | The estimate with its standard deviations filled in. |
 
 ***
 

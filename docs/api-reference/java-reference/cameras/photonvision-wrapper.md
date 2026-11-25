@@ -4,7 +4,7 @@ icon: plug
 
 # PhotonVisionWrapper
 
-In short: makes a PhotonVision camera into a YALL `VisionCamera`.
+In short: makes a PhotonVision camera into a YALL [`VisionCamera`](../yall/vision-camera.md).
 
 **Package:** `yall.cameras`
 

@@ -15,7 +15,7 @@ On a Limelight there are two settings worth adjusting:
 
 Both pipeline types expose a **confidence threshold** slider. Raising it rejects lower-confidence detections/classifications outright, giving fewer false positives, but you'll also start missing genuine borderline detections. There's no universal value; raise it until false positives on your specific game pieces/field elements stop, then back off slightly to keep recall reasonable.
 
-`VisionTarget.confidence()` on detected objects (and LimelightLib's `ClassifierTarget.confidence` for classifiers, through `getCamera().getLatestResults()`) reflects whatever passed this threshold. You can still apply an additional, stricter threshold in robot code if you want different behavior per-mode (for example stricter during autonomous) without touching the pipeline itself.
+[`VisionTarget.confidence()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target) on detected objects (and LimelightLib's `ClassifierTarget.confidence` for classifiers, through `getCamera().getLatestResults()`) reflects whatever passed this threshold. You can still apply an additional, stricter threshold in robot code if you want different behavior per-mode (for example stricter during autonomous) without touching the pipeline itself.
 
 ## Crop window
 
@@ -24,14 +24,14 @@ Both pipeline types support a **crop window**, restricting inference to a sub-re
 * For a **detector**, this lets you ignore objects outside a zone you care about (for example only the floor in front of an intake).
 * For a **classifier**, this reduces how much irrelevant background the model has to reason about, which usually improves classification accuracy directly.
 
-`getCamera().setCropWindowOverride(minX, maxX, minY, maxY)` on a `LimelightWrapper` sets the same crop from robot code if you need it to change dynamically (for example widening it once a game piece should be closer) rather than fixed per-pipeline in the web UI.
+`getCamera().setCropWindowOverride(minX, maxX, minY, maxY)` on a [`LimelightWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/limelight-wrapper) sets the same crop from robot code if you need it to change dynamically (for example widening it once a game piece should be closer) rather than fixed per-pipeline in the web UI.
 
 ## Hardware you need
 
-On a Limelight 1, 2 or 3, neural pipelines need a Google Coral USB accelerator plugged into the Limelight. If detections never show up in `VisionResult.getDetectedObjects()` regardless of threshold, confirm the accelerator is connected before assuming it's a tuning problem.
+On a Limelight 1, 2 or 3, neural pipelines need a Google Coral USB accelerator plugged into the Limelight. If detections never show up in [`VisionResult.getDetectedObjects()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-result) regardless of threshold, confirm the accelerator is connected before assuming it's a tuning problem.
 
 ## Read more
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
-* [Results Model](../understanding/results-model.md#what-each-vendor-reports): which Limelight results YALL maps to `VisionTarget`; classifier results stay in LimelightLib.
+* [Results Model](../understanding/results-model.md#what-each-vendor-reports): which Limelight results YALL maps to [`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target); classifier results stay in LimelightLib.
 * [Object Detection tutorial](../tutorials/object-detection.md)

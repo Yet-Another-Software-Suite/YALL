@@ -14,7 +14,7 @@ icon: magnifying-glass
   * Tuning a Limelight: [Getting Started with Neural Networks](https://docs.limelightvision.io/docs/docs-limelight/pipeline-neural/getting-started-with-neural-networks).
 * Synapse's Java library reports AprilTag and color pipelines, not object detection. A Synapse color target comes back with yaw and pitch but no class ID.
 
-Every detected object comes back as a `VisionTarget` with a **class ID** (which kind of object, numbered in the order of your model's labels) and a **confidence** (0 to 1: how sure the model is).
+Every detected object comes back as a [`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target) with a **class ID** (which kind of object, numbered in the order of your model's labels) and a **confidence** (0 to 1: how sure the model is).
 
 {% stepper %}
 {% step %}

@@ -50,5 +50,5 @@ Lean on area/aspect-ratio/fullness to do the real work. Outlier rejection (speck
 ## Read more
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
-* [Results Model](../understanding/results-model.md): retroreflective targets come back as `VisionTarget`s with no tag or class ID.
+* [Results Model](../understanding/results-model.md): retroreflective targets come back as [`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target)s with no tag or class ID.
 * [Crosshair Calibration](crosshair-calibration.md): needed before "closest" sort mode means what you expect.

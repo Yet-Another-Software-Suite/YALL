@@ -4,7 +4,7 @@ icon: lightbulb
 
 # LimelightWrapper
 
-In short: makes a Limelight into a YALL `VisionCamera`.
+In short: makes a Limelight into a YALL [`VisionCamera`](../yall/vision-camera.md).
 
 **Package:** `yall.cameras`
 

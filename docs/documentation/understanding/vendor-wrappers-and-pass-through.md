@@ -8,13 +8,13 @@ A **wrapper** is a class that sits around another one and gives it a new, common
 
 ## One base class, three wrappers
 
-`VisionCamera` holds everything the vendors share: reading frames, the pose filter, robot orientation, the camera offset, pipelines, telemetry and simulation. Each wrapper fills in how its vendor reads frames and applies settings:
+[`VisionCamera`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-camera) holds everything the vendors share: reading frames, the pose filter, robot orientation, the camera offset, pipelines, telemetry and simulation. Each wrapper fills in how its vendor reads frames and applies settings:
 
 | Wrapper | Wraps | `getCamera()` returns |
 | --- | --- | --- |
-| `PhotonVisionWrapper` | PhotonLib's `PhotonCamera` | `PhotonCamera` |
-| `LimelightWrapper` | LimelightLib 2's `Limelight` | `Limelight` |
-| `SynapseWrapper` | SynapseLib's `SynapseCamera` | `SynapseCamera` |
+| [`PhotonVisionWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/photonvision-wrapper) | PhotonLib's `PhotonCamera` | `PhotonCamera` |
+| [`LimelightWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/limelight-wrapper) | LimelightLib 2's `Limelight` | `Limelight` |
+| [`SynapseWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/synapse-wrapper) | SynapseLib's `SynapseCamera` | `SynapseCamera` |
 
 The camera's name is the vendor object's name: the PhotonVision camera name, the Limelight hostname, or the Synapse camera name.
 
@@ -47,7 +47,7 @@ YALL doesn't try to cover every vendor feature. `getCamera()` and `withVendorCon
 
 ## Closing a camera
 
-`close()` removes the camera from simulation and closes its telemetry. `VisionSystem.close()` closes every camera in it. Tests that create cameras should close them.
+`close()` removes the camera from simulation and closes its telemetry. [`VisionSystem.close()`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) closes every camera in it. Tests that create cameras should close them.
 
 ## Read more
 

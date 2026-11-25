@@ -30,9 +30,9 @@ config.withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED);
 * **`TAGS_ONLY`** needs nothing but the camera offset. Single-tag estimates can flip between two nearly equal solutions (ambiguity), which the pose filter's ambiguity check catches.
 * **`HEADING_ASSISTED`** uses the robot's heading to pick the right solution, so it is steadier at range and at sharp angles. It is only as good as the heading you send. If you forget `setRobotOrientation` on some loops, estimates go stale without any error.
 
-Because a heading-assisted estimate's heading is just the gyro's, YALL gives it a heading standard deviation of 1,000,000 radians: the pose estimator takes its position and ignores its heading. Change it with `VisionPoseFilter.withHeadingAssistedThetaStdDev(Radians.of(...))`.
+Because a heading-assisted estimate's heading is just the gyro's, YALL gives it a heading standard deviation of 1,000,000 radians: the pose estimator takes its position and ignores its heading. Change it with [`VisionPoseFilter.withHeadingAssistedThetaStdDev(Radians.of(...))`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter).
 
-`VisionPoseEstimate.headingAssisted()` says which method produced an estimate. A heading-assisted PhotonVision camera, or any camera in simulation, falls back to `TAGS_ONLY` when the trig solve has no answer, and those estimates have `headingAssisted() == false`.
+[`VisionPoseEstimate.headingAssisted()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate) says which method produced an estimate. A heading-assisted PhotonVision camera, or any camera in simulation, falls back to `TAGS_ONLY` when the trig solve has no answer, and those estimates have `headingAssisted() == false`.
 
 ## Sending the gyro
 

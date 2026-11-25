@@ -18,7 +18,7 @@ Find what you see, then try the fixes in order. Most problems show up in Network
 
 ## Simulation shows no targets
 
-* **`simulationPeriodic()` doesn't update the world:** call `VisionSim.getDefault().update(truePose)`, or `vision.updateSimulation(truePose)` for a `VisionSystem`, in `Robot.simulationPeriodic()`. Commands v3 mechanisms have no `simulationPeriodic()`, so put it in `Robot.java`.
+* **`simulationPeriodic()` doesn't update the world:** call [`VisionSim.getDefault().update(truePose)`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim), or `vision.updateSimulation(truePose)` for a [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system), in `Robot.simulationPeriodic()`. Commands v3 mechanisms have no `simulationPeriodic()`, so put it in `Robot.java`.
 * **The robot faces away from every AprilTag:** turn on the [simulated video stream](../tutorials/simulating-cameras.md#see-what-the-camera-sees) with the wireframe to see where the camera points.
 * **The camera has simulation turned off:** remove `withSimulation(false)`.
 

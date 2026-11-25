@@ -6,9 +6,9 @@ icon: list
 
 Every camera, whatever its maker, reports what it saw the same way, with three kinds of result:
 
-* a **frame** (`VisionResult`): one picture the camera processed;
-* a **target** (`VisionTarget`): one thing in that picture, like an AprilTag or a game piece;
-* a **pose estimate** (`VisionPoseEstimate`): where the camera thinks the robot is.
+* a **frame** ([`VisionResult`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-result)): one picture the camera processed;
+* a **target** ([`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target)): one thing in that picture, like an AprilTag or a game piece;
+* a **pose estimate** ([`VisionPoseEstimate`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate)): where the camera thinks the robot is.
 
 They live in the `yall.results` package.
 

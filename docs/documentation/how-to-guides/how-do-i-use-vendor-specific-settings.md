@@ -26,7 +26,7 @@ In simulation the vendor object isn't simulated: YALL's simulated results come f
 
 ### Pose estimate config
 
-`withVendorConfig` takes LimelightLib's `PoseEstimateConfig`. Limelight's own pose filter and standard deviations then replace YALL's `VisionPoseFilter` for that camera. The config applies to MegaTag1 and MegaTag2.
+`withVendorConfig` takes LimelightLib's `PoseEstimateConfig`. Limelight's own pose filter and standard deviations then replace YALL's [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) for that camera. The config applies to MegaTag1 and MegaTag2.
 
 ```java
 config.withVendorConfig(PoseEstimateConfig.defaultMT2().withMinTagCount(2));
@@ -89,11 +89,11 @@ See [AprilTag Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md) fo
 
 ### Raw results
 
-Everything Limelight reports, including classifier, barcode and OCR results that YALL doesn't map to `VisionTarget`, is in `limelight.getLatestResults()`.
+Everything Limelight reports, including classifier, barcode and OCR results that YALL doesn't map to [`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target), is in `limelight.getLatestResults()`.
 
 ## PhotonVision
 
-`PhotonVisionWrapper` takes no vendor configs. Use the `PhotonCamera`:
+[`PhotonVisionWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/photonvision-wrapper) takes no vendor configs. Use the `PhotonCamera`:
 
 ```java
 PhotonCamera photon = front.getCamera();
@@ -106,7 +106,7 @@ In simulation, PhotonVision's simulation publishes to this same `PhotonCamera`. 
 
 ## Synapse
 
-`SynapseWrapper` takes no vendor configs. Use the `SynapseCamera`:
+[`SynapseWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/synapse-wrapper) takes no vendor configs. Use the `SynapseCamera`:
 
 ```java
 SynapseCamera synapse = side.getCamera();

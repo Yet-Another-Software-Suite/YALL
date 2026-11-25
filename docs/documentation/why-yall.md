@@ -8,7 +8,7 @@ icon: lightbulb
 
 PhotonVision, Limelight and Synapse each have their own library, and each one names things differently, measures angles differently and times its pictures differently. Switching cameras, or using two kinds on one robot, means writing your vision code twice. YALL lets you write it once.
 
-YALL wraps each vendor's camera object in a `VisionCamera`, the way YAMS wraps motor controllers:
+YALL wraps each vendor's camera object in a [`VisionCamera`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-camera), the way YAMS wraps motor controllers:
 
 ```java
 VisionCamera front = new PhotonVisionWrapper(new PhotonCamera("front"), frontConfig);
@@ -18,8 +18,8 @@ VisionCamera side = new SynapseWrapper(new SynapseCamera("side"), sideConfig);
 
 Every camera then reads the same way:
 
-* **Targets** come back as `VisionTarget`: yaw, pitch, area, AprilTag ID, object class and confidence.
-* **Robot poses** come back as `VisionPoseEstimate`: pose, capture timestamp, tags used, tag distance, ambiguity and standard deviations.
+* **Targets** come back as [`VisionTarget`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-target): yaw, pitch, area, AprilTag ID, object class and confidence.
+* **Robot poses** come back as [`VisionPoseEstimate`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate): pose, capture timestamp, tags used, tag distance, ambiguity and standard deviations.
 * **Pipelines, connection state and the camera's position on the robot** use the same methods for every vendor.
 
 ## Simulation for every vendor
@@ -30,11 +30,11 @@ Limelight and Synapse have no simulation of their own. YALL simulates every came
 
 ## Pose filtering built in
 
-Every pose estimate (a camera's guess at where the robot is) goes through a `VisionPoseFilter` before your code sees it. It rejects estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning, or too old. Each check has a default, can be tuned, and turns off when you pass `null`. Accepted estimates get standard deviations that grow with tag distance and shrink with tag count, ready for `addVisionMeasurement`. See [Pose Estimation & Filtering](understanding/pose-estimation-and-filtering.md).
+Every pose estimate (a camera's guess at where the robot is) goes through a [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) before your code sees it. It rejects estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning, or too old. Each check has a default, can be tuned, and turns off when you pass `null`. Accepted estimates get standard deviations that grow with tag distance and shrink with tag count, ready for `addVisionMeasurement`. See [Pose Estimation & Filtering](understanding/pose-estimation-and-filtering.md).
 
 ## Several cameras, one pose
 
-`VisionSystem` updates every camera and feeds each accepted estimate to your pose estimator, oldest first. `getFusedPose()` combines the cameras' newest estimates into one pose, weighted by how much each is trusted. See [How do I use multiple cameras?](how-to-guides/how-do-i-use-multiple-cameras.md)
+[`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) updates every camera and feeds each accepted estimate to your pose estimator, oldest first. `getFusedPose()` combines the cameras' newest estimates into one pose, weighted by how much each is trusted. See [How do I use multiple cameras?](how-to-guides/how-do-i-use-multiple-cameras.md)
 
 ## The vendor library is still there
 

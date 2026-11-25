@@ -60,7 +60,7 @@ VisionSystem(VisionCamera... cameras)
 | `forEachEstimatedPose(Consumer<VisionPoseEstimate> consumer)` | `void` | Passes every accepted estimate from the last `update()` to a consumer, oldest first. Use it for drivetrains with their own vision measurement method. |
 | `addVisionMeasurements(PoseEstimator<?> poseEstimator)` | `void` | Adds every accepted estimate from the last `update()` to a WPILib pose estimator, oldest first, with its timestamp and standard deviations. |
 | `getFusedPose()` | `Optional<VisionPoseEstimate>` | Combines each camera's newest accepted estimate from the last `update()` into one pose, named `"fused"`. Empty if no camera has one. |
-| `static fuse(List<VisionPoseEstimate> estimates)` | `VisionPoseEstimate` | Combines estimates into one. The list must not be empty; a single estimate is returned as it is. |
+| `static fuse(List<VisionPoseEstimate> estimates)` | [`VisionPoseEstimate`](../results/vision-pose-estimate.md) | Combines estimates into one. The list must not be empty; a single estimate is returned as it is. |
 | `close()` | `void` | Closes every camera and the fused pose telemetry. |
 
 ***

@@ -89,7 +89,7 @@ See [`VisionPoseEstimate`](../results/vision-pose-estimate.md).
 | `isConnected()` | `boolean` | Whether the camera is sending data. Simulated cameras are always connected. |
 | `isSimulated()` | `boolean` | Whether this camera is giving simulated results: true in simulation with simulation enabled in the config. |
 | `getName()` | `String` | Name of the camera. |
-| `getConfig()` | `VisionCameraConfig` | The camera's config. |
+| `getConfig()` | [`VisionCameraConfig`](vision-camera-config.md) | The camera's config. |
 
 ***
 

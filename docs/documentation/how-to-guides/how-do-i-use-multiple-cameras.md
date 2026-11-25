@@ -8,7 +8,7 @@ More cameras see more AprilTags, so the robot knows where it is more often.
 
 ![After 10 seconds of driving with a front, back and side camera: the blue path with cameras ends 1.5 cm from the true black path, while the red wheels-only path ends 9.7 cm off. Dots show each camera's guesses.](../.gitbook/assets/vision-corrects-odometry.png)
 
-Put the cameras in a `VisionSystem`. They can be any mix of vendors.
+Put the cameras in a [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system). They can be any mix of vendors.
 
 ```java
 VisionCamera front = new PhotonVisionWrapper(new PhotonCamera("front"), frontConfig);
@@ -59,7 +59,7 @@ vision.getFusedPose().ifPresent(fused -> field.getObject("Vision").setPose(fused
 * Each axis is a weighted average, weighted by one over the square of the estimate's standard deviation, so trusted cameras count for more. Headings are averaged correctly across ±180°.
 * Estimates more than 0.1 s older than the newest are left out. Change that with `withMaxFusionTimeSkew(Seconds.of(0.2))`.
 * The fused estimate is named `"fused"`, lists every tag the cameras used, and has standard deviations of `1 / sqrt(sum of 1/σ²)` per axis.
-* `VisionSystem` publishes it to NetworkTables as `YALL/fusedPose`.
+* [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes it to NetworkTables as `YALL/fusedPose`.
 
 It is empty when no camera had an accepted estimate in the last `update()`.
 

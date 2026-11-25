@@ -4,7 +4,7 @@ icon: microchip
 
 # SynapseWrapper
 
-In short: makes a Synapse camera into a YALL `VisionCamera`.
+In short: makes a Synapse camera into a YALL [`VisionCamera`](../yall/vision-camera.md).
 
 **Package:** `yall.cameras`
 
