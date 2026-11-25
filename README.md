@@ -38,8 +38,12 @@ You only need a vendor library for cameras you construct.
 ## Basic config
 
 One camera feeding a drivetrain's pose estimator. Everything not set here keeps its default: the
-current season's field, the default pose filter, `PoseEstimationMode.TAGS_ONLY` and the vendor's
-default camera properties.
+current season's field, the default pose filter and `PoseEstimationMode.TAGS_ONLY`.
+
+YALL doesn't use the command framework, so it works the same with Commands v2 (`TimedRobot`) and
+Commands v3 (`OpModeRobot`). Put its calls in `Robot.java`: both robot classes have
+`robotPeriodic()` and `simulationPeriodic()`. (Commands v3 mechanisms have no
+`simulationPeriodic()`, so `Robot.java` is the one place that works for both.)
 
 ```java
 import static org.wpilib.units.Units.Degrees;
@@ -52,7 +56,7 @@ import yall.cameras.PhotonVisionWrapper;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
 
-public class Drivetrain extends SubsystemBase {
+public class Robot extends TimedRobot { // or OpModeRobot for Commands v3
   // Swap in LimelightWrapper(new Limelight("limelight"), ...) or
   // SynapseWrapper(new SynapseCamera("camera"), ...) for the other vendors.
   private final VisionCamera camera =
@@ -66,17 +70,17 @@ public class Drivetrain extends SubsystemBase {
                                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
 
   @Override
-  public void periodic() {
-    poseEstimator.update(gyro.getRotation2d(), getModulePositions());
-    camera.setRobotOrientation(gyro.getRotation2d());
+  public void robotPeriodic() {
+    // Run the scheduler here as usual (CommandScheduler or Scheduler), then:
+    camera.setRobotOrientation(drivetrain.getHeading());
     camera.update();
-    camera.addVisionMeasurements(poseEstimator);
+    camera.addVisionMeasurements(drivetrain.getPoseEstimator());
   }
 
   @Override
   public void simulationPeriodic() {
     // The simulated cameras see the field from the robot's true pose.
-    VisionSim.getDefault().update(simulatedTruePose);
+    VisionSim.getDefault().update(drivetrain.getSimulatedPose());
   }
 }
 ```
@@ -158,6 +162,7 @@ doesn't support it.
 ```java
 VisionSystem vision = new VisionSystem(front, back, side);
 
+// In Robot.java, for Commands v2 or v3
 @Override
 public void robotPeriodic() {
   vision.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
@@ -202,9 +207,11 @@ for multi-tag estimates. `VisionPoseFilter.acceptAll()` starts with every check 
 ### Simulation
 
 Cameras join `VisionSim.getDefault()`, a PhotonVision `VisionSystemSim` holding the current field's
-AprilTags. Update it with the robot's true pose:
+AprilTags. Update it with the robot's true pose from `Robot.simulationPeriodic()`, which both
+`TimedRobot` (Commands v2) and `OpModeRobot` (Commands v3) have:
 
 ```java
+// In Robot.java
 @Override
 public void simulationPeriodic() {
   vision.updateSimulation(drivetrainSim.getPose());

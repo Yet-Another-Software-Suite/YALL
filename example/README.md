@@ -36,12 +36,12 @@ VisionCamera camera =
             .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
                                Degrees.zero(), Degrees.of(-15), Degrees.zero()));
 
-// Every loop:
+// In Robot.robotPeriodic() (Commands v2 or v3):
 camera.setRobotOrientation(gyro.getRotation2d());
 camera.update();
 camera.addVisionMeasurements(poseEstimator);
 
-// In simulationPeriodic:
+// In Robot.simulationPeriodic():
 VisionSim.getDefault().update(simulatedTruePose);
 ```
 
