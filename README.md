@@ -21,6 +21,8 @@ YALL builds against WPILib 2027 (alpha 8).
   `withVendorConfig(...)` passes vendor config objects through, as YAMS does for motor
   controllers.
 
+Coming from the Limelight-only YALL 2026? See [MIGRATION.md](MIGRATION.md).
+
 ## Installation
 
 Install these vendordeps:

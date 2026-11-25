@@ -12,7 +12,7 @@ In short: one camera, from any maker. Call `update()` every loop, then read targ
 public abstract class VisionCamera implements AutoCloseable
 ```
 
-A camera from any supported vendor, with one API for targets and robot pose estimates. On a real robot it reads the vendor's library. In simulation it reads a PhotonVision camera simulation, so the same robot code runs in both.
+A camera from any supported vendor, with one API for targets and robot pose estimates. On a real robot it reads the vendor's library. In simulation it reads its [`SimulatedCamera`](../sim/simulated-camera.md), so the same robot code runs in both.
 
 Create one with the wrapper for the camera's vendor: [`PhotonVisionWrapper`](../cameras/photonvision-wrapper.md), [`LimelightWrapper`](../cameras/limelight-wrapper.md) or [`SynapseWrapper`](../cameras/synapse-wrapper.md). Call `update()` once per loop (or [`VisionSystem.update()`](vision-system.md) for several cameras), then read the getters. They all report what the last `update()` read.
 
@@ -33,7 +33,7 @@ public void robotPeriodic() {
 
 | Method | Returns | Description |
 | --- | --- | --- |
-| `update()` | `void` | Reads new frames from the camera (or its simulation), filters their pose estimates with the config's [`VisionPoseFilter`](../filter/vision-pose-filter.md) and publishes telemetry. Call once per loop, before the getters. |
+| `update()` | `void` | Reads new frames from the camera (or its simulation), filters their pose estimates with the config's [`VisionPoseFilter`](../filter/vision-pose-filter.md), counts the filter's decisions in the [`PoseFilterStats`](../filter/pose-filter-stats.md) and publishes telemetry. Call once per loop, before the getters. |
 | `setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate)` | `void` | Gives the camera the robot's orientation from the gyro (blue-origin, counterclockwise positive yaw). [`PoseEstimationMode.HEADING_ASSISTED`](pose-estimation-mode.md) needs it every loop, and the pose filter's yaw rate check uses the yaw rate. |
 | `setRobotOrientation(Rotation2d heading)` | `void` | Gives the camera the robot's heading without a yaw rate. The yaw rate check is skipped. |
 
@@ -48,6 +48,10 @@ On a Limelight, the orientation is also sent to the camera for MegaTag2. In simu
 | `setRobotToCamera(Transform3d robotToCamera)` | `void` | Moves the camera on the robot, for a camera on a turret or other moving mechanism. Updates the pose estimator, the simulation and the vendor's camera. |
 | `setRobotToCamera(Distance forward, Distance left, Distance up, Angle roll, Angle pitch, Angle yaw)` | `void` | The same, from measurements. See [`VisionCameraConfig.withRobotToCamera`](vision-camera-config.md#camera-position). |
 | `getRobotToCamera()` | `Transform3d` | Transform from the robot origin to the camera. `Transform3d.ZERO` if the config didn't set one. |
+| `getCameraFieldPose()` | `Optional<Pose3d>` | Where the camera itself is on the field, from the AprilTags in the newest frame alone: the closest solved tag's field pose, moved back along the camera-to-tag transform. It doesn't use the robot pose or the camera offset, so it can measure them. Empty if the newest frame has no solved AprilTag on the field. |
+| `getCameraYawOnRobot(Rotation2d robotHeading)` | `Optional<Rotation2d>` | Which way the camera points on the robot, from what it sees: the camera's field heading minus the robot's heading, counterclockwise positive. For a camera on a turret, this is the turret's angle (plus any angle the camera is mounted at on the turret). |
+
+See [How do I measure a turret's angle with a camera?](https://yall.yassrobotics.com/documentation/how-to-guides/how-do-i-measure-a-turrets-angle-with-a-camera)
 
 ***
 
@@ -75,6 +79,8 @@ See [`VisionResult`](../results/vision-result.md) and [`VisionTarget`](../result
 | `getLastRejectionReason()` | `String` | Why the pose filter last rejected an estimate, for example `"ambiguous"` or `"tags too far"`. Empty if it hasn't rejected any. |
 | `forEachEstimatedPose(Consumer<VisionPoseEstimate> consumer)` | `void` | Passes every accepted estimate from the last `update()` to a consumer, oldest first. |
 | `addVisionMeasurements(PoseEstimator<?> poseEstimator)` | `void` | Adds every accepted estimate from the last `update()` to a WPILib pose estimator, oldest first, with its timestamp and standard deviations. |
+| `getFilterStats()` | [`PoseFilterStats`](../filter/pose-filter-stats.md) | What the pose filter has accepted and rejected since the stats were last reset, and how spread out the accepted poses are. |
+| `resetFilterStats()` | `void` | Starts the pose filter stats counting again. |
 
 See [`VisionPoseEstimate`](../results/vision-pose-estimate.md).
 
@@ -98,26 +104,26 @@ See [`VisionPoseEstimate`](../results/vision-pose-estimate.md).
 | Method | Returns | Description |
 | --- | --- | --- |
 | `getCamera()` | `Object` | The vendor's camera object, for settings YALL doesn't cover. Each wrapper narrows the return type: `PhotonCamera`, `Limelight` or `SynapseCamera`. |
-| `getCameraSim()` | `Optional<PhotonCameraSim>` | The PhotonVision simulation of this camera. Empty when not simulating. |
-| `getVisionSim()` | `Optional<VisionSim>` | The simulated world this camera is in. Empty when not simulating. |
-| `getPhotonPoseEstimator()` | `PhotonPoseEstimator` | The PhotonVision pose estimator this camera uses in simulation (and on PhotonVision cameras), for settings YALL doesn't cover. |
+| `getSimulation()` | `Optional<SimulatedCamera>` | The camera's [`SimulatedCamera`](../sim/simulated-camera.md): the PhotonVision camera simulation, its world and PhotonVision's pose estimator for simulated results. Empty when not simulating. |
 | `close()` | `void` | Removes the camera from simulation and closes its telemetry. |
 
 ***
 
 ## Telemetry
 
-With telemetry on (the default), each `update()` publishes to `YALL/<camera name>` in NetworkTables:
+With telemetry on (the default), each `update()` publishes to `YALL/<camera name>` in NetworkTables. What it publishes depends on the config's [`VisionTelemetryConfig`](../telemetry/vision-telemetry-config.md):
 
-| Key | Type | Description |
-| --- | --- | --- |
-| `acceptedPoses` | `Pose3d[]` | Estimates that passed the pose filter. |
-| `rejectedPoses` | `Pose3d[]` | Estimates the pose filter rejected. |
-| `rejectionReason` | `String` | The last rejection reason. |
-| `hasTargets` | `boolean` | Whether the newest frame has targets. |
-| `targetCount` | `int` | Targets in the newest frame. |
-| `latencyMillis` | `double` | Latency of the newest frame. |
-| `connected` | `boolean` | Whether the camera is sending data. |
+| Key | Type | Verbosity | Description |
+| --- | --- | --- | --- |
+| `connected` | `boolean` | `LOW` | Whether the camera is sending data. |
+| `hasTargets` | `boolean` | `LOW` | Whether the newest frame has targets. |
+| `targetCount` | `int` | `LOW` | Targets in the newest frame. |
+| `acceptedPoses` | `Pose3d[]` | `LOW` | Estimates that passed the pose filter. |
+| `rejectedPoses` | `Pose3d[]` | `MID` | Estimates the pose filter rejected. |
+| `rejectionReason` | `String` | `MID` | The last rejection reason. |
+| `latencyMillis` | `double` | `MID` | Latency of the newest frame. |
+| `stats/...` | | `MID` | The [`PoseFilterStats`](../filter/pose-filter-stats.md#networktables). |
+| `targets/...` | `long[]`, `double[]` | `HIGH` | Every target's `fiducialIds`, `yawDegrees`, `pitchDegrees` and `areaPercent`. |
 
 ***
 
@@ -126,44 +132,23 @@ With telemetry on (the default), each `update()` publishes to `YALL/<camera name
 These are for vendor wrappers, not robot code.
 
 ```java
-protected VisionCamera(String name, VisionCameraConfig config, PhotonCamera cameraForSimulation)
+protected VisionCamera(String name, VisionCameraConfig config, SimulatedCamera simulation)
 ```
 
-Sets up the pose filter, PhotonVision's pose estimator and, in simulation, the simulated camera. `cameraForSimulation` is the PhotonVision camera the simulation publishes to, or `null` to create a private one.
+Sets up the parts every camera shares. `simulation` comes from [`SimulatedCamera.create(name, config, defaultModel, photonCameraOrNull)`](../sim/simulated-camera.md), which returns `null` when not simulating. Each wrapper passes its default [`CameraModel`](../sim/camera-model.md) there.
 
 | Member | Description |
 | --- | --- |
 | `protected final String name` | Name of the camera. |
 | `protected final VisionCameraConfig config` | The camera's config. |
-| `protected abstract List<Frame> readFrames()` | Reads the frames the real camera produced since the last call, oldest first. |
+| `protected abstract List<VisionFrame> readFrames()` | Reads the frames the real camera produced since the last call, oldest first, as [`VisionFrame`](vision-frame.md)s. |
 | `protected abstract void applyPipelineIndex(int index)` | Switches the real camera's pipeline. |
 | `protected abstract int readPipelineIndex()` | Reads the real camera's pipeline. |
 | `protected abstract boolean readConnected()` | Whether the real camera is sending data. |
-| `protected abstract SimCameraProperties defaultCameraProperties()` | Camera properties to simulate when the config doesn't set any. Called from the constructor, so it must not use the subclass's fields. |
-| `protected void applyRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond)` | Passes the robot orientation to the real camera. Does nothing unless overridden. `yawRateDegreesPerSecond` is NaN if unknown. |
+| `protected void applyRobotOrientation(double timestampSeconds, Rotation3d orientation, double yawRateDegreesPerSecond)` | Passes the robot orientation to the real camera. Does nothing unless overridden. `yawRateDegreesPerSecond` is NaN if unknown. |
 | `protected void applyRobotToCamera(Transform3d robotToCamera)` | Passes a new camera position to the real camera. Does nothing unless overridden. |
-| `protected final List<Frame> readPhotonFrames(PhotonCamera camera)` | Reads and converts a PhotonVision camera's unread results, with pose estimates. PhotonVision cameras use it on real robots, and every camera uses it in simulation. |
 
-### VisionCamera.Frame
-
-```java
-public record Frame(
-    VisionResult result,
-    Optional<VisionPoseEstimate> estimate,
-    Optional<String> vendorRejection,
-    Optional<Matrix<N3, N1>> vendorStdDevs)
-```
-
-One frame read from the camera, before the pose filter.
-
-| Component | Description |
-| --- | --- |
-| `result` | The frame's targets. |
-| `estimate` | The robot pose estimated from the frame, if any. |
-| `vendorRejection` | Why the vendor's own filter rejected the estimate, if it did. It replaces the pose filter's checks. |
-| `vendorStdDevs` | Standard deviations from the vendor, used instead of the filter's. |
-
-`public Frame(VisionResult result, Optional<VisionPoseEstimate> estimate)` creates a frame with no vendor filtering.
+A PhotonVision-based wrapper can read frames with [`PhotonVisionFrames.read(...)`](../cameras/photonvision-frames.md).
 
 ***
 
@@ -172,3 +157,5 @@ One frame read from the camera, before the pose filter.
 * [VisionCameraConfig](vision-camera-config.md)
 * [VisionSystem](vision-system.md)
 * [VisionPoseFilter](../filter/vision-pose-filter.md)
+* [PoseFilterStats](../filter/pose-filter-stats.md)
+* [SimulatedCamera](../sim/simulated-camera.md)

@@ -74,13 +74,25 @@ filter.withStdDevs(
 
 Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from the gyro, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(Radians.of(...))`.
 
+Measure your camera's real values instead of guessing: [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md).
+
+## Adding your own check
+
+Add a check with a name and a test that returns true to keep a guess:
+
+```java
+filter.withCustomCheck("not in our half", estimate -> estimate.pose().getX() < 8.27);
+```
+
+The name is required. It is the rejection reason, and it is counted under `YALL/<camera name>/stats/rejectedBy/not in our half`, so a custom check never throws guesses out without you seeing it. Pass `null` as the test to remove the check.
+
 ## Finding the right values
 
 {% stepper %}
 {% step %}
 ### Watch what it keeps and throws out
 
-Show `YALL/<camera name>/acceptedPoses` and `rejectedPoses` on a field view in AdvantageScope or Elastic, with `rejectionReason` next to it.
+Show `YALL/<camera name>/acceptedPoses` and `rejectedPoses` on a field view in AdvantageScope or Elastic, with `rejectionReason` next to it. Add `stats/acceptanceRate` and the counts under `stats/rejectedBy` to see which check throws out the most.
 
 **Check it:** accepted poses (kept guesses) sit on the robot.
 {% endstep %}
@@ -96,7 +108,7 @@ If good guesses are thrown out, loosen the check named in `rejectionReason`. If 
 {% step %}
 ### Adjust the trust
 
-If the pose estimate jumps when a camera sees a tag, raise the standard deviations. If it's slow to fix drift, lower them.
+Measure the standard deviations, as in [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md). Then, if the pose estimate still jumps when a camera sees a tag, raise them; if it's slow to fix drift, lower them.
 
 **Check it:** the estimate stays smooth and on the robot while you drive.
 {% endstep %}

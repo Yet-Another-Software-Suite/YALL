@@ -56,10 +56,24 @@ For code that wants a single answer (a dashboard, a "where am I" check before au
 vision.getFusedPose().ifPresent(fused -> field.getObject("Vision").setPose(fused.pose2d()));
 ```
 
-* Each axis is a weighted average, weighted by one over the square of the estimate's standard deviation, so trusted cameras count for more. Headings are averaged correctly across ±180°.
+* It uses the same math as WPILib's pose estimators. Starting from the oldest estimate, each estimate pulls the fused pose toward itself. How far depends on how sure it is: a sure estimate (small standard deviation) pulls hard, an unsure one barely moves it.
+* How much the fused pose trusts itself against each new estimate is its **state standard deviations**, 0.1 m, 0.1 m, 0.1 rad by default, as in WPILib. Change them with `withFusionStateStdDevs(VecBuilder.fill(0.2, 0.2, 0.2))`.
 * Estimates more than 0.1 s older than the newest are left out. Change that with `withMaxFusionTimeSkew(Seconds.of(0.2))`.
-* The fused estimate is named `"fused"`, lists every tag the cameras used, and has standard deviations of `1 / sqrt(sum of 1/σ²)` per axis.
+* The fused estimate is named `"fused"` and lists every tag the cameras used.
 * [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes it to NetworkTables as `YALL/fusedPose`.
+
+### Let the system feed your pose estimator
+
+Give the system your drivetrain's pose estimator, and `update()` adds every accepted estimate to it for you. `getFusedPose()` then returns the pose estimator's pose, which has your odometry too:
+
+```java
+VisionSystem vision =
+    new VisionSystem(front, back).withPoseEstimator(drivetrain.getPoseEstimator());
+
+// In Robot.robotPeriodic():
+vision.setRobotOrientation(drivetrain.getHeading());
+vision.update(); // also adds the estimates to the pose estimator
+```
 
 It is empty when no camera had an accepted estimate in the last `update()`.
 

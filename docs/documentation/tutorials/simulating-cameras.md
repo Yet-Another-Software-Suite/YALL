@@ -14,6 +14,7 @@ icon: computer
 ## How it works
 
 * Every camera joins a simulated world, [`VisionSim`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim): a pretend field with the season's AprilTags.
+* Each camera gets its own [`SimulatedCamera`](https://yall.yassrobotics.com/api-reference/java-reference/sim/simulated-camera) in that world: a pretend camera with your camera's lens. `camera.getSimulation()` returns it, for PhotonVision settings YALL doesn't cover; it's empty on the real robot.
 * Every loop, you tell the world where the robot **really** is.
 * Each camera that is due a picture works out what it would see from there, adds a little noise and **latency** (the delay between taking a picture and the result reaching your code), and hands your code the result.
 * Your code reads it with the same `update()` it uses on the real robot. Nothing else changes.
@@ -49,17 +50,17 @@ config.withCameraModel(CameraModel.LIMELIGHT_3G);
 
 | [`CameraModel`](https://yall.yassrobotics.com/api-reference/java-reference/sim/camera-model) | Camera | Resolution | Field of view (wide × tall) | Frames per second |
 | --- | --- | --- | --- | --- |
-| `LIMELIGHT_2` | Limelight 2 | 1280x960 | 62.5° × 48.9° | 6 |
-| `LIMELIGHT_2_PLUS` | Limelight 2+ | 1280x960 | 62.5° × 48.9° | 7 |
-| `LIMELIGHT_3` | Limelight 3 | 1280x960 | 62.5° × 48.9° | 20 |
-| `LIMELIGHT_3A` | Limelight 3A (USB) | 1280x960 | 54.5° × 42° | 20 |
-| `LIMELIGHT_3G` | Limelight 3G | 1280x800 | 82° × 56.2° | 20 |
-| `LIMELIGHT_4` | Limelight 4 | 1280x800 | 82° × 56.2° | 40 |
-| `LUMA_P1` | Luma P1 | 1280x800 | 80° × 56° | 60 |
-| `LUMA_P2` | Luma P2 | 1280x800 | 80° × 56° | 60 |
-| `THRIFTYCAM` | ThriftyCam | 1600x1304 | 60.7° × 51° | 70 |
-| `THRIFTIEST_CAM` | Thriftiest Cam | 1280x800 | 82° × 56° | 120 |
-| `ARDUCAM_OV9281` | Arducam OV9281 (B0332) | 1280x800 | 70° × 47.3° | 100 |
+| `LIMELIGHT_2` | [Limelight 2](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-2) (discontinued) | 1280x960 | 62.5° × 48.9° | 6 |
+| `LIMELIGHT_2_PLUS` | [Limelight 2+](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-2) (discontinued) | 1280x960 | 62.5° × 48.9° | 7 |
+| `LIMELIGHT_3` | [Limelight 3](https://limelightvision.io/products/limelight-3) | 1280x960 | 62.5° × 48.9° | 20 |
+| `LIMELIGHT_3A` | [Limelight 3A (USB)](https://limelightvision.io/products/limelight-3a) | 1280x960 | 54.5° × 42° | 20 |
+| `LIMELIGHT_3G` | [Limelight 3G](https://limelightvision.io/products/limelight-3g) | 1280x800 | 82° × 56.2° | 20 |
+| `LIMELIGHT_4` | [Limelight 4](https://limelightvision.io/products/limelight-4) | 1280x800 | 82° × 56.2° | 40 |
+| `LUMA_P1` | [Luma P1](https://luma.vision/products/p1) (replaced by the P2) | 1280x800 | 80° × 56° | 60 |
+| `LUMA_P2` | [Luma P2](https://luma.vision/products/luma-p2) | 1280x800 | 80° × 56° | 60 |
+| `THRIFTYCAM` | [ThriftyCam](https://www.thethriftybot.com/products/thriftycam) | 1600x1304 | 60.7° × 51° | 70 |
+| `THRIFTIEST_CAM` | [Thriftiest Cam](https://www.thethriftybot.com/products/thriftiest-cam) | 1280x800 | 82° × 56° | 120 |
+| `ARDUCAM_OV9281` | [Arducam OV9281 (B0332)](https://www.arducam.com/product/arducam-120fps-global-shutter-usb-camera-board-1mp-720p-ov9281-uvc-webcam-module-with-low-distortion-m12-lens-without-microphones-for-computer-laptop-android-device-and-raspberry-pi/) | 1280x800 | 70° × 47.3° | 100 |
 | `ELP_FISHEYE` | [AndyMark ELP Fisheye Lens Camera](https://andymark.com/products/elp-fisheye-lens-camera) | 1280x960 | 115° × 99.4° | 20 |
 
 ![How wide six cameras see, from above: the ThriftyCam and Limelight 3 see the narrowest, the Limelight 4, 3G and Thriftiest Cam the widest.](../.gitbook/assets/camera-fields-of-view.png)

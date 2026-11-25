@@ -54,4 +54,3 @@ None of these are set through YALL. They're saved on the camera, per pipeline, f
 ## Read more
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
-* [Tuning a Retroreflective Pipeline](retroreflective-pipeline-tuning.md)

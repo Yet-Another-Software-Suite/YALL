@@ -51,7 +51,7 @@ Creates a config with the defaults below.
 | Simulation | On, in [`VisionSim.getDefault()`](../sim/vision-sim.md) |
 | Simulated video streams | Off |
 | Vendor config | None |
-| Telemetry | On |
+| Telemetry | On: every `MID` field of [`VisionTelemetryConfig`](../telemetry/vision-telemetry-config.md) under `YALL/<camera name>` |
 
 ***
 
@@ -100,7 +100,8 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | Method | Description |
 | --- | --- |
 | `withVendorConfig(Object vendorConfig)` | Passes a vendor config object to the camera, as YAMS does for motor controllers. Each wrapper documents the types it accepts and throws `IllegalArgumentException` for others. Only [`LimelightWrapper`](../cameras/limelight-wrapper.md#vendor-configs) accepts any. |
-| `withTelemetry(boolean enabled)` | Sets whether the camera publishes its targets and pose estimates to NetworkTables under `YALL/<camera name>`. |
+| `withTelemetry(boolean enabled)` | Sets whether the camera publishes telemetry, with the default [`VisionTelemetryConfig`](../telemetry/vision-telemetry-config.md): every `MID` field under `YALL/<camera name>`. Defaults to true. |
+| `withTelemetry(VisionTelemetryConfig telemetryConfig)` | Sets what the camera publishes to NetworkTables, and where. `null` publishes nothing. |
 
 ***
 
@@ -120,6 +121,7 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | `isSimulatedWireframeEnabled()` | `boolean` | Whether the simulated streams draw the field. |
 | `getVendorConfig()` | `Optional<Object>` | The vendor config object, if set. |
 | `isTelemetryEnabled()` | `boolean` | Whether the camera publishes telemetry. |
+| `getTelemetryConfig()` | `Optional<VisionTelemetryConfig>` | What the camera publishes, or empty to publish nothing. |
 
 ***
 
