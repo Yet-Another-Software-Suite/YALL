@@ -8,21 +8,35 @@ icon: chart-line
 
 ## What YALL publishes
 
-Each camera publishes to NetworkTables under `YALL/<camera name>`, updated by every `update()`:
+Each camera publishes to NetworkTables under `YALL/<camera name>`, updated by every `update()`. How much it publishes is its **verbosity**: `LOW`, `MID` (the default) or `HIGH`. Each level adds to the one below it.
 
-| Topic | Type | Meaning |
-| --- | --- | --- |
-| `acceptedPoses` | `Pose3d[]` | Estimates from the last `update()` that passed the pose filter |
-| `rejectedPoses` | `Pose3d[]` | Estimates from the last `update()` the filter rejected |
-| `rejectionReason` | string | Why the filter last rejected an estimate, for example `tags too far` |
-| `hasTargets` | boolean | Whether the newest frame has targets |
-| `targetCount` | integer | Targets in the newest frame |
-| `latencyMillis` | double | The newest frame's latency |
-| `connected` | boolean | Whether the camera is sending data |
+| Topic | Type | Verbosity | Meaning |
+| --- | --- | --- | --- |
+| `connected` | boolean | `LOW` | Whether the camera is sending data |
+| `hasTargets` | boolean | `LOW` | Whether the newest frame has targets |
+| `targetCount` | integer | `LOW` | Targets in the newest frame |
+| `acceptedPoses` | `Pose3d[]` | `LOW` | Estimates from the last `update()` that passed the pose filter |
+| `rejectedPoses` | `Pose3d[]` | `MID` | Estimates from the last `update()` the filter rejected |
+| `rejectionReason` | string | `MID` | Why the filter last rejected an estimate, for example `tags too far` |
+| `latencyMillis` | double | `MID` | The newest frame's latency |
+| `stats/...` | | `HIGH` | The pose filter stats: counts, `rejectedBy/<check>`, spread and a `reset` switch. See [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md). |
+| `targets/fiducialIds`, `targets/yawDegrees`, `targets/pitchDegrees`, `targets/areaPercent` | arrays | `HIGH` | Every target in the newest frame |
 
 [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes `YALL/fusedPose` (`Pose3d`) when it has one.
 
-Turn a camera's telemetry off with `config.withTelemetry(false)`.
+## Choosing what to publish
+
+A [`VisionTelemetryConfig`](https://yall.yassrobotics.com/api-reference/java-reference/telemetry/vision-telemetry-config) sets the verbosity, turns single fields on or off, and moves the table:
+
+```java
+new VisionCameraConfig()
+    .withTelemetry(new VisionTelemetryConfig()
+        .withVerbosity(TelemetryVerbosity.LOW)               // just what a driver needs
+        .withField(VisionTelemetryField.FILTER_STATS, true)  // plus the filter stats
+        .withTablePath("Vision/front"));                     // instead of YALL/front
+```
+
+Turn a camera's telemetry off with `config.withTelemetry(false)`. Less telemetry means less NetworkTables traffic and log space; `LOW` is enough for a match, and `HIGH` helps while tuning.
 
 ## Seeing the filter work
 

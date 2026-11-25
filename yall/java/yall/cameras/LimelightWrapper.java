@@ -13,17 +13,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.photonvision.simulation.SimCameraProperties;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import yall.PoseEstimationMode;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
+import yall.VisionFrame;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
 import yall.sim.CameraModel;
+import yall.sim.VisionSim;
 
 /**
  * A Limelight, through LimelightLib 2.
@@ -40,6 +41,8 @@ import yall.sim.CameraModel;
  *   <li>{@link PipelineConfiguration}: applied as a pipeline override.
  * </ul>
  *
+ * <p>Without a camera model in the config, it is simulated as a {@link CameraModel#LIMELIGHT_4}.
+ *
  * <p>This wrapper reads {@link Limelight#readResultsQueue()}, so don't read any of the Limelight's
  * queues elsewhere: each frame is handed out only once.
  */
@@ -55,7 +58,10 @@ public class LimelightWrapper extends VisionCamera {
    * @param config The camera's config.
    */
   public LimelightWrapper(Limelight limelight, VisionCameraConfig config) {
-    super(limelight.getName(), config, null);
+    super(
+        limelight.getName(),
+        config,
+        VisionSim.createCameraSim(limelight.getName(), config, CameraModel.LIMELIGHT_4, null));
     this.limelight = limelight;
     config.getVendorConfig().ifPresent(this::applyVendorConfig);
     if (!isSimulated()) {
@@ -86,15 +92,15 @@ public class LimelightWrapper extends VisionCamera {
   }
 
   @Override
-  protected List<Frame> readFrames() {
-    var frames = new ArrayList<Frame>();
+  protected List<VisionFrame> readFrames() {
+    var frames = new ArrayList<VisionFrame>();
     for (LimelightResults results : limelight.readResultsQueue()) {
       frames.add(toFrame(results));
     }
     return frames;
   }
 
-  private Frame toFrame(LimelightResults results) {
+  private VisionFrame toFrame(LimelightResults results) {
     double latencyMillis = results.captureLatencyMillis + results.targetingLatencyMillis;
     double timestamp = results.receiveTimestampSeconds - latencyMillis / 1000.0;
     var targets = new ArrayList<VisionTarget>();
@@ -144,7 +150,7 @@ public class LimelightWrapper extends VisionCamera {
     PoseEstimate poseEstimate = limelight.getPoseEstimate(results, type);
     Pose3d pose = results.getRobotPose(type);
     if (poseEstimate.rawFiducials.length == 0 || pose == null) {
-      return new Frame(result, Optional.empty());
+      return new VisionFrame(result, Optional.empty());
     }
     var tagIds = Arrays.stream(poseEstimate.rawFiducials).map(t -> t.fiducialId).toList();
     double ambiguity = tagIds.size() == 1 ? poseEstimate.rawFiducials[0].ambiguity : 0;
@@ -158,9 +164,9 @@ public class LimelightWrapper extends VisionCamera {
             ambiguity,
             poseEstimate.isMT2());
     if (!useLimelightFilter) {
-      return new Frame(result, Optional.of(estimate));
+      return new VisionFrame(result, Optional.of(estimate));
     }
-    return new Frame(
+    return new VisionFrame(
         result,
         Optional.of(estimate),
         poseEstimate.isValid()
@@ -185,7 +191,8 @@ public class LimelightWrapper extends VisionCamera {
   }
 
   @Override
-  protected void applyRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond) {
+  protected void applyRobotOrientation(
+      double timestampSeconds, Rotation3d orientation, double yawRateDegreesPerSecond) {
     limelight.setRobotOrientation(
         Math.toDegrees(orientation.getZ()),
         Double.isNaN(yawRateDegreesPerSecond) ? 0 : yawRateDegreesPerSecond,
@@ -200,16 +207,6 @@ public class LimelightWrapper extends VisionCamera {
   protected void applyRobotToCamera(Transform3d robotToCamera) {
     limelight.setCameraPose_RobotSpaceOverride(
         new Pose3d(robotToCamera.getTranslation(), robotToCamera.getRotation()), true);
-  }
-
-  /**
-   * A Limelight 4. Set the model with {@link VisionCameraConfig#withCameraModel} for other Limelights.
-   *
-   * @return Camera properties.
-   */
-  @Override
-  protected SimCameraProperties defaultCameraProperties() {
-    return CameraModel.LIMELIGHT_4.getSimCameraProperties();
   }
 
   @Override

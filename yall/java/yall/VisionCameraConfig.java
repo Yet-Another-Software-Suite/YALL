@@ -17,6 +17,7 @@ import org.wpilib.units.measure.Frequency;
 import yall.filter.VisionPoseFilter;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
+import yall.telemetry.VisionTelemetryConfig;
 
 /**
  * Settings shared by every {@link VisionCamera}, whatever the vendor.
@@ -45,7 +46,7 @@ public class VisionCameraConfig {
   private boolean simVideoStreams = false;
   private boolean simWireframe = false;
   private Optional<Object> vendorConfig = Optional.empty();
-  private boolean telemetry = true;
+  private Optional<VisionTelemetryConfig> telemetry = Optional.of(new VisionTelemetryConfig());
 
   /** Creates a config with the defaults: no camera offset, the current season's field. */
   public VisionCameraConfig() {}
@@ -263,14 +264,26 @@ public class VisionCameraConfig {
   }
 
   /**
-   * Sets whether the camera publishes its targets and pose estimates to NetworkTables under {@code
+   * Sets whether the camera publishes telemetry to NetworkTables, with the default {@link
+   * VisionTelemetryConfig}: every {@link yall.telemetry.TelemetryVerbosity#MID} field under {@code
    * YALL/<camera name>}. Defaults to true.
    *
    * @param enabled true to publish.
    * @return This config, for chaining.
    */
   public VisionCameraConfig withTelemetry(boolean enabled) {
-    telemetry = enabled;
+    telemetry = enabled ? Optional.of(new VisionTelemetryConfig()) : Optional.empty();
+    return this;
+  }
+
+  /**
+   * Sets what the camera publishes to NetworkTables, and where.
+   *
+   * @param telemetryConfig What to publish, or null to publish nothing.
+   * @return This config, for chaining.
+   */
+  public VisionCameraConfig withTelemetry(VisionTelemetryConfig telemetryConfig) {
+    telemetry = Optional.ofNullable(telemetryConfig);
     return this;
   }
 
@@ -382,6 +395,15 @@ public class VisionCameraConfig {
    * @return true to publish.
    */
   public boolean isTelemetryEnabled() {
+    return telemetry.isPresent();
+  }
+
+  /**
+   * What the camera publishes to NetworkTables.
+   *
+   * @return The telemetry config, or empty to publish nothing.
+   */
+  public Optional<VisionTelemetryConfig> getTelemetryConfig() {
     return telemetry;
   }
 }

@@ -190,4 +190,20 @@ class VisionPoseFilterTest {
         estimate(new Pose3d(-5, 40, 3, new Rotation3d(1, 1, 0)), NOW - 10, List.of(1), 20, 0.9);
     assertEquals(Optional.empty(), filter.check(wild, FIELD, NOW, 5000));
   }
+
+  @Test
+  void customChecksRejectUnderTheirName() {
+    var filter =
+        new VisionPoseFilter().withCustomCheck("not in our half", e -> e.pose().getX() < 4);
+    assertEquals(Optional.of("not in our half"), check(filter, good()));
+    filter.withCustomCheck("not in our half", null);
+    assertEquals(Optional.empty(), check(filter, good()));
+  }
+
+  @Test
+  void customChecksNeedAName() {
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> new VisionPoseFilter().withCustomCheck(" ", e -> true));
+  }
 }

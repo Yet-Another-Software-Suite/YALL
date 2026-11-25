@@ -1,46 +1,50 @@
 package yall;
 
+import static org.wpilib.units.Units.DegreesPerSecond;
+
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.simulation.PhotonCameraSim;
-import org.photonvision.simulation.SimCameraProperties;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
-import org.wpilib.framework.RobotBase;
 import org.wpilib.math.estimator.PoseEstimator;
+import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
-import org.wpilib.math.linalg.Matrix;
-import org.wpilib.math.numbers.N1;
-import org.wpilib.math.numbers.N3;
+import org.wpilib.networktables.BooleanEntry;
 import org.wpilib.networktables.BooleanPublisher;
+import org.wpilib.networktables.DoubleArrayPublisher;
 import org.wpilib.networktables.DoublePublisher;
+import org.wpilib.networktables.IntegerArrayPublisher;
 import org.wpilib.networktables.IntegerPublisher;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StringPublisher;
 import org.wpilib.networktables.StructArrayPublisher;
+import org.wpilib.networktables.StructPublisher;
 import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
+import yall.cameras.PhotonVisionFrames;
+import yall.filter.PoseFilterStats;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
 import yall.sim.VisionSim;
+import yall.telemetry.VisionTelemetryConfig;
+import yall.telemetry.VisionTelemetryField;
 
 /**
  * A camera from any supported vendor, with one API for targets and robot pose estimates. On a real
- * robot it reads the vendor's library; in simulation it reads a PhotonVision camera simulation, so the
- * same robot code runs in both.
+ * robot it reads the vendor's library; in simulation it reads a PhotonVision camera simulation in a
+ * {@link VisionSim} world, so the same robot code runs in both.
  *
  * <p>Create one with the wrapper for the camera's vendor:
  *
@@ -56,45 +60,17 @@ import yall.sim.VisionSim;
  */
 public abstract class VisionCamera implements AutoCloseable {
 
-  /**
-   * One frame read from the camera, before the pose filter.
-   *
-   * @param result The frame's targets.
-   * @param estimate The robot pose estimated from the frame, if any.
-   * @param vendorRejection Why the vendor's own filter rejected the estimate, if it did.
-   * @param vendorStdDevs Standard deviations from the vendor, used instead of the filter's.
-   */
-  public record Frame(
-      VisionResult result,
-      Optional<VisionPoseEstimate> estimate,
-      Optional<String> vendorRejection,
-      Optional<Matrix<N3, N1>> vendorStdDevs) {
-
-    /**
-     * A frame with no vendor filtering.
-     *
-     * @param result The frame's targets.
-     * @param estimate The robot pose estimated from the frame, if any.
-     */
-    public Frame(VisionResult result, Optional<VisionPoseEstimate> estimate) {
-      this(result, estimate, Optional.empty(), Optional.empty());
-    }
-  }
-
   /** Name of the camera. */
   protected final String name;
 
   /** The camera's config. */
   protected final VisionCameraConfig config;
 
-  private final PhotonPoseEstimator photonPoseEstimator;
-  private final boolean simulated;
-  private Transform3d robotToCamera;
-  private PhotonCamera simCamera;
-  private boolean ownsSimCamera;
-  private PhotonCameraSim cameraSim;
-  private VisionSim visionSim;
+  private final PhotonCameraSim cameraSim;
+  private final VisionSim visionSim;
+  private final PhotonPoseEstimator simPoseEstimator;
   private int simPipelineIndex;
+  private Transform3d robotToCamera;
 
   private List<VisionResult> results = List.of();
   private Optional<VisionResult> latestResult = Optional.empty();
@@ -102,68 +78,39 @@ public abstract class VisionCamera implements AutoCloseable {
   private List<VisionPoseEstimate> rejectedPoses = List.of();
   private String lastRejectionReason = "";
   private double yawRateDegreesPerSecond = Double.NaN;
+  private final PoseFilterStats filterStats = new PoseFilterStats();
 
-  private StructArrayPublisher<Pose3d> acceptedPublisher;
-  private StructArrayPublisher<Pose3d> rejectedPublisher;
-  private StringPublisher rejectionPublisher;
-  private BooleanPublisher hasTargetsPublisher;
-  private IntegerPublisher targetCountPublisher;
-  private DoublePublisher latencyPublisher;
-  private BooleanPublisher connectedPublisher;
+  private final Telemetry telemetry;
 
   /**
-   * Sets up the parts every camera shares: the pose filter, PhotonVision's pose estimator (used by
-   * PhotonVision cameras and by every simulated camera) and, in simulation, the simulated camera.
+   * Sets up the parts every camera shares.
    *
    * @param name Name of the camera.
    * @param config The camera's config.
-   * @param cameraForSimulation PhotonVision camera that the simulation publishes to, or null to create
-   *     a private one.
+   * @param cameraSim The camera's PhotonVision simulation, from {@link VisionSim#createCameraSim},
+   *     or null when not simulating.
    */
-  protected VisionCamera(String name, VisionCameraConfig config, PhotonCamera cameraForSimulation) {
+  protected VisionCamera(String name, VisionCameraConfig config, PhotonCameraSim cameraSim) {
     this.name = name;
     this.config = config;
+    this.cameraSim = cameraSim;
     robotToCamera = config.getRobotToCamera().orElse(Transform3d.ZERO);
-    photonPoseEstimator = new PhotonPoseEstimator(config.getField(), robotToCamera);
-    simulated = RobotBase.isSimulation() && config.isSimulationEnabled();
-    if (simulated) {
-      startSimulation(cameraForSimulation);
+    if (cameraSim != null) {
+      visionSim = config.getVisionSim().orElseGet(VisionSim::getDefault);
+      simPoseEstimator = new PhotonPoseEstimator(config.getField(), robotToCamera);
+    } else {
+      visionSim = null;
+      simPoseEstimator = null;
     }
-    if (config.isTelemetryEnabled()) {
-      startTelemetry();
-    }
-  }
-
-  private void startSimulation(PhotonCamera cameraForSimulation) {
-    ownsSimCamera = cameraForSimulation == null;
-    simCamera = ownsSimCamera ? new PhotonCamera("YALL-" + name) : cameraForSimulation;
-    var properties = config.getCameraProperties().orElseGet(this::defaultCameraProperties);
-    cameraSim = new PhotonCameraSim(simCamera, properties, config.getField());
-    cameraSim.enableRawStream(config.isSimulatedVideoStreamsEnabled());
-    cameraSim.enableProcessedStream(config.isSimulatedVideoStreamsEnabled());
-    cameraSim.enableDrawWireframe(
-        config.isSimulatedVideoStreamsEnabled() && config.isSimulatedWireframeEnabled());
-    visionSim = config.getVisionSim().orElseGet(VisionSim::getDefault);
-    visionSim.addCamera(cameraSim, robotToCamera);
-  }
-
-  private void startTelemetry() {
-    NetworkTable table = NetworkTableInstance.getDefault().getTable("YALL").getSubTable(name);
-    acceptedPublisher = table.getStructArrayTopic("acceptedPoses", Pose3d.struct).publish();
-    rejectedPublisher = table.getStructArrayTopic("rejectedPoses", Pose3d.struct).publish();
-    rejectionPublisher = table.getStringTopic("rejectionReason").publish();
-    hasTargetsPublisher = table.getBooleanTopic("hasTargets").publish();
-    targetCountPublisher = table.getIntegerTopic("targetCount").publish();
-    latencyPublisher = table.getDoubleTopic("latencyMillis").publish();
-    connectedPublisher = table.getBooleanTopic("connected").publish();
+    telemetry = config.getTelemetryConfig().map(t -> new Telemetry(name, t)).orElse(null);
   }
 
   /**
-   * Reads the frames the camera produced since the last call. Call once per loop.
+   * Reads the frames the real camera produced since the last call. Call once per loop.
    *
    * @return The frames, oldest first.
    */
-  protected abstract List<Frame> readFrames();
+  protected abstract List<VisionFrame> readFrames();
 
   /**
    * Switches the real camera's pipeline.
@@ -187,20 +134,14 @@ public abstract class VisionCamera implements AutoCloseable {
   protected abstract boolean readConnected();
 
   /**
-   * Camera properties to simulate when the config doesn't set any. Called from the constructor, so
-   * it must not use the subclass's fields.
-   *
-   * @return Camera properties.
-   */
-  protected abstract SimCameraProperties defaultCameraProperties();
-
-  /**
    * Passes the robot orientation to the real camera, for cameras that use it themselves.
    *
+   * @param timestampSeconds When the orientation was measured.
    * @param orientation Robot orientation on the field.
    * @param yawRateDegreesPerSecond Yaw rate, or NaN if unknown.
    */
-  protected void applyRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond) {}
+  protected void applyRobotOrientation(
+      double timestampSeconds, Rotation3d orientation, double yawRateDegreesPerSecond) {}
 
   /**
    * Passes a new camera position to the real camera, for cameras that use it themselves.
@@ -218,11 +159,15 @@ public abstract class VisionCamera implements AutoCloseable {
   public abstract Object getCamera();
 
   /**
-   * Reads new frames from the camera (or its simulation), filters their pose estimates and publishes
-   * telemetry. Call once per loop, before the getters.
+   * Reads new frames from the camera (or its simulation), filters their pose estimates, counts the
+   * filter's decisions and publishes telemetry. Call once per loop, before the getters.
    */
   public void update() {
-    List<Frame> frames = simulated ? readPhotonFrames(simCamera) : readFrames();
+    List<VisionFrame> frames =
+        cameraSim != null
+            ? PhotonVisionFrames.read(
+                name, cameraSim.getCamera(), simPoseEstimator, config.getPoseEstimationMode())
+            : readFrames();
     var field = config.getField();
     var filter = config.getPoseFilter();
     double now = Timer.getMonotonicTimestamp();
@@ -230,7 +175,7 @@ public abstract class VisionCamera implements AutoCloseable {
     var newResults = new ArrayList<VisionResult>(frames.size());
     var accepted = new ArrayList<VisionPoseEstimate>();
     var rejected = new ArrayList<VisionPoseEstimate>();
-    for (Frame frame : frames) {
+    for (VisionFrame frame : frames) {
       newResults.add(frame.result());
       if (frame.estimate().isEmpty()) {
         continue;
@@ -243,12 +188,15 @@ public abstract class VisionCamera implements AutoCloseable {
       if (reason.isPresent()) {
         rejected.add(estimate);
         lastRejectionReason = reason.get();
+        filterStats.recordRejected(reason.get());
       } else {
-        accepted.add(
+        var weighed =
             frame
                 .vendorStdDevs()
                 .map(estimate::withStdDevs)
-                .orElseGet(() -> filter.applyStdDevs(estimate)));
+                .orElseGet(() -> filter.applyStdDevs(estimate));
+        accepted.add(weighed);
+        filterStats.recordAccepted(weighed);
       }
     }
     results = List.copyOf(newResults);
@@ -258,98 +206,9 @@ public abstract class VisionCamera implements AutoCloseable {
     accepted.sort(Comparator.comparingDouble(VisionPoseEstimate::timestampSeconds));
     acceptedPoses = List.copyOf(accepted);
     rejectedPoses = List.copyOf(rejected);
-    publishTelemetry();
-  }
-
-  private void publishTelemetry() {
-    if (acceptedPublisher == null) {
-      return;
+    if (telemetry != null) {
+      telemetry.publish(this);
     }
-    acceptedPublisher.set(
-        acceptedPoses.stream().map(VisionPoseEstimate::pose).toArray(Pose3d[]::new));
-    rejectedPublisher.set(
-        rejectedPoses.stream().map(VisionPoseEstimate::pose).toArray(Pose3d[]::new));
-    rejectionPublisher.set(lastRejectionReason);
-    hasTargetsPublisher.set(hasTargets());
-    targetCountPublisher.set(getTargets().size());
-    latestResult.ifPresent(r -> latencyPublisher.set(r.latencyMillis()));
-    connectedPublisher.set(isConnected());
-  }
-
-  /**
-   * Reads and converts the unread results of a PhotonVision camera. PhotonVision cameras use this on
-   * real robots, and every camera uses it in simulation.
-   *
-   * @param camera The PhotonVision camera.
-   * @return The frames, oldest first.
-   */
-  protected final List<Frame> readPhotonFrames(PhotonCamera camera) {
-    var frames = new ArrayList<Frame>();
-    for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
-      frames.add(new Frame(toVisionResult(result), estimatePhotonPose(result)));
-    }
-    return frames;
-  }
-
-  private VisionResult toVisionResult(PhotonPipelineResult result) {
-    var targets = new ArrayList<VisionTarget>(result.getTargets().size());
-    for (PhotonTrackedTarget target : result.getTargets()) {
-      boolean isTag = target.getFiducialId() >= 0;
-      targets.add(
-          new VisionTarget(
-              target.getYaw(),
-              target.getPitch(),
-              target.getArea(),
-              target.getFiducialId(),
-              target.getDetectedObjectClassID() >= 0 ? target.getDetectedObjectClassID() : -1,
-              // PhotonVision reports -1 for targets that aren't detected objects.
-              target.getDetectedObjectClassID() >= 0 ? target.getDetectedObjectConfidence() : 0,
-              isTag && target.getPoseAmbiguity() >= 0 ? target.getPoseAmbiguity() : Double.NaN,
-              isTag ? Optional.of(target.getBestCameraToTarget()) : Optional.empty()));
-    }
-    return new VisionResult(
-        name, result.getTimestampSeconds(), result.metadata.getLatencyMillis(), targets);
-  }
-
-  private Optional<VisionPoseEstimate> estimatePhotonPose(PhotonPipelineResult result) {
-    if (!result.hasTargets()) {
-      return Optional.empty();
-    }
-    boolean headingAssisted = config.getPoseEstimationMode() == PoseEstimationMode.HEADING_ASSISTED;
-    Optional<EstimatedRobotPose> estimate = Optional.empty();
-    if (headingAssisted) {
-      estimate = photonPoseEstimator.estimatePnpDistanceTrigSolvePose(result);
-    }
-    if (estimate.isEmpty()) {
-      headingAssisted = false;
-      estimate = photonPoseEstimator.estimateCoprocMultiTagPose(result);
-    }
-    if (estimate.isEmpty()) {
-      estimate = photonPoseEstimator.estimateLowestAmbiguityPose(result);
-    }
-    if (estimate.isEmpty()) {
-      return Optional.empty();
-    }
-    var used = estimate.get().targetsUsed.stream().filter(t -> t.getFiducialId() >= 0).toList();
-    var tagIds = used.stream().map(PhotonTrackedTarget::getFiducialId).toList();
-    double distance =
-        used.stream()
-            .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
-            .average()
-            .orElse(Double.NaN);
-    double ambiguity =
-        used.size() == 1 && used.get(0).getPoseAmbiguity() >= 0
-            ? used.get(0).getPoseAmbiguity()
-            : used.size() == 1 ? Double.NaN : 0;
-    return Optional.of(
-        VisionPoseEstimate.unfiltered(
-            name,
-            estimate.get().estimatedPose,
-            estimate.get().timestampSeconds,
-            tagIds,
-            distance,
-            ambiguity,
-            headingAssisted));
   }
 
   /**
@@ -361,7 +220,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * @param yawRate Robot yaw rate.
    */
   public void setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate) {
-    setRobotOrientation(orientation, yawRate.in(org.wpilib.units.Units.DegreesPerSecond));
+    setRobotOrientation(orientation, yawRate.in(DegreesPerSecond));
   }
 
   /**
@@ -376,9 +235,11 @@ public abstract class VisionCamera implements AutoCloseable {
 
   private void setRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond) {
     this.yawRateDegreesPerSecond = yawRateDegreesPerSecond;
-    photonPoseEstimator.addHeadingData(Timer.getMonotonicTimestamp(), orientation);
-    if (!simulated) {
-      applyRobotOrientation(orientation, yawRateDegreesPerSecond);
+    double now = Timer.getMonotonicTimestamp();
+    if (cameraSim != null) {
+      simPoseEstimator.addHeadingData(now, orientation);
+    } else {
+      applyRobotOrientation(now, orientation, yawRateDegreesPerSecond);
     }
   }
 
@@ -389,8 +250,8 @@ public abstract class VisionCamera implements AutoCloseable {
    */
   public void setRobotToCamera(Transform3d robotToCamera) {
     this.robotToCamera = robotToCamera;
-    photonPoseEstimator.setRobotToCameraTransform(robotToCamera);
-    if (simulated) {
+    if (cameraSim != null) {
+      simPoseEstimator.setRobotToCameraTransform(robotToCamera);
       visionSim.adjustCamera(cameraSim, robotToCamera);
     } else {
       applyRobotToCamera(robotToCamera);
@@ -424,12 +285,60 @@ public abstract class VisionCamera implements AutoCloseable {
   }
 
   /**
+   * Where the camera itself is on the field, worked out from the AprilTags in the newest frame
+   * alone. It doesn't use the robot pose or the camera offset, so it can measure them: for example
+   * a turret's angle, with {@link #getCameraYawOnRobot(Rotation2d)}.
+   *
+   * <p>Each AprilTag the camera solved gives a camera pose: the tag's place on the field, moved back
+   * along the camera-to-tag transform. The closest tag's is returned, because it is the most
+   * accurate.
+   *
+   * @return The camera's pose on the field, or empty if the newest frame has no solved AprilTag on
+   *     the field.
+   */
+  public Optional<Pose3d> getCameraFieldPose() {
+    var field = config.getField();
+    Pose3d best = null;
+    double bestDistance = Double.POSITIVE_INFINITY;
+    for (VisionTarget target : getTargets()) {
+      if (!target.isAprilTag() || target.cameraToTarget().isEmpty()) {
+        continue;
+      }
+      var tagPose = field.getTagPose(target.fiducialId());
+      if (tagPose.isEmpty()) {
+        continue;
+      }
+      var cameraToTag = target.cameraToTarget().get();
+      double distance = cameraToTag.getTranslation().getNorm();
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = tagPose.get().transformBy(cameraToTag.inverse());
+      }
+    }
+    return Optional.ofNullable(best);
+  }
+
+  /**
+   * Which way the camera points relative to the robot, from what it sees: the camera's heading on
+   * the field ({@link #getCameraFieldPose()}) minus the robot's heading. For a camera on a turret,
+   * this is the turret's angle (plus any angle the camera is mounted at on the turret), so it can
+   * check or zero the turret's encoder.
+   *
+   * @param robotHeading The robot's heading on the field, from the gyro.
+   * @return The camera's yaw on the robot, counterclockwise positive, or empty if the newest frame
+   *     has no solved AprilTag on the field.
+   */
+  public Optional<Rotation2d> getCameraYawOnRobot(Rotation2d robotHeading) {
+    return getCameraFieldPose().map(pose -> pose.getRotation().toRotation2d().minus(robotHeading));
+  }
+
+  /**
    * Switches the camera's pipeline.
    *
    * @param index Pipeline index.
    */
   public void setPipelineIndex(int index) {
-    if (simulated) {
+    if (cameraSim != null) {
       simPipelineIndex = index;
     } else {
       applyPipelineIndex(index);
@@ -442,7 +351,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return Pipeline index.
    */
   public int getPipelineIndex() {
-    return simulated ? simPipelineIndex : readPipelineIndex();
+    return cameraSim != null ? simPipelineIndex : readPipelineIndex();
   }
 
   /**
@@ -451,7 +360,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return true if connected.
    */
   public boolean isConnected() {
-    return simulated || readConnected();
+    return cameraSim != null || readConnected();
   }
 
   /**
@@ -460,7 +369,35 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return true in simulation with simulation enabled in the config.
    */
   public boolean isSimulated() {
-    return simulated;
+    return cameraSim != null;
+  }
+
+  /**
+   * The camera's PhotonVision simulation, for settings YALL doesn't cover.
+   *
+   * @return The simulated camera, or empty when not simulating.
+   */
+  public Optional<PhotonCameraSim> getCameraSim() {
+    return Optional.ofNullable(cameraSim);
+  }
+
+  /**
+   * The simulated world this camera is in.
+   *
+   * @return The world, or empty when not simulating.
+   */
+  public Optional<VisionSim> getVisionSim() {
+    return Optional.ofNullable(visionSim);
+  }
+
+  /**
+   * PhotonVision's pose estimator for this camera's simulated results, for settings YALL doesn't
+   * cover.
+   *
+   * @return The pose estimator, or empty when not simulating.
+   */
+  public Optional<PhotonPoseEstimator> getSimulatedPoseEstimator() {
+    return Optional.ofNullable(simPoseEstimator);
   }
 
   /**
@@ -565,6 +502,21 @@ public abstract class VisionCamera implements AutoCloseable {
   }
 
   /**
+   * What the pose filter has accepted and rejected since the stats were last reset, and how spread
+   * out the accepted poses are.
+   *
+   * @return The stats.
+   */
+  public PoseFilterStats getFilterStats() {
+    return filterStats;
+  }
+
+  /** Starts the pose filter stats counting again. */
+  public void resetFilterStats() {
+    filterStats.reset();
+  }
+
+  /**
    * Passes every accepted estimate from the last {@link #update()} to a consumer, oldest first.
    *
    * @param consumer Receives each estimate.
@@ -584,52 +536,176 @@ public abstract class VisionCamera implements AutoCloseable {
         e -> poseEstimator.addVisionMeasurement(e.pose2d(), e.timestampSeconds(), e.stdDevs()));
   }
 
-  /**
-   * The PhotonVision simulation of this camera.
-   *
-   * @return The simulated camera, or empty when not simulating.
-   */
-  public Optional<PhotonCameraSim> getCameraSim() {
-    return Optional.ofNullable(cameraSim);
-  }
-
-  /**
-   * The simulated world this camera is in.
-   *
-   * @return The world, or empty when not simulating.
-   */
-  public Optional<VisionSim> getVisionSim() {
-    return Optional.ofNullable(visionSim);
-  }
-
-  /**
-   * The PhotonVision pose estimator this camera uses in simulation (and on PhotonVision cameras), for
-   * settings YALL doesn't cover.
-   *
-   * @return PhotonVision's pose estimator.
-   */
-  public PhotonPoseEstimator getPhotonPoseEstimator() {
-    return photonPoseEstimator;
-  }
-
   /** Removes the camera from simulation and closes its telemetry. */
   @Override
   public void close() {
     if (cameraSim != null) {
       visionSim.removeCamera(cameraSim);
+      var photonCamera = cameraSim.getCamera();
       cameraSim.close();
-      if (ownsSimCamera) {
-        simCamera.close();
+      // Close the private camera made for a non-PhotonVision camera, not a team's own.
+      if (photonCamera.getName().equals(VisionSim.privateCameraName(name))) {
+        photonCamera.close();
       }
     }
-    if (acceptedPublisher != null) {
-      acceptedPublisher.close();
-      rejectedPublisher.close();
-      rejectionPublisher.close();
-      hasTargetsPublisher.close();
-      targetCountPublisher.close();
-      latencyPublisher.close();
-      connectedPublisher.close();
+    if (telemetry != null) {
+      telemetry.close();
+    }
+  }
+
+  /** The camera's NetworkTables publishers, for the fields its telemetry config turns on. */
+  private static final class Telemetry implements AutoCloseable {
+    private final NetworkTable table;
+    private final List<AutoCloseable> closeables = new ArrayList<>();
+    private BooleanPublisher connected;
+    private BooleanPublisher hasTargets;
+    private IntegerPublisher targetCount;
+    private StructArrayPublisher<Pose3d> acceptedPoses;
+    private StructArrayPublisher<Pose3d> rejectedPoses;
+    private StringPublisher rejectionReason;
+    private DoublePublisher latency;
+    private IntegerPublisher statsAccepted;
+    private IntegerPublisher statsRejected;
+    private DoublePublisher statsAcceptanceRate;
+    private IntegerPublisher statsSamples;
+    private StructPublisher<Pose2d> statsMeanPose;
+    private DoubleArrayPublisher statsStdDevs;
+    private DoubleArrayPublisher statsSuggestedBase;
+    private DoublePublisher statsDistance;
+    private BooleanEntry statsReset;
+    private final Map<String, IntegerPublisher> statsByReason = new HashMap<>();
+    private IntegerArrayPublisher targetIds;
+    private DoubleArrayPublisher targetYaws;
+    private DoubleArrayPublisher targetPitches;
+    private DoubleArrayPublisher targetAreas;
+
+    Telemetry(String cameraName, VisionTelemetryConfig config) {
+      table = NetworkTableInstance.getDefault().getTable(config.getTablePath(cameraName));
+      if (config.isEnabled(VisionTelemetryField.CONNECTED)) {
+        connected = keep(table.getBooleanTopic("connected").publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.HAS_TARGETS)) {
+        hasTargets = keep(table.getBooleanTopic("hasTargets").publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.TARGET_COUNT)) {
+        targetCount = keep(table.getIntegerTopic("targetCount").publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.ACCEPTED_POSES)) {
+        acceptedPoses = keep(table.getStructArrayTopic("acceptedPoses", Pose3d.struct).publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.REJECTED_POSES)) {
+        rejectedPoses = keep(table.getStructArrayTopic("rejectedPoses", Pose3d.struct).publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.REJECTION_REASON)) {
+        rejectionReason = keep(table.getStringTopic("rejectionReason").publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.LATENCY)) {
+        latency = keep(table.getDoubleTopic("latencyMillis").publish());
+      }
+      if (config.isEnabled(VisionTelemetryField.FILTER_STATS)) {
+        var stats = table.getSubTable("stats");
+        statsAccepted = keep(stats.getIntegerTopic("accepted").publish());
+        statsRejected = keep(stats.getIntegerTopic("rejected").publish());
+        statsAcceptanceRate = keep(stats.getDoubleTopic("acceptanceRate").publish());
+        statsSamples = keep(stats.getIntegerTopic("sampleCount").publish());
+        statsMeanPose = keep(stats.getStructTopic("meanPose", Pose2d.struct).publish());
+        statsStdDevs = keep(stats.getDoubleArrayTopic("stdDevs").publish());
+        statsSuggestedBase = keep(stats.getDoubleArrayTopic("suggestedBaseStdDevs").publish());
+        statsDistance = keep(stats.getDoubleTopic("averageTagDistanceMeters").publish());
+        statsReset = keep(stats.getBooleanTopic("reset").getEntry(false));
+        statsReset.set(false);
+      }
+      if (config.isEnabled(VisionTelemetryField.TARGETS)) {
+        var targets = table.getSubTable("targets");
+        targetIds = keep(targets.getIntegerArrayTopic("fiducialIds").publish());
+        targetYaws = keep(targets.getDoubleArrayTopic("yawDegrees").publish());
+        targetPitches = keep(targets.getDoubleArrayTopic("pitchDegrees").publish());
+        targetAreas = keep(targets.getDoubleArrayTopic("areaPercent").publish());
+      }
+    }
+
+    private <T extends AutoCloseable> T keep(T closeable) {
+      closeables.add(closeable);
+      return closeable;
+    }
+
+    void publish(VisionCamera camera) {
+      if (connected != null) {
+        connected.set(camera.isConnected());
+      }
+      if (hasTargets != null) {
+        hasTargets.set(camera.hasTargets());
+      }
+      if (targetCount != null) {
+        targetCount.set(camera.getTargets().size());
+      }
+      if (acceptedPoses != null) {
+        acceptedPoses.set(
+            camera.acceptedPoses.stream().map(VisionPoseEstimate::pose).toArray(Pose3d[]::new));
+      }
+      if (rejectedPoses != null) {
+        rejectedPoses.set(
+            camera.rejectedPoses.stream().map(VisionPoseEstimate::pose).toArray(Pose3d[]::new));
+      }
+      if (rejectionReason != null) {
+        rejectionReason.set(camera.lastRejectionReason);
+      }
+      if (latency != null) {
+        camera.latestResult.ifPresent(r -> latency.set(r.latencyMillis()));
+      }
+      if (statsReset != null) {
+        publishStats(camera);
+      }
+      if (targetIds != null) {
+        var targets = camera.getTargets();
+        targetIds.set(targets.stream().mapToLong(VisionTarget::fiducialId).toArray());
+        targetYaws.set(targets.stream().mapToDouble(VisionTarget::yawDegrees).toArray());
+        targetPitches.set(targets.stream().mapToDouble(VisionTarget::pitchDegrees).toArray());
+        targetAreas.set(targets.stream().mapToDouble(VisionTarget::areaPercent).toArray());
+      }
+    }
+
+    private void publishStats(VisionCamera camera) {
+      var stats = camera.filterStats;
+      if (statsReset.get()) {
+        stats.reset();
+        statsReset.set(false);
+      }
+      statsAccepted.set(stats.getAcceptedCount());
+      statsRejected.set(stats.getRejectedCount());
+      statsAcceptanceRate.set(stats.getAcceptanceRate());
+      statsSamples.set(stats.getSampleCount());
+      stats.getMeanPose().ifPresent(statsMeanPose::set);
+      statsStdDevs.set(stats.getStdDevs().getData());
+      statsSuggestedBase.set(
+          stats
+              .getSuggestedBaseStdDevs(camera.config.getPoseFilter().getDistanceDivisor())
+              .getData());
+      statsDistance.set(stats.getAverageTagDistanceMeters());
+      var rejectedBy = table.getSubTable("stats").getSubTable("rejectedBy");
+      for (var reason : stats.getRejectionCounts().entrySet()) {
+        statsByReason
+            .computeIfAbsent(
+                reason.getKey(), key -> keep(rejectedBy.getIntegerTopic(key).publish()))
+            .set(reason.getValue());
+      }
+      // A reset clears the counts, so zero the reasons that are no longer counted.
+      for (var reason : statsByReason.entrySet()) {
+        if (!stats.getRejectionCounts().containsKey(reason.getKey())) {
+          reason.getValue().set(0);
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      for (AutoCloseable closeable : closeables) {
+        try {
+          closeable.close();
+        } catch (Exception e) {
+          // Closing a NetworkTables handle doesn't throw.
+        }
+      }
     }
   }
 }

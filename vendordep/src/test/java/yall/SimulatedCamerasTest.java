@@ -19,12 +19,14 @@ import org.photonvision.simulation.VisionTargetSim;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 import org.wpilib.hardware.hal.HAL;
+import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.simulation.SimHooks;
 import synapse.SynapseCamera;
 import yall.cameras.LimelightWrapper;
@@ -168,6 +170,97 @@ class SimulatedCamerasTest {
         assertEquals(-1, tag.classId());
         assertEquals(0, tag.confidence());
       }
+    }
+  }
+
+  @Test
+  void aTurretCameraMeasuresItsAngle() {
+    var sim = new VisionSim("turret", FIELD);
+    var robot = facingFirstTag();
+    var turretAngle = Rotation2d.fromDegrees(20);
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("turret"),
+            config(sim)
+                .withRobotToCamera(
+                    new Transform3d(
+                        0.1, 0, 0.5, new Rotation3d(0, 0, turretAngle.getRadians()))))) {
+      for (int i = 0; i < 25; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.update();
+      }
+      var measured = camera.getCameraYawOnRobot(robot.getRotation());
+      assertTrue(measured.isPresent(), "no tag solved");
+      assertEquals(20, measured.get().getDegrees(), 2);
+
+      // Turn the turret: the measurement follows.
+      camera.setRobotToCamera(
+          new Transform3d(0.1, 0, 0.5, new Rotation3d(0, 0, Math.toRadians(-15))));
+      for (int i = 0; i < 25; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.update();
+      }
+      assertEquals(-15, camera.getCameraYawOnRobot(robot.getRotation()).get().getDegrees(), 2);
+    }
+  }
+
+  @Test
+  void filterStatsAreCountedAndPublished() {
+    var sim = new VisionSim("stats", FIELD);
+    var robot = facingFirstTag();
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("stats"),
+            config(sim)
+                .withTelemetry(
+                    new yall.telemetry.VisionTelemetryConfig()
+                        .withVerbosity(yall.telemetry.TelemetryVerbosity.HIGH)))) {
+      for (int i = 0; i < 50; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.update();
+      }
+      var stats = camera.getFilterStats();
+      assertTrue(stats.getAcceptedCount() > 5, "accepted " + stats.getAcceptedCount());
+      // A robot standing still: the spread is the camera's noise, a few centimeters at most.
+      assertTrue(stats.getStdDevs().get(0, 0) < 0.1, "x std dev " + stats.getStdDevs().get(0, 0));
+      var table = NetworkTableInstance.getDefault().getTable("YALL/stats/stats");
+      assertEquals(stats.getAcceptedCount(), table.getEntry("accepted").getInteger(-1));
+      // A dashboard can reset the stats.
+      table.getEntry("reset").setBoolean(true);
+      SimHooks.stepTiming(0.02);
+      camera.update();
+      assertTrue(camera.getFilterStats().getAcceptedCount() <= 2);
+    }
+  }
+
+  @Test
+  void aVisionSystemFeedsItsPoseEstimator() {
+    var sim = new VisionSim("estimator", FIELD);
+    var robot = facingFirstTag();
+    // Odometry starts half a meter off.
+    var wrong = robot.plus(new org.wpilib.math.geometry.Transform2d(0.5, 0.3, Rotation2d.ZERO));
+    var estimator = new DifferentialDrivePoseEstimator(robot.getRotation(), 0, 0, wrong);
+    try (var vision =
+        new VisionSystem(new PhotonVisionWrapper(new PhotonCamera("estimator"), config(sim)))
+            .withPoseEstimator(estimator)) {
+      boolean fused = false;
+      for (int i = 0; i < 100; i++) {
+        SimHooks.stepTiming(0.02);
+        estimator.update(robot.getRotation(), 0, 0);
+        vision.updateSimulation(robot);
+        vision.update();
+        fused |= vision.getFusedPose().isPresent();
+      }
+      double error =
+          estimator.getEstimatedPosition().getTranslation().getDistance(robot.getTranslation());
+      // It starts 0.58 m off. One tag 2 m away is trusted little (standard deviation about 4.5 m),
+      // so each measurement moves the estimate about 2% of the way: well over half in 2 seconds.
+      assertTrue(error < 0.25, "pose estimator is still " + error + " m off");
+      assertTrue(fused, "no fused pose");
+      assertTrue(vision.getCameras().get(0).getCameraSim().isPresent());
     }
   }
 }

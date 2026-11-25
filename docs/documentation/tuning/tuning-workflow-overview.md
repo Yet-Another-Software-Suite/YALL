@@ -32,7 +32,7 @@ A **pipeline** is the set of steps a camera runs on each picture.
 
 * AprilTags and robot position: [AprilTag Localization Tuning](apriltag-and-megatag2-tuning.md).
 * Game pieces: [Tuning an Object Detection Pipeline](neural-network-pipeline-tuning.md).
-* Reflective tape (Limelight): [Tuning a Retroreflective Pipeline](retroreflective-pipeline-tuning.md).
+* Reflective tape or colored targets: tune them in the camera's own web interface. Tuning a Limelight: [Color Thresholding](https://docs.limelightvision.io/docs/docs-limelight/pipeline-retro/color-filtering) and [Contour Filtering and Sorting](https://docs.limelightvision.io/docs/docs-limelight/pipeline-retro/contour-filtering-and-sorting).
 
 **Check it:** the camera finds the targets you care about, and nothing else.
 {% endstep %}

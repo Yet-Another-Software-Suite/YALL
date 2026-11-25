@@ -63,6 +63,18 @@ Field bounds use the field from the camera's config (`withField`), which default
 
 Every check except "no tags" turns off with `null`. See [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
 
+### Your own checks
+
+After the built-in checks, the filter runs any checks you add with `withCustomCheck`. Each needs a name: it becomes the rejection reason, and the filter stats count that check's rejections under it, so you can always see which check threw out what.
+
+```java
+filter.withCustomCheck("not in our half", estimate -> estimate.pose().getX() < 8.27);
+```
+
+### Counting what it decides
+
+Each camera's [`PoseFilterStats`](https://yall.yassrobotics.com/api-reference/java-reference/filter/pose-filter-stats) counts what its filter accepts and rejects, by check, and measures how much the accepted poses wobble. That wobble is the camera's real standard deviation. See [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md).
+
 ## Standard deviations
 
 A **standard deviation** says how far off a guess might be. The pose estimator moves the robot's position a lot for a guess with a small standard deviation, and barely at all for one with a big standard deviation.
@@ -87,7 +99,7 @@ A Limelight given a `PoseEstimateConfig` through `withVendorConfig` uses Limelig
 
 ![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The fused pose sits close to the sure one.](../.gitbook/assets/fusing-cameras.png)
 
-[`VisionSystem.addVisionMeasurements`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose weighted by their standard deviations. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
+[`VisionSystem.addVisionMeasurements`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose with WPILib's pose estimator math, so more trusted estimates pull harder. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
 
 ## Read more
 

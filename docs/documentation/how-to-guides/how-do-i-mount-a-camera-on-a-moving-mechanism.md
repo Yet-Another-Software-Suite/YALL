@@ -46,5 +46,6 @@ camera.setRobotToCamera(Inches.of(10), Inches.zero(), Inches.of(30),
 
 ## Read more
 
+* [How do I measure a turret's angle with a camera?](how-do-i-measure-a-turrets-angle-with-a-camera.md): the other direction, the turret's angle from the camera.
 * [AprilTag Pose Estimation tutorial](../tutorials/apriltag-pose-estimation.md)
 * [Basic Setup](../tutorials/basic-setup.md#add-the-camera)

@@ -34,8 +34,8 @@ layout:
 The black line is where a simulated robot really drove. Red is where it thinks it is from its wheels alone: it drifts. Blue adds three cameras through YALL and stays on track.
 
 * **Works with every camera:** PhotonVision, Limelight and Synapse cameras, read the same way.
-* **Test without a robot:** in simulation, YALL pretends to be each camera, using the published specs of every Limelight, the Luma P1 and P2, the ThriftyCam, Thriftiest Cam and Arducam OV9281.
-* **Throws out bad guesses:** a pose filter rejects camera guesses that can't be right, and says how much to trust the rest.
+* **Test without a robot:** in simulation, YALL pretends to be each camera, using the published specs of every [Limelight](https://limelightvision.io/collections/products), the [Luma P1](https://luma.vision/products/p1) and [P2](https://luma.vision/products/luma-p2), the [ThriftyCam](https://www.thethriftybot.com/products/thriftycam), [Thriftiest Cam](https://www.thethriftybot.com/products/thriftiest-cam), [Arducam OV9281](https://andymark.com/products/arducam-camera) and [AndyMark ELP fisheye camera](https://andymark.com/products/elp-fisheye-lens-camera).
+* **Throws out bad guesses:** a pose filter rejects camera guesses that can't be right, says how much to trust the rest, and counts what it threw out and why.
 * **Many cameras, one answer:** feed every camera's guesses to WPILib's pose estimator, or combine them into one.
 * **Nothing hidden:** you can still reach each camera maker's own library.
 

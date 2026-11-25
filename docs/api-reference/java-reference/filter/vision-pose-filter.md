@@ -51,9 +51,25 @@ Estimates that used no tags are always rejected. The checks run in this order, a
 
 ***
 
+## Custom checks
+
+Add checks of your own. They run after the built-in ones, in the order they were added.
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `withCustomCheck(String name, Predicate<VisionPoseEstimate> accepts)` | `VisionPoseFilter` | Adds a check: `accepts` returns true to accept an estimate. The name is required: it is the rejection reason, and [`PoseFilterStats`](pose-filter-stats.md) counts the check's rejections under it. A check with the same name is replaced; `null` for `accepts` removes it. Throws `IllegalArgumentException` if the name is null or blank. |
+| `getCustomChecks()` | `Map<String, Predicate<VisionPoseEstimate>>` | The custom checks by name, in the order they were added. |
+
+```java
+new VisionPoseFilter()
+    .withCustomCheck("not in our half", estimate -> estimate.pose().getX() < 8.27);
+```
+
+***
+
 ## Standard deviations
 
-Accepted estimates get standard deviations of `base * (1 + d² / distanceDivisor)`, where `d` is the average tag distance in meters.
+Accepted estimates get standard deviations of `base * (1 + d² / distanceDivisor)`, where `d` is the average tag distance in meters. To measure your camera's real base, see [`PoseFilterStats.getSuggestedBaseStdDevs`](pose-filter-stats.md).
 
 | Method | Default | Description |
 | --- | --- | --- |
@@ -78,6 +94,7 @@ Each returns the check's setting, or empty if the check is off.
 | `getMaxYawRate()` | `Optional<AngularVelocity>` |
 | `getMaxAge()` | `Optional<Time>` |
 | `getMaxDistanceFromPose()` | `Optional<Distance>` |
+| `getDistanceDivisor()` | `double` (the standard deviation formula's divisor, not optional) |
 
 ***
 
@@ -95,4 +112,5 @@ Cameras call these; robot code rarely needs to.
 ## Read more
 
 * [VisionPoseEstimate](../results/vision-pose-estimate.md)
+* [PoseFilterStats](pose-filter-stats.md)
 * [VisionCameraConfig](../yall/vision-camera-config.md)

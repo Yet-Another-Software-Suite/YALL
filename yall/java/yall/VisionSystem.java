@@ -13,8 +13,12 @@ import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StructPublisher;
 import org.wpilib.units.measure.AngularVelocity;
@@ -40,13 +44,23 @@ import yall.sim.VisionSim;
  * }</pre>
  *
  * <p>{@link #addVisionMeasurements(PoseEstimator)} is the most accurate way to use several cameras:
- * the pose estimator weighs each estimate at the moment its image was taken. {@link #getFusedPose()}
- * combines the cameras' newest estimates into one pose, for code that wants a single answer.
+ * the pose estimator weighs each estimate at the moment its image was taken. Give the system the
+ * drivetrain's pose estimator with {@link #withPoseEstimator(PoseEstimator)} and {@link #update()}
+ * does it for you.
+ *
+ * <p>{@link #getFusedPose()} combines the cameras' newest estimates into one pose, for code that
+ * wants a single answer. It uses the same math as WPILib's pose estimators: each estimate moves the
+ * fused pose toward itself by the gain {@code q / (q + sqrt(q * r))} on each axis, where {@code q}
+ * is the squared {@link #withFusionStateStdDevs state standard deviation} and {@code r} the
+ * estimate's squared standard deviation. With a pose estimator given, the fused pose is the pose
+ * estimator's, which also has odometry.
  */
 public class VisionSystem implements AutoCloseable {
 
   private final List<VisionCamera> cameras;
   private double maxFusionTimeSkewSeconds = 0.1;
+  private Matrix<N3, N1> fusionStateStdDevs = VecBuilder.fill(0.1, 0.1, 0.1);
+  private Optional<PoseEstimator<?>> poseEstimator = Optional.empty();
   private List<VisionPoseEstimate> estimates = List.of();
   private final StructPublisher<Pose3d> fusedPublisher;
 
@@ -76,6 +90,31 @@ public class VisionSystem implements AutoCloseable {
     return this;
   }
 
+  /**
+   * Sets how much {@link #getFusedPose()} trusts the pose it has so far against each new estimate,
+   * as a WPILib pose estimator's state standard deviations do. Defaults to 0.1 m, 0.1 m, 0.1 rad,
+   * WPILib's default for swerve drives.
+   *
+   * @param stateStdDevs Standard deviations of x (meters), y (meters) and heading (radians).
+   * @return This system, for chaining.
+   */
+  public VisionSystem withFusionStateStdDevs(Matrix<N3, N1> stateStdDevs) {
+    fusionStateStdDevs = stateStdDevs;
+    return this;
+  }
+
+  /**
+   * Gives the system the drivetrain's pose estimator. {@link #update()} then adds every accepted
+   * estimate to it, and {@link #getFusedPose()} returns its pose.
+   *
+   * @param poseEstimator The drivetrain's pose estimator, or null to stop.
+   * @return This system, for chaining.
+   */
+  public VisionSystem withPoseEstimator(PoseEstimator<?> poseEstimator) {
+    this.poseEstimator = Optional.ofNullable(poseEstimator);
+    return this;
+  }
+
   /** Updates every camera. Call once per loop. */
   public void update() {
     var all = new ArrayList<VisionPoseEstimate>();
@@ -85,6 +124,7 @@ public class VisionSystem implements AutoCloseable {
     }
     all.sort(Comparator.comparingDouble(VisionPoseEstimate::timestampSeconds));
     estimates = List.copyOf(all);
+    poseEstimator.ifPresent(this::addVisionMeasurements);
     getFusedPose().ifPresent(e -> fusedPublisher.set(e.pose()));
   }
 
@@ -163,8 +203,8 @@ public class VisionSystem implements AutoCloseable {
   /**
    * Combines each camera's newest accepted estimate from the last {@link #update()} into one pose.
    * Estimates more than the {@link #withMaxFusionTimeSkew(Time) time skew} older than the newest are
-   * left out. Each axis is a weighted average, weighted by the inverse square of the estimate's
-   * standard deviation, so more trusted cameras count for more.
+   * left out. With a {@link #withPoseEstimator pose estimator}, returns the pose estimator's pose
+   * instead.
    *
    * @return The fused estimate, named "fused", or empty if no camera has one.
    */
@@ -179,57 +219,105 @@ public class VisionSystem implements AutoCloseable {
     double latest =
         newest.stream().mapToDouble(VisionPoseEstimate::timestampSeconds).max().getAsDouble();
     newest.removeIf(e -> latest - e.timestampSeconds() > maxFusionTimeSkewSeconds);
-    return Optional.of(fuse(newest));
+    var fused = fuse(newest, fusionStateStdDevs);
+    if (poseEstimator.isPresent()) {
+      fused =
+          new VisionPoseEstimate(
+              "fused",
+              new Pose3d(poseEstimator.get().getEstimatedPosition()),
+              fused.timestampSeconds(),
+              fused.tagIds(),
+              fused.averageTagDistanceMeters(),
+              fused.ambiguity(),
+              fused.headingAssisted(),
+              fused.stdDevs());
+    }
+    return Optional.of(fused);
   }
 
   /**
-   * Combines estimates into one, weighting each axis by the inverse square of its standard
-   * deviation.
+   * Combines estimates into one, with WPILib's pose estimator math and its default state standard
+   * deviations (0.1 m, 0.1 m, 0.1 rad).
    *
    * @param estimates The estimates. Must not be empty.
    * @return The fused estimate.
    */
   public static VisionPoseEstimate fuse(List<VisionPoseEstimate> estimates) {
+    return fuse(estimates, VecBuilder.fill(0.1, 0.1, 0.1));
+  }
+
+  /**
+   * Combines estimates into one, with WPILib's pose estimator math: starting from the oldest, each
+   * estimate moves the fused pose toward itself by the gain {@code q / (q + sqrt(q * r))} on x, y
+   * and heading, where {@code q} is the squared state standard deviation and {@code r} the
+   * estimate's squared standard deviation. The fused standard deviations are those of independent
+   * measurements combined: {@code 1 / sqrt(sum(1 / stdDev²))} on each axis.
+   *
+   * @param estimates The estimates. Must not be empty.
+   * @param stateStdDevs How much to trust the pose so far: x (m), y (m) and heading (rad).
+   * @return The fused estimate.
+   */
+  public static VisionPoseEstimate fuse(
+      List<VisionPoseEstimate> estimates, Matrix<N3, N1> stateStdDevs) {
     if (estimates.size() == 1) {
       return estimates.get(0);
     }
-    double wx = 0, wy = 0, wt = 0;
-    double x = 0, y = 0, z = 0, sin = 0, cos = 0, roll = 0, pitch = 0, time = 0, distance = 0;
+    var sorted = new ArrayList<>(estimates);
+    sorted.sort(Comparator.comparingDouble(VisionPoseEstimate::timestampSeconds));
+    Pose2d pose = sorted.get(0).pose2d();
+    double z = 0, roll = 0, pitch = 0;
+    double invX = 0, invY = 0, invTheta = 0, distance = 0, distanceWeight = 0;
     var tagIds = new LinkedHashSet<Integer>();
     boolean headingAssisted = true;
-    for (VisionPoseEstimate e : estimates) {
+    for (int i = 0; i < sorted.size(); i++) {
+      var e = sorted.get(i);
+      if (i > 0) {
+        var transform = e.pose2d().minus(pose);
+        pose =
+            pose.plus(
+                new Transform2d(
+                    gain(stateStdDevs.get(0, 0), e.stdDevs().get(0, 0)) * transform.getX(),
+                    gain(stateStdDevs.get(1, 0), e.stdDevs().get(1, 0)) * transform.getY(),
+                    Rotation2d.fromRadians(
+                        gain(stateStdDevs.get(2, 0), e.stdDevs().get(2, 0))
+                            * transform.getRotation().getRadians())));
+      }
+      z += e.pose().getZ() / sorted.size();
+      roll += e.pose().getRotation().getX() / sorted.size();
+      pitch += e.pose().getRotation().getY() / sorted.size();
       double ix = 1 / square(e.stdDevs().get(0, 0));
-      double iy = 1 / square(e.stdDevs().get(1, 0));
-      double it = 1 / square(e.stdDevs().get(2, 0));
-      double heading = e.pose().getRotation().getZ();
-      x += ix * e.pose().getX();
-      y += iy * e.pose().getY();
-      sin += it * Math.sin(heading);
-      cos += it * Math.cos(heading);
-      z += e.pose().getZ() / estimates.size();
-      roll += e.pose().getRotation().getX() / estimates.size();
-      pitch += e.pose().getRotation().getY() / estimates.size();
-      time += ix * e.timestampSeconds();
-      distance += ix * e.averageTagDistanceMeters();
-      wx += ix;
-      wy += iy;
-      wt += it;
+      invX += ix;
+      invY += 1 / square(e.stdDevs().get(1, 0));
+      invTheta += 1 / square(e.stdDevs().get(2, 0));
+      if (Double.isFinite(e.averageTagDistanceMeters())) {
+        distance += ix * e.averageTagDistanceMeters();
+        distanceWeight += ix;
+      }
       tagIds.addAll(e.tagIds());
       headingAssisted &= e.headingAssisted();
     }
-    var pose =
+    var fusedPose =
         new Pose3d(
-            new Translation3d(x / wx, y / wy, z),
-            new Rotation3d(roll, pitch, Math.atan2(sin, cos)));
+            new Translation3d(pose.getX(), pose.getY(), z),
+            new Rotation3d(roll, pitch, pose.getRotation().getRadians()));
     return new VisionPoseEstimate(
         "fused",
-        pose,
-        time / wx,
+        fusedPose,
+        sorted.get(sorted.size() - 1).timestampSeconds(),
         List.copyOf(tagIds),
-        distance / wx,
+        distanceWeight > 0 ? distance / distanceWeight : Double.NaN,
         0,
         headingAssisted,
-        VecBuilder.fill(1 / Math.sqrt(wx), 1 / Math.sqrt(wy), 1 / Math.sqrt(wt)));
+        VecBuilder.fill(1 / Math.sqrt(invX), 1 / Math.sqrt(invY), 1 / Math.sqrt(invTheta)));
+  }
+
+  /** WPILib's pose estimator gain for one axis, from standard deviations. */
+  private static double gain(double stateStdDev, double visionStdDev) {
+    double q = square(stateStdDev);
+    if (q == 0) {
+      return 0;
+    }
+    return q / (q + Math.sqrt(q * square(visionStdDev)));
   }
 
   private static double square(double value) {
