@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import org.photonvision.simulation.SimCameraProperties;
 import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.PubSubOption;
@@ -23,6 +22,7 @@ import yall.VisionCameraConfig;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
+import yall.sim.CameraModel;
 
 /**
  * A Synapse camera.
@@ -190,20 +190,15 @@ public class SynapseWrapper extends VisionCamera {
   }
 
   /**
-   * A 1280x720 USB camera with a 75° diagonal field of view. Set the real camera's properties in the
-   * config: Synapse needs them to turn pixels into angles.
+   * An Arducam B0332 OV9281 USB camera. Set the real camera with {@link
+   * VisionCameraConfig#withCameraModel} or {@link VisionCameraConfig#withCameraProperties}: Synapse
+   * needs it to turn pixels into angles.
    *
    * @return Camera properties.
    */
   @Override
   protected SimCameraProperties defaultCameraProperties() {
-    var properties = new SimCameraProperties();
-    properties.setCalibration(1280, 720, Rotation2d.fromDegrees(75));
-    properties.setCalibError(0.25, 0.08);
-    properties.setFPS(30);
-    properties.setAvgLatencyMs(35);
-    properties.setLatencyStdDevMs(5);
-    return properties;
+    return CameraModel.ARDUCAM_B0332.getSimCameraProperties();
   }
 
   @Override

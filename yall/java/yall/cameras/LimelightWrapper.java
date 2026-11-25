@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import org.photonvision.simulation.SimCameraProperties;
 import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import yall.PoseEstimationMode;
@@ -24,6 +23,7 @@ import yall.VisionCameraConfig;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
+import yall.sim.CameraModel;
 
 /**
  * A Limelight, through LimelightLib 2.
@@ -203,19 +203,13 @@ public class LimelightWrapper extends VisionCamera {
   }
 
   /**
-   * A Limelight 4 or 3G: 1280x800, 82° by 56.2° field of view.
+   * A Limelight 4. Set the model with {@link VisionCameraConfig#withCameraModel} for other Limelights.
    *
    * @return Camera properties.
    */
   @Override
   protected SimCameraProperties defaultCameraProperties() {
-    var properties = new SimCameraProperties();
-    properties.setCalibration(1280, 800, Rotation2d.fromDegrees(91.2));
-    properties.setCalibError(0.25, 0.08);
-    properties.setFPS(60);
-    properties.setAvgLatencyMs(20);
-    properties.setLatencyStdDevMs(5);
-    return properties;
+    return CameraModel.LIMELIGHT_4.getSimCameraProperties();
   }
 
   @Override

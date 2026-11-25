@@ -49,4 +49,15 @@ class VisionCameraConfigTest {
         new org.wpilib.math.geometry.Translation3d(1, 0, 0).rotateBy(transform.getRotation());
     assertEquals(0.5, forward.getZ(), 1e-9);
   }
+
+  @Test
+  void cameraModelSetsTheCameraProperties() {
+    var properties =
+        new VisionCameraConfig()
+            .withCameraModel(yall.sim.CameraModel.LIMELIGHT_3A)
+            .getCameraProperties()
+            .orElseThrow();
+    assertEquals(54.5, properties.getHorizFOV().getDegrees(), 0.01);
+    assertEquals(42, properties.getVertFOV().getDegrees(), 0.01);
+  }
 }

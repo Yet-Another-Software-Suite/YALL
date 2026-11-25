@@ -1,7 +1,7 @@
 # YALL example robot
 
-A simulated kitbot with one camera from each vendor: a PhotonVision camera on the front, a
-Limelight on the back and a Synapse camera on the left. Its wheels slip, so odometry alone drifts;
+A simulated kitbot with one camera from each vendor: a Luma P1 running PhotonVision on the front, a
+Limelight 4 on the back and a Synapse camera (an Arducam B0332) on the left. Its wheels slip, so odometry alone drifts;
 the cameras pull the pose estimate back to the truth.
 
 ## Run it
@@ -30,6 +30,8 @@ VisionCamera camera =
     new PhotonVisionWrapper(
         new PhotonCamera("front"),
         new VisionCameraConfig()
+            // The real camera, so simulation sees what it would.
+            .withCameraModel(CameraModel.ARDUCAM_B0332)
             // 12" forward of center, centered, 10" up, tilted 15° up.
             .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
                                Degrees.zero(), Degrees.of(-15), Degrees.zero()));

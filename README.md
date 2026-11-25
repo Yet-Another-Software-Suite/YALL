@@ -49,6 +49,7 @@ import org.photonvision.PhotonCamera;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
 import yall.cameras.PhotonVisionWrapper;
+import yall.sim.CameraModel;
 import yall.sim.VisionSim;
 
 public class Drivetrain extends SubsystemBase {
@@ -58,6 +59,8 @@ public class Drivetrain extends SubsystemBase {
       new PhotonVisionWrapper(
           new PhotonCamera("front"),
           new VisionCameraConfig()
+              // The real camera, so simulation sees what it would.
+              .withCameraModel(CameraModel.ARDUCAM_B0332)
               // 12" forward of center, centered, 10" up, tilted 15° up.
               .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
                                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
@@ -208,9 +211,26 @@ public void simulationPeriodic() {
 }
 ```
 
-Set each camera's resolution, field of view, frame rate and latency with
-`withCameraProperties(...)`, or keep the vendor's default: a Limelight 4 for Limelights, an Arducam
-OV9281 for PhotonVision, a 1280x720 USB camera for Synapse. Add game pieces for object detection
+Tell each camera what it is with `withCameraModel(...)`, so the simulation uses its published
+resolution, field of view and AprilTag frame rate:
+
+| `CameraModel` | Resolution | Field of view (H × V) | AprilTag fps |
+| --- | --- | --- | --- |
+| `LIMELIGHT_2` | 1280x960 | 62.5° × 48.9° | 6 |
+| `LIMELIGHT_2_PLUS` | 1280x960 | 62.5° × 48.9° | 7 |
+| `LIMELIGHT_3` | 1280x960 | 62.5° × 48.9° | 20 |
+| `LIMELIGHT_3A` | 1280x960 | 54.5° × 42° | 20 |
+| `LIMELIGHT_3G` | 1280x800 | 82° × 56.2° | 20 |
+| `LIMELIGHT_4` | 1280x800 | 82° × 56.2° | 40 |
+| `LUMA_P1` | 1280x800 | 80° × 56° | 60 |
+| `LUMA_P2` | 1280x800 | 80° × 56° | 60 |
+| `ARDUCAM_B0332` | 1280x800 | 70° × 47.3° | 30 |
+
+The specs come from Limelight's, Luma's and Arducam's published pages. The Arducam's vertical field
+of view follows from its 16:10 sensor, and its frame rate depends on the coprocessor. Latencies
+aren't published, so they are estimates. Without a model, a Limelight is simulated as a Limelight 4
+and the others as an Arducam B0332. For other cameras, pass PhotonVision camera properties to
+`withCameraProperties(...)`. Add game pieces for object detection
 with `VisionSim.getDefault().addVisionTargets(...)`.
 
 ### Vendor settings

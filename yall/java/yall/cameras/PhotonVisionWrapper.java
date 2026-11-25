@@ -3,9 +3,9 @@ package yall.cameras;
 import java.util.List;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.SimCameraProperties;
-import org.wpilib.math.geometry.Rotation2d;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
+import yall.sim.CameraModel;
 
 /**
  * A PhotonVision camera.
@@ -66,19 +66,13 @@ public class PhotonVisionWrapper extends VisionCamera {
   }
 
   /**
-   * An Arducam OV9281 at 1280x800, the most common PhotonVision camera.
+   * An Arducam B0332, the common OV9281 USB camera for PhotonVision.
    *
    * @return Camera properties.
    */
   @Override
   protected SimCameraProperties defaultCameraProperties() {
-    var properties = new SimCameraProperties();
-    properties.setCalibration(1280, 800, Rotation2d.fromDegrees(84));
-    properties.setCalibError(0.25, 0.08);
-    properties.setFPS(40);
-    properties.setAvgLatencyMs(30);
-    properties.setLatencyStdDevMs(5);
-    return properties;
+    return CameraModel.ARDUCAM_B0332.getSimCameraProperties();
   }
 
   @Override

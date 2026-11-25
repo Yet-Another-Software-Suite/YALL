@@ -28,6 +28,7 @@ import yall.cameras.LimelightWrapper;
 import yall.cameras.PhotonVisionWrapper;
 import yall.cameras.SynapseWrapper;
 import yall.filter.VisionPoseFilter;
+import yall.sim.CameraModel;
 
 /**
  * Drives a simulated kitbot around the field with three cameras, one from each vendor, correcting
@@ -69,6 +70,7 @@ public class Robot extends TimedRobot {
         new PhotonVisionWrapper(
             new PhotonCamera("front"),
             new VisionCameraConfig()
+                .withCameraModel(CameraModel.LUMA_P1)
                 // 12" forward, centered, 12" up, tilted 10° up.
                 .withRobotToCamera(
                     Inches.of(12),
@@ -81,6 +83,7 @@ public class Robot extends TimedRobot {
         new LimelightWrapper(
             new Limelight("limelight-back"),
             new VisionCameraConfig()
+                .withCameraModel(CameraModel.LIMELIGHT_4)
                 // 12" back, facing backward.
                 .withRobotToCamera(
                     Inches.of(-12),
@@ -94,6 +97,7 @@ public class Robot extends TimedRobot {
         new SynapseWrapper(
             new SynapseCamera("side"),
             new VisionCameraConfig()
+                .withCameraModel(CameraModel.ARDUCAM_B0332)
                 // 12" left, facing left.
                 .withRobotToCamera(
                     Inches.zero(),

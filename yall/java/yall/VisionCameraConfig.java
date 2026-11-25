@@ -11,6 +11,7 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Distance;
 import yall.filter.VisionPoseFilter;
+import yall.sim.CameraModel;
 import yall.sim.VisionSim;
 
 /**
@@ -145,8 +146,8 @@ public class VisionCameraConfig {
 
   /**
    * Sets the camera's resolution, field of view, frame rate, latency and noise. Simulation uses them,
-   * and Synapse uses them to turn pixel positions into angles. Each vendor wrapper has a sensible
-   * default.
+   * and Synapse uses them to turn pixel positions into angles. Each vendor wrapper has a default;
+   * {@link #withCameraModel(CameraModel)} sets them from a camera's published specs.
    *
    * @param properties PhotonVision camera properties.
    * @return This config, for chaining.
@@ -154,6 +155,17 @@ public class VisionCameraConfig {
   public VisionCameraConfig withCameraProperties(SimCameraProperties properties) {
     cameraProperties = Optional.of(properties);
     return this;
+  }
+
+  /**
+   * Sets the camera's resolution, field of view and frame rate from a camera's published specs. Use
+   * the model that matches the real camera, so simulation sees what it would.
+   *
+   * @param model The camera model.
+   * @return This config, for chaining.
+   */
+  public VisionCameraConfig withCameraModel(CameraModel model) {
+    return withCameraProperties(model.getSimCameraProperties());
   }
 
   /**
