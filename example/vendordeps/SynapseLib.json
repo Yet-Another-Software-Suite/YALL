@@ -1,0 +1,71 @@
+{
+  "fileName": "SynapseLib.json",
+  "name": "SynapseLib",
+  "version": "dev",
+  "wpilibYear": "2027_alpha7",
+  "uuid": "af8da96d-542f-4c60-9659-f49d22f50343",
+  "mavenUrls": ["https://danpeled.github.io/Synapse/maven/dev/"],
+  "jsonUrl": "https://danpeled.github.io/Synapse/SynapseLib-dev.json",
+  "javaDependencies": [
+    {
+      "groupId": "synapse",
+      "artifactId": "Synapse-java",
+      "version": "dev"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-annotations",
+      "version": "2.15.2"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-core",
+      "version": "2.15.2"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.module",
+      "artifactId": "jackson-module-parameter-names",
+      "version": "2.15.2"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.datatype",
+      "artifactId": "jackson-datatype-jdk8",
+      "version": "2.15.2"
+    },
+    {
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
+      "version": "2.15.2"
+    },
+    {
+      "groupId": "org.msgpack",
+      "artifactId": "jackson-dataformat-msgpack",
+      "version": "0.9.10"
+    },
+    {
+      "groupId": "org.msgpack",
+      "artifactId": "msgpack-core",
+      "version": "0.9.10"
+    }
+  ],
+  "jniDependencies": [],
+  "cppDependencies": [
+    {
+      "groupId": "synapse",
+      "artifactId": "Synapse-cpp",
+      "version": "dev",
+      "libName": "Vendor",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "linuxsystemcore",
+        "linuxarm64",
+        "windowsx86-64",
+        "windowsarm64",
+        "linuxx86-64",
+        "osxuniversal"
+      ]
+    }
+  ]
+}
