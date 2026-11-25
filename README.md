@@ -1,189 +1,285 @@
 # Yet Another Limelight Library (YALL)
 
-**Yet Another Limelight Library** is an improved version of the [LimelightHelpers](https://github.com/LimelightVision/limelightlib-wpijava) script released by LimelightVision for use in FIRST Robotics Competition (FRC) teams. This library provides enhanced functionality and additional features for easier integration and control of Limelight vision systems on your robot.
+YALL gives PhotonVision, Limelight and Synapse cameras one Java API for FRC robots. A camera
+object returns real results on the robot and simulated results in simulation, so the same code
+runs in both. Every camera is simulated with PhotonVision's camera simulation, whatever its vendor.
+
+YALL builds against WPILib 2027 (alpha 8).
 
 ## Features
 
-- **Improved API**: Simplified and intuitive API for controlling the Limelight camera and retrieving vision data.
-- **Easy Configuration**: Easy-to-use configuration options to fine-tune the vision system according to your robot’s needs.
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Documentation](#api-documentation)
-- [Examples](#examples)
-- [Contributing](#contributing)
-- [License](#license)
+- **One camera API.** Read targets (yaw, pitch, area, AprilTag ID, object class and confidence),
+  robot pose estimates, the pipeline and the connection state the same way for every vendor.
+- **Simulation for every vendor.** Cameras give PhotonVision-simulated results in simulation,
+  with lens projection, noise and latency.
+- **Pose filtering.** Every estimate goes through a `VisionPoseFilter`. Each check in it can be
+  turned on, tuned or turned off, and accepted estimates get standard deviations scaled by tag
+  distance and tag count.
+- **Multi-camera fusion.** `VisionSystem` feeds every camera's estimates to a WPILib pose
+  estimator, or combines them into one fused pose.
+- **Vendor pass-through.** `getCamera()` returns the vendor's own camera object, and
+  `withVendorConfig(...)` passes vendor config objects through, as YAMS does for motor
+  controllers.
 
 ## Installation
 
-### 1. Install the Library via WPILib Vendordep
-```
-https://Yet-Another-Software-Suite.github.io/YALL/yall.json
-```
+Install these vendordeps:
 
-### 2. Manual Installation
+1. YALL: `https://Yet-Another-Software-Suite.github.io/YALL/yall.json`
+2. PhotonLib, which YALL simulates with.
+3. WPILib's **CameraServer** and **AprilTag** vendordeps, which ship with WPILib. PhotonVision's
+   simulation needs them.
+4. The library of each camera vendor you use:
+   - Limelight: LimelightLib 2 (`https://limelightvision.github.io/limelightlib-public/LimelightLib-alpha7.json`)
+   - Synapse: SynapseLib (`https://danpeled.github.io/Synapse/SynapseLib.json`)
 
-If you prefer to install the library manually, download the latest version from the [releases page](https://github.com/BroncBotz3481/YALL/releases) and add it to your FRC project’s `src/main` directory.
+You only need a vendor library for cameras you construct.
+
+## Basic config
+
+One camera feeding a drivetrain's pose estimator. Everything not set here keeps its default: the
+current season's field, the default pose filter and `PoseEstimationMode.TAGS_ONLY`.
+
+YALL doesn't use the command framework, so it works the same with Commands v2 (`TimedRobot`) and
+Commands v3 (`OpModeRobot`). Put its calls in `Robot.java`: both robot classes have
+`robotPeriodic()` and `simulationPeriodic()`. (Commands v3 mechanisms have no
+`simulationPeriodic()`, so `Robot.java` is the one place that works for both.)
+
+```java
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Inches;
+
+import org.photonvision.PhotonCamera;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.cameras.PhotonVisionWrapper;
+import yall.sim.CameraModel;
+import yall.sim.VisionSim;
+
+public class Robot extends TimedRobot { // or OpModeRobot for Commands v3
+  // Swap in LimelightWrapper(new Limelight("limelight"), ...) or
+  // SynapseWrapper(new SynapseCamera("camera"), ...) for the other vendors.
+  private final VisionCamera camera =
+      new PhotonVisionWrapper(
+          new PhotonCamera("front"),
+          new VisionCameraConfig()
+              // The real camera, so simulation sees what it would.
+              .withCameraModel(CameraModel.ARDUCAM_OV9281)
+              // 12" forward of center, centered, 10" up, tilted 15° up.
+              .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
+                                 Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+
+  @Override
+  public void robotPeriodic() {
+    // Run the scheduler here as usual (CommandScheduler or Scheduler), then:
+    camera.setRobotOrientation(drivetrain.getHeading());
+    camera.update();
+    camera.addVisionMeasurements(drivetrain.getPoseEstimator());
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // The simulated cameras see the field from the robot's true pose.
+    VisionSim.getDefault().update(drivetrain.getSimulatedPose());
+  }
+}
+```
 
 ## Usage
 
-Once installed, you can begin using LimelightLib in your code by importing it:
+### Creating cameras
+
+Wrap each vendor's camera object, the way YAMS wraps motor controllers:
 
 ```java
-import limelight.Limelight;
+VisionCamera front =
+    new PhotonVisionWrapper(
+        new PhotonCamera("front"),
+        new VisionCameraConfig()
+            // forward, left, up, then roll, pitch, yaw. Negative pitch tilts the camera up.
+            .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(12),
+                               Degrees.zero(), Degrees.of(-10), Degrees.zero()));
+
+VisionCamera back =
+    new LimelightWrapper(
+        new Limelight("limelight-back"),
+        new VisionCameraConfig()
+            .withRobotToCamera(Inches.of(-12), Inches.zero(), Inches.of(12),
+                               Degrees.zero(), Degrees.of(-10), Degrees.of(180))
+            .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED)); // MegaTag2
+
+VisionCamera side =
+    new SynapseWrapper(
+        new SynapseCamera("side"),
+        new VisionCameraConfig()
+            .withRobotToCamera(Inches.zero(), Inches.of(12), Inches.of(12),
+                               Degrees.zero(), Degrees.zero(), Degrees.of(90)));
 ```
 
-### Basic Setup
+The camera offset is measured from the robot's center on the floor, in the same order as
+Limelight's camera pose: forward, left, up, then roll, pitch, yaw. A `Transform3d` works too:
+`withRobotToCamera(new Transform3d(...))`. For a camera on a turret, call
+`camera.setRobotToCamera(...)` with either form as the turret moves.
+
+### Reading targets
+
+Call `update()` once per loop, then read what it found:
 
 ```java
-Limelight limelight = new Limelight("limelight");
-
-// Set the limelight to use Pipeline LED control, with the Camera offset of 0, and save.
-limelight.getSettings()
-         .withLimelightLEDMode(LEDMode.PipelineControl)
-         .withCameraOffset(Pose3d.kZero)
-         .save();
-
-// Get target data
-limelight.getLatestResults().ifPresent((LimelightResults result) -> {
-    for (NeuralClassifier object : result.targets_Classifier)
-    {
-        // Classifier says its a algae.
-        if (object.className.equals("algae"))
-        {
-            // Check pixel location of algae.
-            if (object.ty > 2 && object.ty < 1)
-            {
-              // Algae is valid! do stuff!
-            }
-        }
-    }
+front.update();
+front.getBestTarget().ifPresent(target -> {
+  double yaw = target.yawDegrees();   // positive right
+  double pitch = target.pitchDegrees(); // positive up
+  int tagId = target.fiducialId();     // -1 if not an AprilTag
 });
 
-
-// Required for megatag2 in periodic() function before fetching pose.
-limelight.getSettings()
-		 .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
-												 new AngularVelocity3d(DegreesPerSecond.of(gyro.getPitchVelocity()),
-																	   DegreesPerSecond.of(gyro.getRollVelocity()),
-																	   DegreesPerSecond.of(gyro.getYawVelocity()))))
-		 .save();
-
-// Get MegaTag2 pose
-Optional<PoseEstimate> visionEstimate = limelight.createPoseEstimator(EstimationMode.MEGATAG2).getPoseEstimate();
-// If the pose is present
-visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-  // Add it to the pose estimator.
-  poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
-});
-
-// Alternatively you can do
-Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
-// If the pose is present
-visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-    // Add it to the pose estimator.
-    poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
-    });
+for (VisionTarget object : front.getLatestResult().map(VisionResult::getDetectedObjects).orElse(List.of())) {
+  // object.classId(), object.confidence()
+}
 ```
 
-### Advanced Features
+### Estimating the robot pose
 
-- **Settings**: To easily configure settings you can chain options:
+`getEstimatedPose()` returns the newest estimate that passed the pose filter, with its timestamp
+and standard deviations:
 
 ```java
-// Set the limelight to use Pipeline LED control, with the Camera offset of 0, and save.
-limelight.getSettings()
-         .withLimelightLEDMode(LEDMode.PipelineControl)
-         .withCameraOffset(Pose3d.kZero);
+front.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
+front.update();
+front.getEstimatedPose().ifPresent(estimate ->
+    poseEstimator.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
 
-- **Pose Estimates**: To fetch `PoseEstimate` objects you can use this enum:
+`PoseEstimationMode.TAGS_ONLY` (the default) solves the pose from the tags alone: Limelight
+MegaTag1, PhotonVision's multi-tag result, Synapse's field pose. `HEADING_ASSISTED` uses the gyro
+heading from `setRobotOrientation`: Limelight MegaTag2 and PhotonVision's trig solve. Synapse
+doesn't support it.
+
+### Several cameras
+
+`VisionSystem` updates every camera and gathers their estimates:
 
 ```java
-Optional<PoseEstimate>  BotPose.BLUE_MEGATAG2.get(limelight);
+VisionSystem vision = new VisionSystem(front, back, side);
+
+// In Robot.java, for Commands v2 or v3
+@Override
+public void robotPeriodic() {
+  vision.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
+  vision.update();
+  vision.addVisionMeasurements(poseEstimator); // every accepted estimate, oldest first
+}
 ```
 
+`addVisionMeasurements` is the most accurate way to use several cameras: the pose estimator weighs
+each estimate at the moment its image was taken. For one combined answer, `getFusedPose()`
+averages the cameras' newest estimates, weighting each by its standard deviations. For
+drivetrains with their own vision method, use `forEachEstimatedPose(...)`.
 
-## API Documentation
+### Pose filtering
 
-* Java Docs are at [https://Yet-Another-Software-Suite.github.io/YALL/javadocs/](https://yet-another-software-suite.github.io/YALL/javadocs/)
+Every check is turned on and tuned with its `withX(...)` method. Pass `null` to turn it off, and read its setting back with `getX()`, which returns an `Optional`:
 
-### Limelight
-
-#### `Limelight(String cameraName)`
-
-Constructor for initializing the Limelight object.
-
-## Examples
-
-### Example 1: Classifier Target Tracking
+| Check | Default | Rejects an estimate when |
+| --- | --- | --- |
+| `withFieldBounds(margin)` | On, 0.5 m | the robot would be off the field |
+| `withMaxHeightError(height)` | On, 0.5 m | the robot would float above or sink below the floor |
+| `withMaxTilt(angle)` | Off | the robot would be rolled or pitched past the limit |
+| `withMaxAmbiguity(ambiguity)` | On, 0.2 | a single-tag estimate is too ambiguous |
+| `withMinTagCount(count)` | On, 1 | too few tags were used |
+| `withMaxTagDistance(single, multi)` | On, 4 m / 8 m | the tags are too far away |
+| `withMaxYawRate(rate)` | On, 720 °/s | the robot spun too fast (needs `setRobotOrientation`) |
+| `withMaxAge(age)` | On, 0.5 s | the image is too old, or timestamped in the future |
+| `withMaxDistanceFromPose(pose, distance)` | Off | the estimate jumps too far from the current pose |
 
 ```java
-Limelight limelight = new Limelight("limelight");
-// Get the results
-limelight.getLatestResults().ifPresent((LimelightResults result) -> {
-    for (NeuralClassifier object : result.targets_Classifier)
-    {
-        // Classifier says its a coral.
-        if (object.className.equals("coral"))
-        {
-            // Check pixel location of coral.
-            if (object.ty > 2 && object.ty < 1)
-            {
-            // Coral is valid! do stuff!
-            }
-        }
-    }
-});
+new VisionCameraConfig()
+    .withPoseFilter(new VisionPoseFilter()
+        .withMaxAmbiguity(0.15)
+        .withMaxTilt(Degrees.of(10))
+        .withMaxYawRate(null) // off
+        .withStdDevs(VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1), 30));
 ```
 
-### Example 2: Vision Pose Estimation with MegaTag2
+Accepted estimates get standard deviations of `base * (1 + distance² / 30)`, with a smaller base
+for multi-tag estimates. `VisionPoseFilter.acceptAll()` starts with every check off.
+
+### Simulation
+
+Cameras join `VisionSim.getDefault()`, a PhotonVision `VisionSystemSim` holding the current field's
+AprilTags. Update it with the robot's true pose from `Robot.simulationPeriodic()`, which both
+`TimedRobot` (Commands v2) and `OpModeRobot` (Commands v3) have:
 
 ```java
-Limelight limelight = new Limelight("limelight");
-
-// Required for megatag2 in periodic() function before fetching pose.
-limelight.getSettings()
-		 .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
-												 new AngularVelocity3d(DegreesPerSecond.of(gyro.getPitchVelocity()),
-																	   DegreesPerSecond.of(gyro.getRollVelocity()),
-																	   DegreesPerSecond.of(gyro.getYawVelocity()))))
-		 .save();
-		 
-// Get MegaTag2 pose
-Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate();
-// If the pose is present
-visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-    // Add it to the pose estimator.
-    poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
-});
+// In Robot.java
+@Override
+public void simulationPeriodic() {
+  vision.updateSimulation(drivetrainSim.getPose());
+}
 ```
 
-### Example 3: Simulation
+Tell each camera what it is with `withCameraModel(...)`, so the simulation uses its published
+resolution, field of view and AprilTag frame rate:
 
-`LimelightSim` projects AprilTags from the current season's field onto a simulated camera and publishes the same
-NetworkTables keys real Limelight hardware would (`tx`/`ty`/`ta`/`tv`/`tid`, `botpose*`, `rawfiducials`, `t2d`,
-`targetpose_*`/`camerapose_*`, `json`, ...), so code written against `Limelight`/`LimelightData`/`LimelightPoseEstimator`
-behaves the same in simulation as on real hardware. No extra vendor dependencies are required.
+| `CameraModel` | Resolution | Field of view (H × V) | AprilTag fps |
+| --- | --- | --- | --- |
+| `LIMELIGHT_2` | 1280x960 | 62.5° × 48.9° | 6 |
+| `LIMELIGHT_2_PLUS` | 1280x960 | 62.5° × 48.9° | 7 |
+| `LIMELIGHT_3` | 1280x960 | 62.5° × 48.9° | 20 |
+| `LIMELIGHT_3A` | 1280x960 | 54.5° × 42° | 20 |
+| `LIMELIGHT_3G` | 1280x800 | 82° × 56.2° | 20 |
+| `LIMELIGHT_4` | 1280x800 | 82° × 56.2° | 40 |
+| `LUMA_P1` | 1280x800 | 80° × 56° | 60 |
+| `LUMA_P2` | 1280x800 | 80° × 56° | 60 |
+| `THRIFTYCAM` | 1600x1304 | 60.7° × 51° | 70 |
+| `THRIFTIEST_CAM` | 1280x800 | 82° × 56° | 120 |
+| `ARDUCAM_OV9281` | 1280x800 | 70° × 47.3° | 100 |
+| `ELP_FISHEYE` | 1280x960 | 115° × 99.4° | 20 |
 
-```java
-Limelight limelight = new Limelight("limelight");
-LimelightSim limelightSim = new LimelightSim(limelight);
-limelightSim.withRobotToCameraTransform(new Transform3d(cameraOffset.getTranslation(), cameraOffset.getRotation()));
+The specs come from Limelight's, Luma's, The Thrifty Bot's, Arducam's, AndyMark's and ELP's published
+pages:
 
-// in Robot#simulationPeriodic()
-limelightSim.update(drivebase.getPose());
-```
+- **Frame rates:** Limelights and Lumas run at the AprilTag rate their vendor publishes. USB
+  cameras (ThriftyCam, Thriftiest Cam, Arducam) run at their full-resolution capture rate; lower it
+  with `withCameraProperties(...)` if your coprocessor tracks AprilTags slower.
+- **ThriftyCam:** its stock lens is specified as 71° × 48° on a different image size. On the
+  ThriftyCam's sensor, its 4.1 mm focal length gives 60.7° × 51°.
+- **Arducam OV9281 (B0332):** Arducam gives only the 70° horizontal field of view, so the vertical
+  one follows from the 16:10 sensor. Arducam's manual says 120 fps and resellers say 100.
+- **ELP fisheye (AndyMark am-5170):** its 180° fisheye lens can't be simulated, because
+  PhotonVision simulates a pinhole lens. The model keeps the fisheye's magnification at the center
+  of the image (about 407 px focal length at 1280x960), which a pinhole lens sees as 115° × 99.4°.
+- **Latency:** no vendor publishes one, so these are estimates.
 
-Camera resolution/FOV, tag size, detection range, latency and noise are all configurable via `LimelightSimSettings`,
-but ship with sensible Limelight 3-like defaults so the snippet above is enough to get started. Only the
-AprilTag/fiducial pipeline is simulated.
+Without a model, a Limelight is simulated as a Limelight 4 and the others as an Arducam OV9281. For
+other cameras, pass PhotonVision camera properties to `withCameraProperties(...)`. Add game pieces for object detection
+with `VisionSim.getDefault().addVisionTargets(...)`.
+
+### Vendor settings
+
+`getCamera()` returns the vendor's camera object (`PhotonCamera`, `Limelight` or `SynapseCamera`)
+for settings YALL doesn't cover. `LimelightWrapper` also accepts Limelight's `PoseEstimateConfig`
+(Limelight's own filter and standard deviations replace YALL's) and `PipelineConfiguration`
+through `withVendorConfig(...)`.
+
+### Telemetry
+
+Each camera publishes its accepted and rejected poses, the last rejection reason, its target count,
+latency and connection state under `YALL/<camera name>` in NetworkTables. `VisionSystem` publishes
+`YALL/fusedPose`.
+
+## Example
+
+[`example/`](example) is a simulated kitbot with one camera from each vendor. Its wheels slip, so
+odometry alone drifts; drive it with a gamepad and compare the `Truth`, `Odometry` and `Robot`
+poses on the Field widget. Its test drives an arc and checks that vision keeps the estimate closer
+to the truth than odometry.
+
+## API documentation
+
+Javadocs are at [https://Yet-Another-Software-Suite.github.io/YALL/javadocs/](https://yet-another-software-suite.github.io/YALL/javadocs/).
 
 ## Contributing
-
-We welcome contributions from the FRC community! To contribute to the Yet Another Limelight Library project, please follow these steps:
 
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feature-name`).
@@ -191,16 +287,13 @@ We welcome contributions from the FRC community! To contribute to the Yet Anothe
 4. Push to the branch (`git push origin feature-name`).
 5. Open a pull request to the main repository.
 
-Please make sure your code follows the project's style guidelines and includes tests for new features.
+Please include tests for new features. Run them with `./gradlew test` in `vendordep/`.
 
 ## Credits
 
-Thanks to FRC Team 9738 for writing the original YALL Python port and the `LimelightSim` raycasting visualization, both merged in from their work.
+Thanks to the PhotonVision project, whose simulation YALL uses for every camera, and to FRC Team
+9738 for the original YALL Python port and the Limelight raycast visualization.
 
 ## License
 
-Yet Another Limelight Library is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-Enjoy using Yet Another Limelight Library to enhance your FRC robot’s vision capabilities! For further assistance or to report issues, please visit our [GitHub Issues page](https://github.com/BroncBotz3481/YALL/issues).
+YALL is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

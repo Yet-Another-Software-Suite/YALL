@@ -2,7 +2,7 @@
     "fileName": "yall.json",
     "name": "YALL",
     "version": "${version}",
-    "frcYear": "2026",
+    "wpilibYear": "2027_alpha8",
     "uuid": "29aa8c8f-05ae-40aa-96f9-552a5c8a0347",
     "mavenUrls": [
         "https://Yet-Another-Software-Suite.github.io/YALL/releases"
@@ -16,6 +16,23 @@
         }
     ],
     "jniDependencies": [],
-    "cppDependencies": []
-
+    "cppDependencies": [],
+    "requires": [
+        {
+            "uuid": "515fe07e-bfc6-11fa-b3de-0242ac130004",
+            "errorMessage": "PhotonLib is required! YALL simulates every camera with PhotonVision.",
+            "offlineFileName": "photonlib.json",
+            "onlineUrl": "https://maven.photonvision.org/repository/internal/org/photonvision/photonlib-json/1.0/photonlib-json-1.0.json"
+        },
+        {
+            "uuid": "19049c8a-7635-4aca-aa7d-1fdde2c10eed",
+            "errorMessage": "CameraServer is required! Install it from the WPILib vendor libraries.",
+            "offlineFileName": "CameraServer.json"
+        },
+        {
+            "uuid": "3ac3403d-7f6b-4b5a-a09c-a49a2c32e5a3",
+            "errorMessage": "AprilTag is required! Install it from the WPILib vendor libraries.",
+            "offlineFileName": "AprilTag.json"
+        }
+    ]
 }

@@ -24,20 +24,44 @@ layout:
 
 # Welcome
 
-Welcome to the **Yet Another Limelight Library (YALL)** documentation!
+**YALL** (Yet Another Limelight Library) helps an FRC robot use cameras to know where it is and to find targets. It works with three kinds of cameras: **PhotonVision**, **Limelight** and **Synapse**. Your code reads every camera the same way, and when you run the robot program on your computer (in **simulation**), YALL pretends to be the camera, so you can test before you have a robot.
 
-YALL is a WPILib vendordep that wraps [Limelight](https://limelightvision.io/)'s NetworkTables API and JSON results output in a typed, chainable Java (and Python) API for FRC robots. It replaces the raw `LimelightHelpers` script with real objects: a `Limelight` per camera, chainable settings, MegaTag1/MegaTag2 pose estimation, and typed results for every pipeline type, including AprilTag, retroreflective, neural classifier/detector, and barcode.
+![A robot drives a figure of eight. The red wheels-only path drifts away from the black true path, while the blue path with cameras stays on it.](.gitbook/assets/vision-corrects-odometry.gif)
 
-### Jump right in
+The black line is where a simulated robot really drove. The red dashed line is where the robot *thinks* it is from its wheels alone: it drifts about 10 cm in 10 seconds. The blue line adds three cameras through YALL and stays within about 2 cm.
 
-<table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><h4><i class="fa-bolt">:bolt:</i></h4></td><td><strong>Basic setup</strong></td><td>Create your first Limelight object and configure it.</td><td><a href="tutorials/basic-setup.md">basic-setup.md</a></td></tr><tr><td><h4><i class="fa-crosshairs">:crosshairs:</i></h4></td><td><strong>AprilTag pose estimation</strong></td><td>Fuse MegaTag2 vision measurements into your pose estimator.</td><td><a href="tutorials/apriltag-pose-estimation.md">apriltag-pose-estimation.md</a></td></tr><tr><td><h4><i class="fa-eye">:eye:</i></h4></td><td><strong>Object detection</strong></td><td>Read neural classifier and detector results.</td><td><a href="tutorials/object-detection.md">object-detection.md</a></td></tr><tr><td><h4><i class="fa-display">:display:</i></h4></td><td><strong>Simulation</strong></td><td>Exercise vision code in desktop simulation without hardware.</td><td><a href="tutorials/simulating-a-limelight.md">simulating-a-limelight.md</a></td></tr></tbody></table>
+## Where to start
 
-### Where to go next
+Follow the tutorials in order:
 
-* **Tutorials**: step-by-step walkthroughs for common setups.
-* **How-to guides**: focused answers to specific "how do I…" questions.
-* [**Tuning**](tuning/tuning-workflow-overview.md): the tuning steps from Limelight's own documentation, reorganized into the order you'd actually apply them (sensor settings, crosshair/camera calibration, pipeline-specific tuning, then PID).
-* **Understanding**: explanations of how YALL's settings, pose estimation, and results model work.
-* **API Reference** (YALL-Gitbook-API space): every class, field, and method.
-* [**Javadocs**](https://yet-another-software-suite.github.io/YALL/javadocs/): generated API docs.
-* [**GitHub**](https://github.com/BroncBotz3481/YALL): source, issues, and releases.
+1. [Basic Setup](tutorials/basic-setup.md): add a camera and see it find AprilTags in simulation.
+2. [AprilTag Pose Estimation](tutorials/apriltag-pose-estimation.md): keep the robot's position right with cameras.
+3. [Simulating Cameras](tutorials/simulating-cameras.md): match the simulated camera to yours and look through its eyes.
+4. [Running on the Real Robot](tutorials/running-on-the-real-robot.md): check everything safely on real hardware.
+5. [Object Detection](tutorials/object-detection.md): find game pieces.
+
+Stuck? See [Troubleshooting](how-to-guides/troubleshooting.md).
+
+<table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><h4><i class="fa-camera">:camera:</i></h4></td><td><strong>Basic Setup</strong></td><td>Add your first camera and see it work in simulation.</td><td><a href="tutorials/basic-setup.md">basic-setup.md</a></td></tr><tr><td><h4><i class="fa-location-crosshairs">:location-crosshairs:</i></h4></td><td><strong>AprilTag Pose Estimation</strong></td><td>Keep the robot's position right with cameras.</td><td><a href="tutorials/apriltag-pose-estimation.md">apriltag-pose-estimation.md</a></td></tr><tr><td><h4><i class="fa-computer">:computer:</i></h4></td><td><strong>Simulating Cameras</strong></td><td>See what the simulated camera sees.</td><td><a href="tutorials/simulating-cameras.md">simulating-cameras.md</a></td></tr><tr><td><h4><i class="fa-robot">:robot:</i></h4></td><td><strong>Running on the Real Robot</strong></td><td>Check every piece safely on real hardware.</td><td><a href="tutorials/running-on-the-real-robot.md">running-on-the-real-robot.md</a></td></tr></tbody></table>
+
+## Words you'll see
+
+| Word | Meaning |
+| --- | --- |
+| AprilTag | A square black and white code on the field. Each has an ID and a known spot. |
+| Pose | Where the robot is (x and y in meters) and which way it faces. |
+| Odometry | Working out the pose by counting how far the wheels turned. It drifts. |
+| Pose estimator | WPILib code that mixes odometry with camera guesses to keep the pose right. |
+| Yaw and pitch | How far a target is right (+) or left (−), and up (+) or down (−), of the crosshair, in degrees. |
+| Field of view | How wide and how tall a camera sees, in degrees. |
+| Latency | The delay between taking a picture and the result reaching your code. |
+| Standard deviation | How far off a guess might be. Smaller means trust it more. |
+| Simulation | Running the robot program on your computer with a pretend robot and field. |
+| Vendordep | A library you add to a WPILib project, like YALL or PhotonLib. |
+
+## The rest of this site
+
+* **How-To Guides**: short answers to "how do I...?" questions.
+* **Tuning**: making the camera and your code work well, with links to PhotonVision's and Limelight's own guides.
+* **Understanding**: how YALL's results, pose filter and wrappers work.
+* **API Reference**: every class and method.

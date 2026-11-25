@@ -1,35 +1,25 @@
-import edu.wpi.first.toolchain.*
-
 plugins {
     id 'cpp'
     id 'java'
-    id 'google-test'
-    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
-    id 'edu.wpi.first.NativeUtils' version '2026.0.1'
-    id "edu.wpi.first.GradleRIO" version "2026.2.1" // Version supplied here
-    id 'edu.wpi.first.GradleJni' version '1.1.0'
-    id 'edu.wpi.first.GradleVsCode' version '2.1.0'
-    id "com.diffplug.spotless" version "6.11.0"
+    id 'org.wpilib.WPILibRepositoriesPlugin' version '2027.0.0'
+    id 'org.wpilib.NativeUtils' version '2027.14.3'
+    id 'org.wpilib.GradleRIO' version '2027.0.0-alpha-8'
 }
 
 // WPILib Version
-ext.wpilibVersion = "2026.2.1"
+ext.wpilibVersion = "2027.0.0-alpha-8"
 ext.releasePath = "$buildDir/maven"
 ext.pubVersion = System.getenv("releaseVersion") ?: System.getenv("releaseName") ?: "test"
-
 
 repositories {
     mavenCentral()
 }
+
+wpilibRepositories.use2027Repos()
 if (project.hasProperty('releaseMode')) {
     wpilibRepositories.addAllReleaseRepositories(project)
 } else {
     wpilibRepositories.addAllDevelopmentRepositories(project)
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
 }
 
 sourceSets {
@@ -38,55 +28,51 @@ sourceSets {
             srcDir "$rootDir/../yall/java/"
         }
     }
-//    test {
-//        java {
-//            srcDir "src/test/java"
-//        }
-//    }
 }
 
-var javaVersion = "17"
+var javaVersion = "25"
 
-// Apply C++ configuration
-apply from: 'config.gradle'
-
-// Apply Java configuration
+// PhotonLib (required: every camera simulates through it), WPILib's CameraServer and AprilTag
+// vendordeps (PhotonVision's simulation needs them), LimelightLib and SynapseLib come from the
+// vendordeps folder. Teams install YALL plus the vendordeps of the cameras they use; the wrapper for
+// a camera vendor only loads when the program constructs it.
 dependencies {
-    annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
-    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
-    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
-    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
-    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
-    implementation "org.ejml:ejml-simple:0.43.1"
-    implementation "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
-    implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
-    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
+    implementation "org.wpilib.ntcore:ntcore-java:$wpilibVersion"
+    implementation "org.wpilib.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "org.wpilib.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "org.wpilib.wpimath:wpimath-java:$wpilibVersion"
+    implementation "org.wpilib.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "org.wpilib.hal:hal-java:$wpilibVersion"
+    implementation "org.wpilib.fields:fields-java:$wpilibVersion"
+    implementation "org.ejml:ejml-simple:0.44.0"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
 
     nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
     simulationDebug wpi.sim.enableDebug()
 
     nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation platform("org.junit:junit-bom:5.11.4")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.junit.jupiter:junit-jupiter-params"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "org.junit.platform:junit-platform-launcher"
 }
 
-// Set up java tests
 test {
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
     testLogging {
         events "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
 }
 
@@ -109,25 +95,18 @@ tasks.withType(JavaCompile) {
 }
 
 javadoc {
-    title = "Yet Another Mechanism System API"
+    title = "Yet Another Limelight Library API"
     destinationDir = file("$releasePath/javadocs")
     options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
         links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/",
-                'https://github.wpilib.org/allwpilib/docs/release/java/'
+                'https://github.wpilib.org/allwpilib/docs/development/java/',
+                'https://javadocs.photonvision.org/'
         tags 'todo:X"',
                 'apiNote:a:API Note:',
                 'implSpec:a:Implementation Requirements:',
                 'implNote:a:Implementation Note:'
-    }
-}
-ext.getCurrentArch = {
-    return NativePlatforms.desktop
-}
-
-def systemArch = getCurrentArch()
-
-model {
-    components {
     }
 }
 
@@ -135,5 +114,5 @@ build.dependsOn javadoc
 apply from: 'publish.gradle'
 
 wrapper {
-    gradleVersion '8.14.3'
+    gradleVersion = '9.4.1'
 }

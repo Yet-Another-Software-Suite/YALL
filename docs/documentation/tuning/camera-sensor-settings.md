@@ -1,21 +1,57 @@
+---
+icon: sun
+---
+
 # Camera Sensor Settings
 
-Before touching any pipeline's thresholds or filters, tune the camera sensor itself in the Limelight web UI's **Camera Settings** tab. This is the same image feeding every pipeline type, so getting it right first makes AprilTag detection more consistent and retroreflective thresholding dramatically easier.
+Before anything else, tune the camera's sensor in its own web page. This is the same image feeding every pipeline type, so getting it right first makes AprilTag detection more consistent and retroreflective thresholding dramatically easier.
 
 ## Tuning order
 
-1. **Exposure: set it low and fixed.** Low, fixed exposure "blacks out" most ambient and arena lighting, which is exactly what you want: FRC field lighting is bright and inconsistent, and a long or auto-adjusting exposure lets it wash out your target and introduces motion blur while the robot is moving.
-2. **Black level offset: raise it next.** This is a sensor-level darkening control, distinct from digital brightness. It further suppresses arena lighting without reintroducing the noise or blur that a longer exposure would.
-3. **Sensor gain: use sparingly.** Gain brightens the image but adds noise. If the image is too dark after steps 1–2, prefer combining more black level offset with a touch of gain over raising exposure back up, since that keeps motion blur low.
-4. **Red/blue balance: leave alone.** Only touch these if you have a specific color-cast problem; they aren't part of the normal tuning pass.
+{% stepper %}
+{% step %}
+### Set exposure low and fixed
 
-The goal is a **mostly-black image** where only the target (retroreflective tape, AprilTag, game piece) stands out clearly. Everything downstream, from HSV thresholds to contour filters to AprilTag detection reliability, gets easier against that kind of image.
+**Exposure** is how long the camera lets light in for each picture. Low and fixed (not automatic) blacks out most arena lighting, which is what you want: field lighting is bright and changes, and a long or automatic exposure washes out targets and blurs them while the robot moves.
+
+**Check it:** most of the picture is dark, and targets stay sharp while you move the camera.
+{% endstep %}
+
+{% step %}
+### Raise black level next (Limelight)
+
+Black level darkens the picture at the sensor, without the noise or blur a longer exposure would add. PhotonVision's closest setting is **Brightness**.
+
+**Check it:** arena lights fade, and targets still stand out.
+{% endstep %}
+
+{% step %}
+### Add gain only if needed
+
+**Gain** brightens the picture but adds speckles (noise). If the picture is too dark after the steps above, add a little gain rather than raising exposure, which keeps motion blur low.
+
+**Check it:** targets are bright enough to detect, without heavy speckles.
+{% endstep %}
+
+{% step %}
+### Leave color balance alone
+
+Red and blue balance only matter for a color cast problem. Skip them in a normal pass.
+
+**Check it:** nothing to check.
+{% endstep %}
+{% endstepper %}
+
+The goal is a **mostly black picture** where only the target (an AprilTag, tape or a game piece) stands out.
+
+* Tuning a PhotonVision camera: [Camera Tuning / Input](https://docs.photonvision.org/en/latest/docs/pipelines/input.html).
+* Tuning a Limelight: [Pipeline Setup](https://docs.limelightvision.io/docs/docs-limelight/getting-started/pipelines) (the Input tab).
 
 {% hint style="warning" %}
-None of these are exposed through `LimelightSettings`. They're stored in the pipeline's JSON on the Limelight itself and tuned once per pipeline in the web UI, not from robot code.
+None of these are set through YALL. They're saved on the camera, per pipeline, from its own web page.
 {% endhint %}
 
-## See Also
+## Read more
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
 * [Tuning a Retroreflective Pipeline](retroreflective-pipeline-tuning.md)
