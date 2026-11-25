@@ -98,6 +98,8 @@ public class LimelightWrapper extends VisionCamera {
     double latencyMillis = results.captureLatencyMillis + results.targetingLatencyMillis;
     double timestamp = results.receiveTimestampSeconds - latencyMillis / 1000.0;
     var targets = new ArrayList<VisionTarget>();
+    // Limelight's tx is positive right of the crosshair, as PhotonVision's yaw is, so it passes
+    // through unchanged.
     for (FiducialTarget tag : results.fiducialTargets) {
       Pose3d cameraToTag = tag.getTargetPose_CameraSpace();
       targets.add(
