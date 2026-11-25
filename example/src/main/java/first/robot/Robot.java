@@ -1,6 +1,8 @@
 package first.robot;
 
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.Inches;
 import static org.wpilib.units.Units.Meters;
 
 import com.limelightvision.Limelight;
@@ -11,7 +13,6 @@ import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.util.MathUtil;
 import org.wpilib.simulation.DifferentialDrivetrainSim;
 import org.wpilib.simulation.DifferentialDrivetrainSim.KitbotGearing;
@@ -68,21 +69,41 @@ public class Robot extends TimedRobot {
         new PhotonVisionWrapper(
             new PhotonCamera("front"),
             new VisionCameraConfig()
+                // 12" forward, centered, 12" up, tilted 10° up.
                 .withRobotToCamera(
-                    new Transform3d(0.3, 0, 0.3, new Rotation3d(0, Math.toRadians(-10), 0))));
+                    Inches.of(12),
+                    Inches.zero(),
+                    Inches.of(12),
+                    Degrees.zero(),
+                    Degrees.of(-10),
+                    Degrees.zero()));
     var back =
         new LimelightWrapper(
             new Limelight("limelight-back"),
             new VisionCameraConfig()
+                // 12" back, facing backward.
                 .withRobotToCamera(
-                    new Transform3d(-0.3, 0, 0.3, new Rotation3d(0, Math.toRadians(-10), Math.PI)))
+                    Inches.of(-12),
+                    Inches.zero(),
+                    Inches.of(12),
+                    Degrees.zero(),
+                    Degrees.of(-10),
+                    Degrees.of(180))
                 .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED));
     var side =
         new SynapseWrapper(
             new SynapseCamera("side"),
             new VisionCameraConfig()
-                .withRobotToCamera(new Transform3d(0, 0.3, 0.3, new Rotation3d(0, 0, Math.PI / 2)))
-                .withPoseFilter(new VisionPoseFilter().withMaxTagDistance(Meters.of(3), Meters.of(6))));
+                // 12" left, facing left.
+                .withRobotToCamera(
+                    Inches.zero(),
+                    Inches.of(12),
+                    Inches.of(12),
+                    Degrees.zero(),
+                    Degrees.zero(),
+                    Degrees.of(90))
+                .withPoseFilter(
+                    new VisionPoseFilter().withMaxTagDistance(Meters.of(3), Meters.of(6))));
     vision = new VisionSystem(front, back, side);
   }
 
@@ -103,7 +124,9 @@ public class Robot extends TimedRobot {
     field.setRobotPose(poseEstimator.getEstimatedPosition());
     field.getObject("Odometry").setPose(odometryOnly.getEstimatedPosition());
     field.getObject("Truth").setPose(drivetrainSim.getPose());
-    vision.getFusedPose().ifPresent(fused -> field.getObject("Fused vision").setPose(fused.pose2d()));
+    vision
+        .getFusedPose()
+        .ifPresent(fused -> field.getObject("Fused vision").setPose(fused.pose2d()));
     Telemetry.log("Field", field);
   }
 

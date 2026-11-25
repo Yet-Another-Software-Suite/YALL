@@ -46,21 +46,30 @@ VisionCamera front =
     new PhotonVisionWrapper(
         new PhotonCamera("front"),
         new VisionCameraConfig()
-            .withRobotToCamera(new Transform3d(0.3, 0, 0.3, new Rotation3d(0, Math.toRadians(-10), 0))));
+            // forward, left, up, then roll, pitch, yaw. Negative pitch tilts the camera up.
+            .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(12),
+                               Degrees.zero(), Degrees.of(-10), Degrees.zero()));
 
 VisionCamera back =
     new LimelightWrapper(
         new Limelight("limelight-back"),
         new VisionCameraConfig()
-            .withRobotToCamera(new Transform3d(-0.3, 0, 0.3, new Rotation3d(0, Math.toRadians(-10), Math.PI)))
+            .withRobotToCamera(Inches.of(-12), Inches.zero(), Inches.of(12),
+                               Degrees.zero(), Degrees.of(-10), Degrees.of(180))
             .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED)); // MegaTag2
 
 VisionCamera side =
     new SynapseWrapper(
         new SynapseCamera("side"),
         new VisionCameraConfig()
-            .withRobotToCamera(new Transform3d(0, 0.3, 0.3, new Rotation3d(0, 0, Math.PI / 2))));
+            .withRobotToCamera(Inches.zero(), Inches.of(12), Inches.of(12),
+                               Degrees.zero(), Degrees.zero(), Degrees.of(90)));
 ```
+
+The camera offset is measured from the robot's center on the floor, in the same order as
+Limelight's camera pose: forward, left, up, then roll, pitch, yaw. A `Transform3d` works too:
+`withRobotToCamera(new Transform3d(...))`. For a camera on a turret, call
+`camera.setRobotToCamera(...)` with either form as the turret moves.
 
 ### Reading targets
 

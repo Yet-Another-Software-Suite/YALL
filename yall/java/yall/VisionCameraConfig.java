@@ -5,7 +5,11 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.Distance;
 import yall.filter.VisionPoseFilter;
 import yall.sim.VisionSim;
 
@@ -14,7 +18,8 @@ import yall.sim.VisionSim;
  *
  * <pre>{@code
  * VisionCameraConfig config = new VisionCameraConfig()
- *     .withRobotToCamera(new Transform3d(0.3, 0, 0.25, new Rotation3d(0, Math.toRadians(-15), 0)))
+ *     .withRobotToCamera(Inches.of(12), Inches.of(0), Inches.of(10),
+ *                        Degrees.of(0), Degrees.of(-15), Degrees.of(0))
  *     .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED)
  *     .withPoseFilter(new VisionPoseFilter().withMaxAmbiguity(0.15));
  * }</pre>
@@ -49,6 +54,47 @@ public class VisionCameraConfig {
   public VisionCameraConfig withRobotToCamera(Transform3d robotToCamera) {
     this.robotToCamera = Optional.of(robotToCamera);
     return this;
+  }
+
+  /**
+   * Sets where the camera is on the robot, measured from the robot's center on the floor. The
+   * arguments follow the order of Limelight's own camera pose: forward, left, up, then roll, pitch,
+   * yaw.
+   *
+   * <pre>{@code
+   * config.withRobotToCamera(
+   *     Inches.of(12), Inches.of(0), Inches.of(10), // 12" forward, centered, 10" up
+   *     Degrees.of(0), Degrees.of(-15), Degrees.of(0)); // tilted 15° up
+   * }</pre>
+   *
+   * @param forward Distance forward of the robot center. Negative is behind it.
+   * @param left Distance left of the robot center. Negative is right of it.
+   * @param up Height above the floor.
+   * @param roll Rotation about the camera's forward axis, counterclockwise positive.
+   * @param pitch Rotation about the left axis. Negative tilts the camera up.
+   * @param yaw Rotation about the up axis, counterclockwise positive. 180° faces backward.
+   * @return This config, for chaining.
+   * @see #withRobotToCamera(Transform3d)
+   */
+  public VisionCameraConfig withRobotToCamera(
+      Distance forward, Distance left, Distance up, Angle roll, Angle pitch, Angle yaw) {
+    return withRobotToCamera(robotToCamera(forward, left, up, roll, pitch, yaw));
+  }
+
+  /**
+   * Builds a robot-to-camera transform from measurements.
+   *
+   * @param forward Distance forward of the robot center.
+   * @param left Distance left of the robot center.
+   * @param up Height above the floor.
+   * @param roll Rotation about the forward axis.
+   * @param pitch Rotation about the left axis.
+   * @param yaw Rotation about the up axis.
+   * @return The transform.
+   */
+  static Transform3d robotToCamera(
+      Distance forward, Distance left, Distance up, Angle roll, Angle pitch, Angle yaw) {
+    return new Transform3d(new Translation3d(forward, left, up), new Rotation3d(roll, pitch, yaw));
   }
 
   /**

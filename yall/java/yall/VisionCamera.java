@@ -29,7 +29,9 @@ import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.StringPublisher;
 import org.wpilib.networktables.StructArrayPublisher;
 import org.wpilib.system.Timer;
+import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Distance;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
@@ -390,6 +392,23 @@ public abstract class VisionCamera implements AutoCloseable {
     } else {
       applyRobotToCamera(robotToCamera);
     }
+  }
+
+  /**
+   * Moves the camera on the robot, for a camera on a turret or other moving mechanism. Takes the
+   * same measurements as {@link VisionCameraConfig#withRobotToCamera(Distance, Distance, Distance,
+   * Angle, Angle, Angle)}.
+   *
+   * @param forward Distance forward of the robot center.
+   * @param left Distance left of the robot center.
+   * @param up Height above the floor.
+   * @param roll Rotation about the camera's forward axis.
+   * @param pitch Rotation about the left axis. Negative tilts the camera up.
+   * @param yaw Rotation about the up axis, counterclockwise positive.
+   */
+  public void setRobotToCamera(
+      Distance forward, Distance left, Distance up, Angle roll, Angle pitch, Angle yaw) {
+    setRobotToCamera(VisionCameraConfig.robotToCamera(forward, left, up, roll, pitch, yaw));
   }
 
   /**
