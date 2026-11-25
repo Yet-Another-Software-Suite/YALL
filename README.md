@@ -35,6 +35,49 @@ Install these vendordeps:
 
 You only need a vendor library for cameras you construct.
 
+## Basic config
+
+One camera feeding a drivetrain's pose estimator. Everything not set here keeps its default: the
+current season's field, the default pose filter, `PoseEstimationMode.TAGS_ONLY` and the vendor's
+default camera properties.
+
+```java
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Inches;
+
+import org.photonvision.PhotonCamera;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.cameras.PhotonVisionWrapper;
+import yall.sim.VisionSim;
+
+public class Drivetrain extends SubsystemBase {
+  // Swap in LimelightWrapper(new Limelight("limelight"), ...) or
+  // SynapseWrapper(new SynapseCamera("camera"), ...) for the other vendors.
+  private final VisionCamera camera =
+      new PhotonVisionWrapper(
+          new PhotonCamera("front"),
+          new VisionCameraConfig()
+              // 12" forward of center, centered, 10" up, tilted 15° up.
+              .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
+                                 Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+
+  @Override
+  public void periodic() {
+    poseEstimator.update(gyro.getRotation2d(), getModulePositions());
+    camera.setRobotOrientation(gyro.getRotation2d());
+    camera.update();
+    camera.addVisionMeasurements(poseEstimator);
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // The simulated cameras see the field from the robot's true pose.
+    VisionSim.getDefault().update(simulatedTruePose);
+  }
+}
+```
+
 ## Usage
 
 ### Creating cameras

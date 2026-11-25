@@ -10,3 +10,5 @@ vendordep.
 
 The `vendordeps` folder holds the libraries YALL builds against: PhotonLib, LimelightLib 2,
 SynapseLib, and WPILib's CameraServer and AprilTag vendordeps.
+
+See the [main README](../README.md#basic-config) for a basic camera config.
