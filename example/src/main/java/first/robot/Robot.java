@@ -128,9 +128,6 @@ public class Robot extends TimedRobot {
     field.setRobotPose(poseEstimator.getEstimatedPosition());
     field.getObject("Odometry").setPose(odometryOnly.getEstimatedPosition());
     field.getObject("Truth").setPose(drivetrainSim.getPose());
-    vision
-        .getFusedPose()
-        .ifPresent(fused -> field.getObject("Fused vision").setPose(fused.pose2d()));
     Telemetry.log("Field", field);
   }
 

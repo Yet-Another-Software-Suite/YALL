@@ -25,7 +25,7 @@ Every estimate is in WPILib's blue-origin field coordinates, whatever the allian
 
 | Field | Meaning |
 | --- | --- |
-| `cameraName()` | The camera that produced it, or `"fused"` |
+| `cameraName()` | The camera that produced it |
 | `pose()` / `pose2d()` | The robot pose, in 3D or on the floor |
 | `timestampSeconds()` | When the image was captured, on `Timer.getMonotonicTimestamp()`'s timebase |
 | `tagIds()` / `tagCount()` | The AprilTags used |
@@ -97,9 +97,9 @@ A Limelight given a `PoseEstimateConfig` through `withVendorConfig` uses Limelig
 
 ## Several cameras
 
-![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The fused pose sits close to the sure one.](../.gitbook/assets/fusing-cameras.png)
+![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The pose estimator's pose sits close to the sure one.](../.gitbook/assets/two-cameras.png)
 
-[`VisionSystem.addVisionMeasurements`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose with WPILib's pose estimator math, so more trusted estimates pull harder. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
+[`VisionSystem.addVisionMeasurements`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) adds every camera's accepted estimates to your pose estimator, oldest first, one at a time. The pose estimator weighs each one by its standard deviations, so more trusted estimates pull harder, and applies each at the time its image was taken. Don't combine the cameras' estimates yourself first: that loses their timestamps and standard deviations. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md#how-to-use-addvisionmeasurement)
 
 ## Read more
 

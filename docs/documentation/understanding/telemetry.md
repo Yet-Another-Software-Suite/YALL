@@ -22,8 +22,6 @@ Each camera publishes to NetworkTables under `YALL/<camera name>`, updated by ev
 | `stats/...` | | `HIGH` | The pose filter stats: counts, `rejectedBy/<check>`, spread and a `reset` switch. See [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md). |
 | `targets/fiducialIds`, `targets/yawDegrees`, `targets/pitchDegrees`, `targets/areaPercent` | arrays | `HIGH` | Every target in the newest frame |
 
-[`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes `YALL/fusedPose` (`Pose3d`) when it has one.
-
 ## Choosing what to publish
 
 A [`VisionTelemetryConfig`](https://yall.yassrobotics.com/api-reference/java-reference/telemetry/vision-telemetry-config) sets the verbosity, turns single fields on or off, and moves the table:

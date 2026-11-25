@@ -81,15 +81,12 @@ class SimulatedCamerasTest {
             new LimelightWrapper(new Limelight("limelight-" + mode), config(sim, mode)),
             new SynapseWrapper(new SynapseCamera("synapse-" + mode), config(sim, mode)))) {
       var estimates = new ArrayList<VisionPoseEstimate>();
-      // The fused pose only covers the last update, which may have no new frame, so keep every one.
-      var fused = new ArrayList<VisionPoseEstimate>();
       for (int i = 0; i < 50; i++) {
         SimHooks.stepTiming(0.02);
         vision.updateSimulation(robot);
         vision.setRobotOrientation(robot.getRotation());
         vision.update();
         estimates.addAll(vision.getEstimatedPoses());
-        vision.getFusedPose().ifPresent(fused::add);
       }
       for (VisionCamera camera : vision.getCameras()) {
         assertTrue(camera.isSimulated(), camera.getName());
@@ -112,11 +109,6 @@ class SimulatedCamerasTest {
           // solve, so the mode decides the method.
           assertEquals(mode == PoseEstimationMode.HEADING_ASSISTED, e.headingAssisted());
         }
-      }
-      assertFalse(fused.isEmpty(), "no fused pose");
-      for (VisionPoseEstimate e : fused) {
-        double error = e.pose2d().getTranslation().getDistance(robot.getTranslation());
-        assertTrue(error < 0.25, "fused pose is " + error + " m off");
       }
     }
   }
@@ -244,22 +236,19 @@ class SimulatedCamerasTest {
     var wrong = robot.plus(new org.wpilib.math.geometry.Transform2d(0.5, 0.3, Rotation2d.ZERO));
     var estimator = new DifferentialDrivePoseEstimator(robot.getRotation(), 0, 0, wrong);
     try (var vision =
-        new VisionSystem(new PhotonVisionWrapper(new PhotonCamera("estimator"), config(sim)))
-            .withPoseEstimator(estimator)) {
-      boolean fused = false;
+        new VisionSystem(new PhotonVisionWrapper(new PhotonCamera("estimator"), config(sim)))) {
       for (int i = 0; i < 100; i++) {
         SimHooks.stepTiming(0.02);
         estimator.update(robot.getRotation(), 0, 0);
         vision.updateSimulation(robot);
         vision.update();
-        fused |= vision.getFusedPose().isPresent();
+        vision.addVisionMeasurements(estimator);
       }
       double error =
           estimator.getEstimatedPosition().getTranslation().getDistance(robot.getTranslation());
       // It starts 0.58 m off. One tag 2 m away is trusted little (standard deviation about 4.5 m),
       // so each measurement moves the estimate about 2% of the way: well over half in 2 seconds.
       assertTrue(error < 0.25, "pose estimator is still " + error + " m off");
-      assertTrue(fused, "no fused pose");
       assertTrue(vision.getCameras().get(0).getCameraSim().isPresent());
     }
   }

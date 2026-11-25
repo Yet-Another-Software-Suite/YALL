@@ -11,8 +11,7 @@ import org.wpilib.math.numbers.N3;
 /**
  * A robot pose estimated from AprilTags, ready for a WPILib pose estimator.
  *
- * @param cameraName Name of the camera that produced the estimate, or "fused" for a {@link
- *     yall.VisionSystem#getFusedPose() fused} one.
+ * @param cameraName Name of the camera that produced the estimate.
  * @param pose Estimated robot pose on the field, in WPILib blue-origin field coordinates.
  * @param timestampSeconds When the image was captured, on the {@link
  *     org.wpilib.system.Timer#getMonotonicTimestamp()} timebase.

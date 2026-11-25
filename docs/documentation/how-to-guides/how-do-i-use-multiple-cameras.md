@@ -41,41 +41,29 @@ public void simulationPeriodic() {
 ```
 
 * `update()` updates every camera.
-* `addVisionMeasurements` adds every accepted estimate from every camera to the pose estimator, oldest first, each with its own timestamp and standard deviations.
+* `addVisionMeasurements` calls your pose estimator's `addVisionMeasurement` once for every accepted estimate from every camera, oldest first, each with its own timestamp and standard deviations.
 * `getEstimatedPoses()` returns the same list, and `forEachEstimatedPose(...)` passes each to your own code.
 
-This is the most accurate way to use several cameras: the pose estimator weighs each estimate at the moment its image was taken.
+## Drivetrains with their own `addVisionMeasurement`
 
-## One fused pose
-
-![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The fused pose sits close to the sure one.](../.gitbook/assets/fusing-cameras.png)
-
-For code that wants a single answer (a dashboard, a "where am I" check before auto), `getFusedPose()` combines each camera's newest accepted estimate:
+A YAMS `SwerveDrive`, a CTRE swerve drivetrain and most drivetrain libraries keep their own pose estimator and give you an `addVisionMeasurement` method. Pass each estimate to it:
 
 ```java
-vision.getFusedPose().ifPresent(fused -> field.getObject("Vision").setPose(fused.pose2d()));
+vision.update();
+vision.forEachEstimatedPose(
+    estimate ->
+        swerveDrive.addVisionMeasurement(
+            estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
 
-* It uses the same math as WPILib's pose estimators. Starting from the oldest estimate, each estimate pulls the fused pose toward itself. How far depends on how sure it is: a sure estimate (small standard deviation) pulls hard, an unsure one barely moves it.
-* How much the fused pose trusts itself against each new estimate is its **state standard deviations**, 0.1 m, 0.1 m, 0.1 rad by default, as in WPILib. Change them with `withFusionStateStdDevs(VecBuilder.fill(0.2, 0.2, 0.2))`.
-* Estimates more than 0.1 s older than the newest are left out. Change that with `withMaxFusionTimeSkew(Seconds.of(0.2))`.
-* The fused estimate is named `"fused"` and lists every tag the cameras used.
-* [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes it to NetworkTables as `YALL/fusedPose`.
+## How to use `addVisionMeasurement`
 
-### Let the system feed your pose estimator
+![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The pose estimator's pose sits close to the sure one.](../.gitbook/assets/two-cameras.png)
 
-Give the system your drivetrain's pose estimator, and `update()` adds every accepted estimate to it for you. `getFusedPose()` then returns the pose estimator's pose, which has your odometry too:
-
-```java
-VisionSystem vision =
-    new VisionSystem(front, back).withPoseEstimator(drivetrain.getPoseEstimator());
-
-// In Robot.robotPeriodic():
-vision.setRobotOrientation(drivetrain.getHeading());
-vision.update(); // also adds the estimates to the pose estimator
-```
-
-It is empty when no camera had an accepted estimate in the last `update()`.
+* **Every estimate, one at a time.** Don't average the cameras or pick the best one first. The pose estimator weighs each estimate against its odometry, so the camera it trusts more pulls harder, as in the picture.
+* **The estimate's own `timestampSeconds()`, never the current time.** Each image was taken a few milliseconds ago, and each camera at a different moment. The pose estimator keeps a short history of odometry and applies each estimate where the robot was when its image was taken. Combining estimates first would give them one timestamp, so some of them would land in the wrong place while the robot moves.
+* **The estimate's own `stdDevs()`.** The [pose filter](../understanding/pose-estimation-and-filtering.md) sets them from tag distance and tag count. A close, multi-tag estimate pulls hard; a far, single-tag one barely moves the pose.
+* **Once per loop, after `update()`.** Update odometry, then the cameras, then add the estimates. The pose estimator's `getEstimatedPosition()` (or your drivetrain's `getPose()`) is the robot's pose: odometry and every camera together.
 
 ## Several Limelights
 

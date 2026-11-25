@@ -34,7 +34,7 @@ camera.getEstimatedPose().ifPresent(estimate ->
 
 | Component | Type | Description |
 | --- | --- | --- |
-| `cameraName` | `String` | Name of the camera that produced the estimate, or `"fused"` for one from [`VisionSystem.getFusedPose()`](../yall/vision-system.md). |
+| `cameraName` | `String` | Name of the camera that produced the estimate. |
 | `pose` | `Pose3d` | Estimated robot pose on the field, in WPILib blue-origin field coordinates. |
 | `timestampSeconds` | `double` | When the image was captured, on the `Timer.getMonotonicTimestamp()` timebase. |
 | `tagIds` | `List<Integer>` | IDs of the AprilTags used. The constructor copies the list. |
