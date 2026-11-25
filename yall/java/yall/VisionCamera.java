@@ -299,8 +299,9 @@ public abstract class VisionCamera implements AutoCloseable {
               target.getPitch(),
               target.getArea(),
               target.getFiducialId(),
-              target.getDetectedObjectClassID(),
-              target.getDetectedObjectConfidence(),
+              target.getDetectedObjectClassID() >= 0 ? target.getDetectedObjectClassID() : -1,
+              // PhotonVision reports -1 for targets that aren't detected objects.
+              target.getDetectedObjectClassID() >= 0 ? target.getDetectedObjectConfidence() : 0,
               isTag && target.getPoseAmbiguity() >= 0 ? target.getPoseAmbiguity() : Double.NaN,
               isTag ? Optional.of(target.getBestCameraToTarget()) : Optional.empty()));
     }

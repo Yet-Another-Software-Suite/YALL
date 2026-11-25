@@ -14,10 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.photonvision.PhotonCamera;
+import org.photonvision.estimation.TargetModel;
+import org.photonvision.simulation.VisionTargetSim;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 import org.wpilib.hardware.hal.HAL;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform2d;
@@ -28,6 +31,7 @@ import yall.cameras.LimelightWrapper;
 import yall.cameras.PhotonVisionWrapper;
 import yall.cameras.SynapseWrapper;
 import yall.results.VisionPoseEstimate;
+import yall.results.VisionTarget;
 import yall.sim.VisionSim;
 
 /** Every vendor's camera gives simulated results from the same PhotonVision world. */
@@ -123,5 +127,47 @@ class SimulatedCamerasTest {
         () ->
             new PhotonVisionWrapper(
                 new PhotonCamera("photon-vendor"), config(sim).withVendorConfig("not a config")));
+  }
+
+  @Test
+  void simulatedGamePiecesComeBackAsDetectedObjects() {
+    var sim = new VisionSim("objects", FIELD);
+    var robot = new Pose2d(4, 4, Rotation2d.ZERO);
+    // A 0.3 m ball 2 m ahead of the robot, on the floor, as class 3 with 0.9 confidence.
+    sim.addVisionTargets(
+        "balls",
+        new VisionTargetSim(
+            new Pose3d(6, 4, 0.15, Rotation3d.ZERO), new TargetModel(0.3), 3, 0.9f));
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("objects"),
+            new VisionCameraConfig()
+                .withField(FIELD)
+                .withSimulation(sim)
+                .withRobotToCamera(
+                    new Transform3d(0, 0, 0.5, new Rotation3d(0, Math.toRadians(15), 0))))) {
+      boolean seen = false;
+      for (int i = 0; i < 50 && !seen; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.update();
+        seen = camera.getTargets().stream().anyMatch(VisionTarget::isDetectedObject);
+      }
+      assertTrue(seen, "the camera never saw the ball");
+      var ball =
+          camera.getTargets().stream().filter(VisionTarget::isDetectedObject).findFirst().get();
+      assertEquals(3, ball.classId());
+      assertEquals(0.9, ball.confidence(), 1e-6);
+      assertEquals(-1, ball.fiducialId());
+      // Straight ahead. The camera is tilted 15° down and the ball is atan(0.35 / 2) = 9.9° below
+      // it, so the ball is about 5.1° above the crosshair: pitch is positive up.
+      assertEquals(0, ball.yawDegrees(), 1);
+      assertEquals(15 - Math.toDegrees(Math.atan2(0.35, 2)), ball.pitchDegrees(), 1);
+      for (VisionTarget tag :
+          camera.getTargets().stream().filter(VisionTarget::isAprilTag).toList()) {
+        assertEquals(-1, tag.classId());
+        assertEquals(0, tag.confidence());
+      }
+    }
   }
 }

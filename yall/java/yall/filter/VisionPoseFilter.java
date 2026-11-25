@@ -423,8 +423,7 @@ public class VisionPoseFilter {
     var base = estimate.tagCount() > 1 ? multiTagStdDevs : singleTagStdDevs;
     double distance = estimate.averageTagDistanceMeters();
     double scale = 1 + (Double.isFinite(distance) ? distance * distance / distanceDivisor : 0);
-    double theta =
-        estimate.headingAssisted() ? headingAssistedThetaStdDev : base.get(2, 0) * scale;
+    double theta = estimate.headingAssisted() ? headingAssistedThetaStdDev : base.get(2, 0) * scale;
     return estimate.withStdDevs(
         VecBuilder.fill(base.get(0, 0) * scale, base.get(1, 0) * scale, theta));
   }

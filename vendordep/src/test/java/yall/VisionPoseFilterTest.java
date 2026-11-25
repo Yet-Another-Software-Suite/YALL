@@ -102,7 +102,8 @@ class VisionPoseFilterTest {
     var farMulti = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1, 2), 5, 0);
     assertEquals(Optional.of("tags too far"), check(new VisionPoseFilter(), far));
     assertEquals(Optional.empty(), check(new VisionPoseFilter(), farMulti));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxTagDistance(null, null), far));
+    assertEquals(
+        Optional.empty(), check(new VisionPoseFilter().withMaxTagDistance(null, null), far));
     assertEquals(
         Optional.of("tags too far"),
         check(new VisionPoseFilter().withMaxTagDistance(Meters.of(4), Meters.of(3)), farMulti));
@@ -133,8 +134,7 @@ class VisionPoseFilterTest {
   void poseJumpIsOffByDefault() {
     var filter = new VisionPoseFilter();
     assertEquals(Optional.empty(), check(filter, good()));
-    filter.withMaxDistanceFromPose(
-        () -> new Pose2d(1, 1, Rotation2d.ZERO), Meters.of(1));
+    filter.withMaxDistanceFromPose(() -> new Pose2d(1, 1, Rotation2d.ZERO), Meters.of(1));
     assertEquals(Optional.of("too far from the current pose"), check(filter, good()));
     assertEquals(Optional.empty(), check(filter.withMaxDistanceFromPose(null, null), good()));
   }
