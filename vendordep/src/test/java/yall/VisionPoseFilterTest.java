@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.DegreesPerSecond;
 import static org.wpilib.units.Units.Meters;
+import static org.wpilib.units.Units.Radians;
 import static org.wpilib.units.Units.Seconds;
 
 import java.util.List;
@@ -158,7 +159,8 @@ class VisionPoseFilterTest {
   @Test
   void headingAssistedEstimatesBarelyTrustTheirHeading() {
     var e = VisionPoseEstimate.unfiltered("test", new Pose3d(), NOW, List.of(1), 2, 0, true);
-    var weighed = new VisionPoseFilter().withHeadingAssistedThetaStdDev(123).applyStdDevs(e);
+    var weighed =
+        new VisionPoseFilter().withHeadingAssistedThetaStdDev(Radians.of(123)).applyStdDevs(e);
     assertEquals(123, weighed.stdDevs().get(2, 0));
   }
 

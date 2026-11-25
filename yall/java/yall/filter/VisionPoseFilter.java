@@ -3,6 +3,7 @@ package yall.filter;
 import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.DegreesPerSecond;
 import static org.wpilib.units.Units.Meters;
+import static org.wpilib.units.Units.Radians;
 import static org.wpilib.units.Units.Seconds;
 
 import java.util.Optional;
@@ -240,11 +241,11 @@ public class VisionPoseFilter {
    * Sets the heading standard deviation for heading-assisted estimates (Limelight MegaTag2,
    * PhotonVision's trig solve). Their heading is the gyro's, so it should carry almost no weight.
    *
-   * @param thetaStdDev Heading standard deviation in radians.
+   * @param thetaStdDev Heading standard deviation.
    * @return This filter, for chaining.
    */
-  public VisionPoseFilter withHeadingAssistedThetaStdDev(double thetaStdDev) {
-    headingAssistedThetaStdDev = thetaStdDev;
+  public VisionPoseFilter withHeadingAssistedThetaStdDev(Angle thetaStdDev) {
+    headingAssistedThetaStdDev = thetaStdDev.in(Radians);
     return this;
   }
 

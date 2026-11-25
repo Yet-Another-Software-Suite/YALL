@@ -1,5 +1,8 @@
 package yall;
 
+import static org.wpilib.units.Units.Hertz;
+import static org.wpilib.units.Units.Radians;
+
 import java.util.Optional;
 import org.photonvision.simulation.SimCameraProperties;
 import org.wpilib.fields.Field;
@@ -10,6 +13,7 @@ import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.Frequency;
 import yall.filter.VisionPoseFilter;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
@@ -39,6 +43,7 @@ public class VisionCameraConfig {
   private boolean simulationEnabled = true;
   private Optional<VisionSim> visionSim = Optional.empty();
   private boolean simVideoStreams = false;
+  private boolean simWireframe = false;
   private Optional<Object> vendorConfig = Optional.empty();
   private boolean telemetry = true;
 
@@ -175,14 +180,15 @@ public class VisionCameraConfig {
    * @param widthPixels Image width.
    * @param heightPixels Image height.
    * @param diagonalFov Diagonal field of view.
-   * @param fps Frames per second.
+   * @param frameRate Frame rate.
    * @return This config, for chaining.
    */
   public VisionCameraConfig withCameraProperties(
-      int widthPixels, int heightPixels, Rotation2d diagonalFov, double fps) {
+      int widthPixels, int heightPixels, Angle diagonalFov, Frequency frameRate) {
     var properties = new SimCameraProperties();
-    properties.setCalibration(widthPixels, heightPixels, diagonalFov);
-    properties.setFPS(fps);
+    properties.setCalibration(
+        widthPixels, heightPixels, Rotation2d.fromRadians(diagonalFov.in(Radians)));
+    properties.setFPS(frameRate.in(Hertz));
     properties.setAvgLatencyMs(25);
     properties.setLatencyStdDevMs(5);
     properties.setCalibError(0.25, 0.08);
@@ -214,14 +220,33 @@ public class VisionCameraConfig {
   }
 
   /**
-   * Sets whether the simulated camera streams rendered video. The streams cost CPU, so they default
-   * to off.
+   * Sets whether the simulated camera streams what it would see: PhotonVision draws the AprilTags
+   * (and, with {@link #withSimulatedWireframe(boolean)}, the field) from the camera's point of view.
+   * The streams cost CPU, so they default to off.
+   *
+   * <p>The streams are served by WPILib's CameraServer as {@code YALL-<camera name>-raw} and {@code
+   * YALL-<camera name>-processed} ({@code <camera name>-raw} and {@code -processed} for a
+   * PhotonVision camera). Open them in a dashboard's camera stream widget, or in a browser at {@code
+   * http://localhost:1181}, {@code 1182} and up, one port per stream in the order they were made.
    *
    * @param enabled true to stream raw and processed simulated video.
    * @return This config, for chaining.
    */
   public VisionCameraConfig withSimulatedVideoStreams(boolean enabled) {
     simVideoStreams = enabled;
+    return this;
+  }
+
+  /**
+   * Sets whether the simulated video streams also draw the field's floor and walls, which helps to
+   * see where the camera points. Drawing them costs more CPU than the AprilTags alone, so it
+   * defaults to off. Has no effect unless {@link #withSimulatedVideoStreams(boolean)} is on.
+   *
+   * @param enabled true to draw the field.
+   * @return This config, for chaining.
+   */
+  public VisionCameraConfig withSimulatedWireframe(boolean enabled) {
+    simWireframe = enabled;
     return this;
   }
 
@@ -331,6 +356,15 @@ public class VisionCameraConfig {
    */
   public boolean isSimulatedVideoStreamsEnabled() {
     return simVideoStreams;
+  }
+
+  /**
+   * Whether the simulated video streams draw the field.
+   *
+   * @return true to draw the field.
+   */
+  public boolean isSimulatedWireframeEnabled() {
+    return simWireframe;
   }
 
   /**

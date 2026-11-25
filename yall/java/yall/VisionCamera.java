@@ -141,6 +141,8 @@ public abstract class VisionCamera implements AutoCloseable {
     cameraSim = new PhotonCameraSim(simCamera, properties, config.getField());
     cameraSim.enableRawStream(config.isSimulatedVideoStreamsEnabled());
     cameraSim.enableProcessedStream(config.isSimulatedVideoStreamsEnabled());
+    cameraSim.enableDrawWireframe(
+        config.isSimulatedVideoStreamsEnabled() && config.isSimulatedWireframeEnabled());
     visionSim = config.getVisionSim().orElseGet(VisionSim::getDefault);
     visionSim.addCamera(cameraSim, robotToCamera);
   }
