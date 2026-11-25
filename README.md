@@ -170,7 +170,7 @@ drivetrains with their own vision method, use `forEachEstimatedPose(...)`.
 
 ### Pose filtering
 
-Every check can be turned on and tuned with `withX(...)`, or turned off with `withoutX()`:
+Every check is turned on and tuned with its `withX(...)` method. Pass `null` to turn it off, and read its setting back with `getX()`, which returns an `Optional`:
 
 | Check | Default | Rejects an estimate when |
 | --- | --- | --- |
@@ -189,7 +189,7 @@ new VisionCameraConfig()
     .withPoseFilter(new VisionPoseFilter()
         .withMaxAmbiguity(0.15)
         .withMaxTilt(Degrees.of(10))
-        .withoutMaxYawRate()
+        .withMaxYawRate(null) // off
         .withStdDevs(VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1), 30));
 ```
 

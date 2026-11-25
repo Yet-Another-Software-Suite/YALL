@@ -53,7 +53,7 @@ class VisionPoseFilterTest {
   void fieldBoundsCanBeTurnedOffAndResized() {
     var off = estimate(new Pose3d(-1, 4, 0, Rotation3d.ZERO), NOW, List.of(1), 2, 0.05);
     assertEquals(Optional.of("off the field"), check(new VisionPoseFilter(), off));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withoutFieldBounds(), off));
+    assertEquals(Optional.empty(), check(new VisionPoseFilter().withFieldBounds(null), off));
     assertEquals(
         Optional.empty(), check(new VisionPoseFilter().withFieldBounds(Meters.of(1.5)), off));
   }
@@ -62,7 +62,7 @@ class VisionPoseFilterTest {
   void heightCanBeTurnedOffAndResized() {
     var high = estimate(new Pose3d(5, 4, 0.8, Rotation3d.ZERO), NOW, List.of(1), 2, 0.05);
     assertEquals(Optional.of("off the floor"), check(new VisionPoseFilter(), high));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withoutMaxHeightError(), high));
+    assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxHeightError(null), high));
     assertEquals(
         Optional.empty(), check(new VisionPoseFilter().withMaxHeightError(Meters.of(1)), high));
   }
@@ -82,7 +82,7 @@ class VisionPoseFilterTest {
     var ambiguous = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1), 2, 0.5);
     assertEquals(Optional.of("ambiguous"), check(new VisionPoseFilter(), ambiguous));
     assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxAmbiguity(0.6), ambiguous));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withoutMaxAmbiguity(), ambiguous));
+    assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxAmbiguity(null), ambiguous));
     var unknown = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1), 2, Double.NaN);
     assertEquals(Optional.empty(), check(new VisionPoseFilter(), unknown));
   }
@@ -93,7 +93,7 @@ class VisionPoseFilterTest {
         Optional.of("too few tags"), check(new VisionPoseFilter().withMinTagCount(2), good()));
     assertEquals(
         Optional.empty(),
-        check(new VisionPoseFilter().withMinTagCount(2).withoutMinTagCount(), good()));
+        check(new VisionPoseFilter().withMinTagCount(2).withMinTagCount(null), good()));
   }
 
   @Test
@@ -102,7 +102,7 @@ class VisionPoseFilterTest {
     var farMulti = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1, 2), 5, 0);
     assertEquals(Optional.of("tags too far"), check(new VisionPoseFilter(), far));
     assertEquals(Optional.empty(), check(new VisionPoseFilter(), farMulti));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withoutMaxTagDistance(), far));
+    assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxTagDistance(null, null), far));
     assertEquals(
         Optional.of("tags too far"),
         check(new VisionPoseFilter().withMaxTagDistance(Meters.of(4), Meters.of(3)), farMulti));
@@ -116,7 +116,7 @@ class VisionPoseFilterTest {
     assertEquals(
         Optional.empty(),
         filter.withMaxYawRate(DegreesPerSecond.of(900)).check(good(), FIELD, NOW, 800));
-    assertEquals(Optional.empty(), filter.withoutMaxYawRate().check(good(), FIELD, NOW, 2000));
+    assertEquals(Optional.empty(), filter.withMaxYawRate(null).check(good(), FIELD, NOW, 2000));
   }
 
   @Test
@@ -126,7 +126,7 @@ class VisionPoseFilterTest {
     assertEquals(Optional.of("too old"), check(new VisionPoseFilter(), old));
     assertEquals(Optional.of("timestamp in the future"), check(new VisionPoseFilter(), future));
     assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxAge(Seconds.of(2)), old));
-    assertEquals(Optional.empty(), check(new VisionPoseFilter().withoutMaxAge(), old));
+    assertEquals(Optional.empty(), check(new VisionPoseFilter().withMaxAge(null), old));
   }
 
   @Test
@@ -136,7 +136,7 @@ class VisionPoseFilterTest {
     filter.withMaxDistanceFromPose(
         () -> new Pose2d(1, 1, Rotation2d.ZERO), Meters.of(1));
     assertEquals(Optional.of("too far from the current pose"), check(filter, good()));
-    assertEquals(Optional.empty(), check(filter.withoutMaxDistanceFromPose(), good()));
+    assertEquals(Optional.empty(), check(filter.withMaxDistanceFromPose(null, null), good()));
   }
 
   @Test
@@ -160,5 +160,32 @@ class VisionPoseFilterTest {
     var e = VisionPoseEstimate.unfiltered("test", new Pose3d(), NOW, List.of(1), 2, 0, true);
     var weighed = new VisionPoseFilter().withHeadingAssistedThetaStdDev(123).applyStdDevs(e);
     assertEquals(123, weighed.stdDevs().get(2, 0));
+  }
+
+  @Test
+  void gettersReportEachCheckAsOptional() {
+    var filter = new VisionPoseFilter();
+    assertEquals(Optional.of(DegreesPerSecond.of(720)), filter.getMaxYawRate());
+    assertEquals(Optional.empty(), filter.getMaxTilt());
+    filter.withMaxYawRate(null).withMaxTilt(Degrees.of(10));
+    assertEquals(Optional.empty(), filter.getMaxYawRate());
+    assertEquals(Optional.of(Degrees.of(10)), filter.getMaxTilt());
+  }
+
+  @Test
+  void tagDistanceLimitsTurnOffSeparately() {
+    var far = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1), 5, 0.05);
+    var farMulti = estimate(new Pose3d(5, 4, 0, Rotation3d.ZERO), NOW, List.of(1, 2), 9, 0);
+    var filter = new VisionPoseFilter().withMaxTagDistance(null, Meters.of(8));
+    assertEquals(Optional.empty(), check(filter, far));
+    assertEquals(Optional.of("tags too far"), check(filter, farMulti));
+  }
+
+  @Test
+  void acceptAllKeepsOnlyTheNoTagsRule() {
+    var filter = VisionPoseFilter.acceptAll();
+    var wild =
+        estimate(new Pose3d(-5, 40, 3, new Rotation3d(1, 1, 0)), NOW - 10, List.of(1), 20, 0.9);
+    assertEquals(Optional.empty(), filter.check(wild, FIELD, NOW, 5000));
   }
 }
