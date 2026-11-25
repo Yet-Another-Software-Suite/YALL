@@ -20,6 +20,8 @@ In this tutorial a simulated robot drives in a circle while a camera keeps its p
 {% step %}
 ### Make odometry and a pose estimator
 
+{% tabs %}
+{% tab title="Kitbot (this tutorial)" %}
 This tutorial uses a simulated kitbot whose wheels slip 5%, so you can watch odometry drift. On your robot, use your drivetrain's encoders, gyro and pose estimator instead.
 
 ```java
@@ -31,6 +33,14 @@ private final DifferentialDrivetrainSim drivetrainSim =
 private final DifferentialDrivePoseEstimator poseEstimator =
     new DifferentialDrivePoseEstimator(Rotation2d.ZERO, 0, 0, startPose);
 ```
+{% endtab %}
+
+{% tab title="YAMS SwerveDrive" %}
+A YAMS `SwerveDrive` already has odometry and a pose estimator inside it, so there's nothing to add. These steps call your drive `swerveDrive`: use whatever your swerve subsystem or mechanism calls its `SwerveDrive`, and make it reachable from `Robot.java` (for example with a getter).
+
+Your drive already updates its odometry when your swerve code calls `swerveDrive.updateTelemetry()` every loop, and simulates itself with `swerveDrive.simIterate()`. Keep those as they are.
+{% endtab %}
+{% endtabs %}
 
 **Check it:** the project builds.
 {% endstep %}
@@ -38,6 +48,8 @@ private final DifferentialDrivePoseEstimator poseEstimator =
 {% step %}
 ### Add the camera's guesses to the pose estimator
 
+{% tabs %}
+{% tab title="Kitbot (this tutorial)" %}
 Every loop: update odometry, give the camera the gyro heading, read the camera, then add its guesses.
 
 ```java
@@ -55,6 +67,34 @@ public void robotPeriodic() {
 ```
 
 `addVisionMeasurements` adds every guess that passed the pose filter, oldest first, each with the time its picture was taken and its standard deviations.
+{% endtab %}
+
+{% tab title="YAMS SwerveDrive" %}
+Every loop, after the scheduler runs (so your drive's odometry is up to date): give the camera the drive's gyro and how fast it's spinning, read the camera, then hand each guess to the drive.
+
+```java
+@Override
+public void robotPeriodic() {
+  // Run the scheduler first, as your Robot.java already does.
+
+  camera.setRobotOrientation(
+      swerveDrive.getGyroRotation3d(),
+      RadiansPerSecond.of(swerveDrive.getFieldRelativeSpeed().omega));
+  camera.update();
+  camera.forEachEstimatedPose(
+      estimate ->
+          swerveDrive.addVisionMeasurement(
+              estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
+}
+```
+
+* `getGyroRotation3d()` is the robot's tilt and heading from the gyro. In simulation, YAMS gives the simulated heading.
+* The spin rate lets the pose filter throw out blurry pictures taken while the robot spins fast.
+* `forEachEstimatedPose` hands over every guess that passed the pose filter, oldest first. `SwerveDrive.addVisionMeasurement` puts it into the drive's own pose estimator, so `swerveDrive.getPose()` now includes the cameras.
+
+This needs `import static org.wpilib.units.Units.RadiansPerSecond;`.
+{% endtab %}
+{% endtabs %}
 
 **Check it:** the project builds.
 {% endstep %}
@@ -62,6 +102,8 @@ public void robotPeriodic() {
 {% step %}
 ### Drive in simulation
 
+{% tabs %}
+{% tab title="Kitbot (this tutorial)" %}
 Make the simulated robot drive a slow circle, and tell the simulated world where it really is:
 
 ```java
@@ -73,14 +115,33 @@ public void simulationPeriodic() {
 }
 ```
 
-Always give the simulation the robot's **true** pose, never the pose estimator's guess.
-
 **Check it:** run the simulation and enable the robot. It drives in a circle.
+{% endtab %}
+
+{% tab title="YAMS SwerveDrive" %}
+Your drive already moves in simulation with `simIterate()`. Tell the simulated world where it really is, using the drive's simulated pose:
+
+```java
+@Override
+public void simulationPeriodic() {
+  VisionSim.getDefault().update(swerveDrive.getSimPose());
+}
+```
+
+`getSimPose()` is where the simulated robot really is. `getPose()` is the pose estimator's guess, so don't use it here.
+
+**Check it:** run the simulation, enable the robot and drive it with your controller.
+{% endtab %}
+{% endtabs %}
+
+Always give the simulation the robot's **true** pose, never the pose estimator's guess.
 {% endstep %}
 
 {% step %}
 ### Watch the poses on a field
 
+{% tabs %}
+{% tab title="Kitbot (this tutorial)" %}
 Show the estimate and the truth on a `Field2d`, then open `Field` in your dashboard:
 
 ```java
@@ -88,6 +149,19 @@ field.setRobotPose(poseEstimator.getEstimatedPosition());
 field.getObject("Truth").setPose(drivetrainSim.getPose());
 Telemetry.log("Field", field);
 ```
+{% endtab %}
+
+{% tab title="YAMS SwerveDrive" %}
+Your drive already draws its estimated pose on its own `Field2d`. Add the truth to that same field, in `simulationPeriodic()`, and publish it if your swerve code doesn't yet:
+
+```java
+swerveDrive.getField2d().getObject("Truth").setPose(swerveDrive.getSimPose());
+Telemetry.log("Field", swerveDrive.getField2d());
+```
+
+Then open `Field` in your dashboard.
+{% endtab %}
+{% endtabs %}
 
 **Check it:** the robot and `Truth` stay on top of each other.
 
@@ -112,6 +186,8 @@ Every guess goes through the camera's pose filter first. The filter throws out g
 * **More problems:** [Troubleshooting](../how-to-guides/troubleshooting.md).
 
 ## The complete file
+
+This is the kitbot version. With a YAMS `SwerveDrive`, use the swerve tabs' code in the same places.
 
 {% tabs %}
 {% tab title="Commands v2" %}
