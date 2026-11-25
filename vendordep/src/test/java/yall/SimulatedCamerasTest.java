@@ -210,7 +210,13 @@ class SimulatedCamerasTest {
   void filterStatsAreCountedAndPublished() {
     var sim = new VisionSim("stats", FIELD);
     var robot = facingFirstTag();
-    try (var camera = new PhotonVisionWrapper(new PhotonCamera("stats"), config(sim))) {
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("stats"),
+            config(sim)
+                .withTelemetry(
+                    new yall.telemetry.VisionTelemetryConfig()
+                        .withVerbosity(yall.telemetry.TelemetryVerbosity.HIGH)))) {
       for (int i = 0; i < 50; i++) {
         SimHooks.stepTiming(0.02);
         sim.update(robot);
@@ -254,7 +260,7 @@ class SimulatedCamerasTest {
       // so each measurement moves the estimate about 2% of the way: well over half in 2 seconds.
       assertTrue(error < 0.25, "pose estimator is still " + error + " m off");
       assertTrue(fused, "no fused pose");
-      assertTrue(vision.getCameras().get(0).getSimulation().isPresent());
+      assertTrue(vision.getCameras().get(0).getCameraSim().isPresent());
     }
   }
 }

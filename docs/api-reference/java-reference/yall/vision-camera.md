@@ -12,7 +12,7 @@ In short: one camera, from any maker. Call `update()` every loop, then read targ
 public abstract class VisionCamera implements AutoCloseable
 ```
 
-A camera from any supported vendor, with one API for targets and robot pose estimates. On a real robot it reads the vendor's library. In simulation it reads its [`SimulatedCamera`](../sim/simulated-camera.md), so the same robot code runs in both.
+A camera from any supported vendor, with one API for targets and robot pose estimates. On a real robot it reads the vendor's library. In simulation it reads a PhotonVision camera simulation in a [`VisionSim`](../sim/vision-sim.md) world, which the camera makes for itself.
 
 Create one with the wrapper for the camera's vendor: [`PhotonVisionWrapper`](../cameras/photonvision-wrapper.md), [`LimelightWrapper`](../cameras/limelight-wrapper.md) or [`SynapseWrapper`](../cameras/synapse-wrapper.md). Call `update()` once per loop (or [`VisionSystem.update()`](vision-system.md) for several cameras), then read the getters. They all report what the last `update()` read.
 
@@ -104,7 +104,9 @@ See [`VisionPoseEstimate`](../results/vision-pose-estimate.md).
 | Method | Returns | Description |
 | --- | --- | --- |
 | `getCamera()` | `Object` | The vendor's camera object, for settings YALL doesn't cover. Each wrapper narrows the return type: `PhotonCamera`, `Limelight` or `SynapseCamera`. |
-| `getSimulation()` | `Optional<SimulatedCamera>` | The camera's [`SimulatedCamera`](../sim/simulated-camera.md): the PhotonVision camera simulation, its world and PhotonVision's pose estimator for simulated results. Empty when not simulating. |
+| `getCameraSim()` | `Optional<PhotonCameraSim>` | The camera's PhotonVision simulation, for settings YALL doesn't cover. Empty when not simulating. |
+| `getVisionSim()` | `Optional<VisionSim>` | The simulated world the camera is in. Empty when not simulating. |
+| `getSimulatedPoseEstimator()` | `Optional<PhotonPoseEstimator>` | PhotonVision's pose estimator for the simulated results. Empty when not simulating. |
 | `close()` | `void` | Removes the camera from simulation and closes its telemetry. |
 
 ***
@@ -122,7 +124,7 @@ With telemetry on (the default), each `update()` publishes to `YALL/<camera name
 | `rejectedPoses` | `Pose3d[]` | `MID` | Estimates the pose filter rejected. |
 | `rejectionReason` | `String` | `MID` | The last rejection reason. |
 | `latencyMillis` | `double` | `MID` | Latency of the newest frame. |
-| `stats/...` | | `MID` | The [`PoseFilterStats`](../filter/pose-filter-stats.md#networktables). |
+| `stats/...` | | `HIGH` | The [`PoseFilterStats`](../filter/pose-filter-stats.md#networktables). |
 | `targets/...` | `long[]`, `double[]` | `HIGH` | Every target's `fiducialIds`, `yawDegrees`, `pitchDegrees` and `areaPercent`. |
 
 ***
@@ -132,10 +134,10 @@ With telemetry on (the default), each `update()` publishes to `YALL/<camera name
 These are for vendor wrappers, not robot code.
 
 ```java
-protected VisionCamera(String name, VisionCameraConfig config, SimulatedCamera simulation)
+protected VisionCamera(String name, VisionCameraConfig config, PhotonCameraSim cameraSim)
 ```
 
-Sets up the parts every camera shares. `simulation` comes from [`SimulatedCamera.create(name, config, defaultModel, photonCameraOrNull)`](../sim/simulated-camera.md), which returns `null` when not simulating. Each wrapper passes its default [`CameraModel`](../sim/camera-model.md) there.
+Sets up the parts every camera shares. `cameraSim` comes from [`VisionSim.createCameraSim(name, config, defaultModel, photonCameraOrNull)`](../sim/vision-sim.md), which returns `null` when not simulating. Each wrapper passes its default [`CameraModel`](../sim/camera-model.md) there.
 
 | Member | Description |
 | --- | --- |
@@ -158,4 +160,3 @@ A PhotonVision-based wrapper can read frames with [`PhotonVisionFrames.read(...)
 * [VisionSystem](vision-system.md)
 * [VisionPoseFilter](../filter/vision-pose-filter.md)
 * [PoseFilterStats](../filter/pose-filter-stats.md)
-* [SimulatedCamera](../sim/simulated-camera.md)

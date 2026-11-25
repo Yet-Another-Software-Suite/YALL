@@ -14,7 +14,7 @@ icon: computer
 ## How it works
 
 * Every camera joins a simulated world, [`VisionSim`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim): a pretend field with the season's AprilTags.
-* Each camera gets its own [`SimulatedCamera`](https://yall.yassrobotics.com/api-reference/java-reference/sim/simulated-camera) in that world: a pretend camera with your camera's lens. `camera.getSimulation()` returns it, for PhotonVision settings YALL doesn't cover; it's empty on the real robot.
+* Each camera gets its own pretend camera in that world, with your camera's lens. `camera.getCameraSim()` returns it (a PhotonVision `PhotonCameraSim`), for PhotonVision settings YALL doesn't cover; it's empty on the real robot.
 * Every loop, you tell the world where the robot **really** is.
 * Each camera that is due a picture works out what it would see from there, adds a little noise and **latency** (the delay between taking a picture and the result reaching your code), and hands your code the result.
 * Your code reads it with the same `update()` it uses on the real robot. Nothing else changes.

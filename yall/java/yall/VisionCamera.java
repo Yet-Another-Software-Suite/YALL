@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.simulation.PhotonCameraSim;
 import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
@@ -30,18 +32,19 @@ import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
+import yall.cameras.PhotonVisionFrames;
 import yall.filter.PoseFilterStats;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
-import yall.sim.SimulatedCamera;
+import yall.sim.VisionSim;
 import yall.telemetry.VisionTelemetryConfig;
 import yall.telemetry.VisionTelemetryField;
 
 /**
  * A camera from any supported vendor, with one API for targets and robot pose estimates. On a real
- * robot it reads the vendor's library; in simulation it reads a {@link SimulatedCamera}, so the
- * same robot code runs in both.
+ * robot it reads the vendor's library; in simulation it reads a PhotonVision camera simulation in a
+ * {@link VisionSim} world, so the same robot code runs in both.
  *
  * <p>Create one with the wrapper for the camera's vendor:
  *
@@ -63,7 +66,10 @@ public abstract class VisionCamera implements AutoCloseable {
   /** The camera's config. */
   protected final VisionCameraConfig config;
 
-  private final SimulatedCamera simulation;
+  private final PhotonCameraSim cameraSim;
+  private final VisionSim visionSim;
+  private final PhotonPoseEstimator simPoseEstimator;
+  private int simPipelineIndex;
   private Transform3d robotToCamera;
 
   private List<VisionResult> results = List.of();
@@ -81,14 +87,21 @@ public abstract class VisionCamera implements AutoCloseable {
    *
    * @param name Name of the camera.
    * @param config The camera's config.
-   * @param simulation The camera's simulation, from {@link SimulatedCamera#create}, or null when
-   *     not simulating.
+   * @param cameraSim The camera's PhotonVision simulation, from {@link VisionSim#createCameraSim},
+   *     or null when not simulating.
    */
-  protected VisionCamera(String name, VisionCameraConfig config, SimulatedCamera simulation) {
+  protected VisionCamera(String name, VisionCameraConfig config, PhotonCameraSim cameraSim) {
     this.name = name;
     this.config = config;
-    this.simulation = simulation;
+    this.cameraSim = cameraSim;
     robotToCamera = config.getRobotToCamera().orElse(Transform3d.ZERO);
+    if (cameraSim != null) {
+      visionSim = config.getVisionSim().orElseGet(VisionSim::getDefault);
+      simPoseEstimator = new PhotonPoseEstimator(config.getField(), robotToCamera);
+    } else {
+      visionSim = null;
+      simPoseEstimator = null;
+    }
     telemetry = config.getTelemetryConfig().map(t -> new Telemetry(name, t)).orElse(null);
   }
 
@@ -150,7 +163,11 @@ public abstract class VisionCamera implements AutoCloseable {
    * filter's decisions and publishes telemetry. Call once per loop, before the getters.
    */
   public void update() {
-    List<VisionFrame> frames = simulation != null ? simulation.readFrames() : readFrames();
+    List<VisionFrame> frames =
+        cameraSim != null
+            ? PhotonVisionFrames.read(
+                name, cameraSim.getCamera(), simPoseEstimator, config.getPoseEstimationMode())
+            : readFrames();
     var field = config.getField();
     var filter = config.getPoseFilter();
     double now = Timer.getMonotonicTimestamp();
@@ -219,8 +236,8 @@ public abstract class VisionCamera implements AutoCloseable {
   private void setRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond) {
     this.yawRateDegreesPerSecond = yawRateDegreesPerSecond;
     double now = Timer.getMonotonicTimestamp();
-    if (simulation != null) {
-      simulation.addHeadingData(now, orientation);
+    if (cameraSim != null) {
+      simPoseEstimator.addHeadingData(now, orientation);
     } else {
       applyRobotOrientation(now, orientation, yawRateDegreesPerSecond);
     }
@@ -233,8 +250,9 @@ public abstract class VisionCamera implements AutoCloseable {
    */
   public void setRobotToCamera(Transform3d robotToCamera) {
     this.robotToCamera = robotToCamera;
-    if (simulation != null) {
-      simulation.setRobotToCamera(robotToCamera);
+    if (cameraSim != null) {
+      simPoseEstimator.setRobotToCameraTransform(robotToCamera);
+      visionSim.adjustCamera(cameraSim, robotToCamera);
     } else {
       applyRobotToCamera(robotToCamera);
     }
@@ -320,8 +338,8 @@ public abstract class VisionCamera implements AutoCloseable {
    * @param index Pipeline index.
    */
   public void setPipelineIndex(int index) {
-    if (simulation != null) {
-      simulation.setPipelineIndex(index);
+    if (cameraSim != null) {
+      simPipelineIndex = index;
     } else {
       applyPipelineIndex(index);
     }
@@ -333,7 +351,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return Pipeline index.
    */
   public int getPipelineIndex() {
-    return simulation != null ? simulation.getPipelineIndex() : readPipelineIndex();
+    return cameraSim != null ? simPipelineIndex : readPipelineIndex();
   }
 
   /**
@@ -342,7 +360,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return true if connected.
    */
   public boolean isConnected() {
-    return simulation != null || readConnected();
+    return cameraSim != null || readConnected();
   }
 
   /**
@@ -351,16 +369,35 @@ public abstract class VisionCamera implements AutoCloseable {
    * @return true in simulation with simulation enabled in the config.
    */
   public boolean isSimulated() {
-    return simulation != null;
+    return cameraSim != null;
   }
 
   /**
-   * The camera's simulation.
+   * The camera's PhotonVision simulation, for settings YALL doesn't cover.
    *
-   * @return The simulation, or empty when not simulating.
+   * @return The simulated camera, or empty when not simulating.
    */
-  public Optional<SimulatedCamera> getSimulation() {
-    return Optional.ofNullable(simulation);
+  public Optional<PhotonCameraSim> getCameraSim() {
+    return Optional.ofNullable(cameraSim);
+  }
+
+  /**
+   * The simulated world this camera is in.
+   *
+   * @return The world, or empty when not simulating.
+   */
+  public Optional<VisionSim> getVisionSim() {
+    return Optional.ofNullable(visionSim);
+  }
+
+  /**
+   * PhotonVision's pose estimator for this camera's simulated results, for settings YALL doesn't
+   * cover.
+   *
+   * @return The pose estimator, or empty when not simulating.
+   */
+  public Optional<PhotonPoseEstimator> getSimulatedPoseEstimator() {
+    return Optional.ofNullable(simPoseEstimator);
   }
 
   /**
@@ -502,8 +539,14 @@ public abstract class VisionCamera implements AutoCloseable {
   /** Removes the camera from simulation and closes its telemetry. */
   @Override
   public void close() {
-    if (simulation != null) {
-      simulation.close();
+    if (cameraSim != null) {
+      visionSim.removeCamera(cameraSim);
+      var photonCamera = cameraSim.getCamera();
+      cameraSim.close();
+      // Close the private camera made for a non-PhotonVision camera, not a team's own.
+      if (photonCamera.getName().equals(VisionSim.privateCameraName(name))) {
+        photonCamera.close();
+      }
     }
     if (telemetry != null) {
       telemetry.close();

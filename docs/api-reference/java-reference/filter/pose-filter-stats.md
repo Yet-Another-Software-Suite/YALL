@@ -56,7 +56,7 @@ The spread is how to find a camera's standard deviations: hold the robot still w
 
 ## NetworkTables
 
-With the [`FILTER_STATS`](../telemetry/vision-telemetry-field.md) telemetry field on (it is at the default `MID` verbosity), each camera publishes its stats under `YALL/<camera name>/stats/`:
+With the [`FILTER_STATS`](../telemetry/vision-telemetry-field.md) telemetry field on (it is on at `HIGH` verbosity, or turn it on by itself with `withField(VisionTelemetryField.FILTER_STATS, true)`), each camera publishes its stats under `YALL/<camera name>/stats/`:
 
 | Key | Type | Description |
 | --- | --- | --- |

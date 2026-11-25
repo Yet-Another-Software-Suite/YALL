@@ -9,7 +9,7 @@ A **standard deviation** says how far off a camera's position guess might be. YA
 ## Before you start
 
 * Finish [AprilTag Pose Estimation](apriltag-pose-estimation.md).
-* Leave telemetry at its default (`MID`) verbosity, so the stats are on NetworkTables. See [Telemetry](../understanding/telemetry.md).
+* The stats are on NetworkTables at `HIGH` telemetry verbosity. The code below turns that on; see [Telemetry](../understanding/telemetry.md).
 * The idea: if the robot doesn't move, every guess should be the same. How much they wobble anyway is the camera's real standard deviation at that distance.
 
 Every camera keeps [`PoseFilterStats`](https://yall.yassrobotics.com/api-reference/java-reference/filter/pose-filter-stats): what its [`VisionPoseFilter`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter) kept and threw out, by check, and how much the kept guesses wobble. Read them in code with `camera.getFilterStats()`, or on a dashboard under `YALL/<camera name>/stats/`.
@@ -90,7 +90,7 @@ A check you add with `withCustomCheck("name", ...)` must have a name. Its reject
 
 ## If it did not work
 
-* **`stats/` isn't on the dashboard:** the camera's telemetry is off or at `LOW`. Turn the `FILTER_STATS` field on, as in [Telemetry](../understanding/telemetry.md).
+* **`stats/` isn't on the dashboard:** the camera's telemetry is off or below `HIGH`. Turn the `FILTER_STATS` field on, as in [Telemetry](../understanding/telemetry.md).
 * **`stats/sampleCount` stays at 0:** every guess is being thrown out. Look at `stats/rejectedBy` to see which check, and loosen it while you measure.
 * **`stats/stdDevs` keeps growing:** something is moving: the robot, the camera mount or the tag. Check the camera is fastened tightly.
 * **More problems:** [Troubleshooting](../how-to-guides/troubleshooting.md).
@@ -119,6 +119,8 @@ import yall.VisionCameraConfig;
 import yall.cameras.PhotonVisionWrapper;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
+import yall.telemetry.TelemetryVerbosity;
+import yall.telemetry.VisionTelemetryConfig;
 
 public class Robot extends TimedRobot {
   // In simulation, the robot stands still 3 m in front of the blue alliance wall, facing it.
@@ -131,7 +133,10 @@ public class Robot extends TimedRobot {
               .withCameraModel(CameraModel.ARDUCAM_OV9281)
               .withRobotToCamera(
                   Inches.of(12), Inches.zero(), Inches.of(10),
-                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+                  Degrees.zero(), Degrees.of(-15), Degrees.zero())
+              // The pose filter stats are published at HIGH verbosity.
+              .withTelemetry(
+                  new VisionTelemetryConfig().withVerbosity(TelemetryVerbosity.HIGH)));
 
   @Override
   public void robotPeriodic() {
@@ -172,6 +177,8 @@ import yall.VisionCameraConfig;
 import yall.cameras.PhotonVisionWrapper;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
+import yall.telemetry.TelemetryVerbosity;
+import yall.telemetry.VisionTelemetryConfig;
 
 public class Robot extends OpModeRobot {
   // In simulation, the robot stands still 3 m in front of the blue alliance wall, facing it.
@@ -184,7 +191,10 @@ public class Robot extends OpModeRobot {
               .withCameraModel(CameraModel.ARDUCAM_OV9281)
               .withRobotToCamera(
                   Inches.of(12), Inches.zero(), Inches.of(10),
-                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+                  Degrees.zero(), Degrees.of(-15), Degrees.zero())
+              // The pose filter stats are published at HIGH verbosity.
+              .withTelemetry(
+                  new VisionTelemetryConfig().withVerbosity(TelemetryVerbosity.HIGH)));
 
   @Override
   public void robotPeriodic() {

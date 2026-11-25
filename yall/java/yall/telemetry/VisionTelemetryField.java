@@ -21,7 +21,7 @@ public enum VisionTelemetryField {
    * rate) and the spread of the accepted poses (mean, standard deviations, sample count). Set {@code
    * stats/reset} to true to start counting again.
    */
-  FILTER_STATS(TelemetryVerbosity.MID),
+  FILTER_STATS(TelemetryVerbosity.HIGH),
   /** {@code targets/...}: every target's ID, yaw, pitch and area. */
   TARGETS(TelemetryVerbosity.HIGH);
 

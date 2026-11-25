@@ -16,7 +16,7 @@ import yall.results.VisionTarget;
 
 /**
  * Turns PhotonVision results into YALL frames. {@link PhotonVisionWrapper} uses it on real robots,
- * and {@link yall.sim.SimulatedCamera} uses it for every simulated camera.
+ * and {@link yall.VisionCamera} uses it for every simulated camera.
  */
 public final class PhotonVisionFrames {
 

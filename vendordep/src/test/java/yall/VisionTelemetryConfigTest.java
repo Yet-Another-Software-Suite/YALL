@@ -15,10 +15,14 @@ class VisionTelemetryConfigTest {
   void verbosityTurnsOnItsFieldsAndTheOnesBelow() {
     var low = new VisionTelemetryConfig().withVerbosity(TelemetryVerbosity.LOW);
     assertTrue(low.isEnabled(VisionTelemetryField.ACCEPTED_POSES));
+    assertFalse(low.isEnabled(VisionTelemetryField.REJECTED_POSES));
     assertFalse(low.isEnabled(VisionTelemetryField.FILTER_STATS));
     var mid = new VisionTelemetryConfig();
-    assertTrue(mid.isEnabled(VisionTelemetryField.FILTER_STATS));
-    assertFalse(mid.isEnabled(VisionTelemetryField.TARGETS));
+    assertTrue(mid.isEnabled(VisionTelemetryField.REJECTED_POSES));
+    assertFalse(mid.isEnabled(VisionTelemetryField.FILTER_STATS));
+    var high = new VisionTelemetryConfig().withVerbosity(TelemetryVerbosity.HIGH);
+    assertTrue(high.isEnabled(VisionTelemetryField.FILTER_STATS));
+    assertTrue(high.isEnabled(VisionTelemetryField.TARGETS));
   }
 
   @Test
@@ -26,9 +30,9 @@ class VisionTelemetryConfigTest {
     var config =
         new VisionTelemetryConfig()
             .withVerbosity(TelemetryVerbosity.LOW)
-            .withField(VisionTelemetryField.FILTER_STATS, true)
+            .withField(VisionTelemetryField.TARGETS, true)
             .withField(VisionTelemetryField.CONNECTED, false);
-    assertTrue(config.isEnabled(VisionTelemetryField.FILTER_STATS));
+    assertTrue(config.isEnabled(VisionTelemetryField.TARGETS));
     assertFalse(config.isEnabled(VisionTelemetryField.CONNECTED));
   }
 

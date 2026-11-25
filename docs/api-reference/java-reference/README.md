@@ -20,7 +20,7 @@ import yall.cameras.PhotonVisionWrapper;
 | `yall.cameras` | The vendor wrappers: [`PhotonVisionWrapper`](cameras/photonvision-wrapper.md), [`LimelightWrapper`](cameras/limelight-wrapper.md), [`SynapseWrapper`](cameras/synapse-wrapper.md); and [`PhotonVisionFrames`](cameras/photonvision-frames.md) |
 | `yall.filter` | [`VisionPoseFilter`](filter/vision-pose-filter.md), [`PoseFilterStats`](filter/pose-filter-stats.md) |
 | `yall.results` | [`VisionResult`](results/vision-result.md), [`VisionTarget`](results/vision-target.md), [`VisionPoseEstimate`](results/vision-pose-estimate.md) |
-| `yall.sim` | [`VisionSim`](sim/vision-sim.md), [`CameraModel`](sim/camera-model.md), [`SimulatedCamera`](sim/simulated-camera.md) |
+| `yall.sim` | [`VisionSim`](sim/vision-sim.md), [`CameraModel`](sim/camera-model.md) |
 | `yall.telemetry` | [`VisionTelemetryConfig`](telemetry/vision-telemetry-config.md), [`VisionTelemetryField`](telemetry/vision-telemetry-field.md), [`TelemetryVerbosity`](telemetry/telemetry-verbosity.md) |
 
 ## Where to Start
@@ -70,7 +70,6 @@ From there:
 * yall.sim
   * [VisionSim](sim/vision-sim.md)
   * [CameraModel](sim/camera-model.md)
-  * [SimulatedCamera](sim/simulated-camera.md)
 * yall.telemetry
   * [VisionTelemetryConfig](telemetry/vision-telemetry-config.md)
   * [VisionTelemetryField](telemetry/vision-telemetry-field.md)

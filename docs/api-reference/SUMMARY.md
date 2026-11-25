@@ -26,7 +26,6 @@
 * yall.sim
   * [VisionSim](java-reference/sim/vision-sim.md)
   * [CameraModel](java-reference/sim/camera-model.md)
-  * [SimulatedCamera](java-reference/sim/simulated-camera.md)
 * yall.telemetry
   * [VisionTelemetryConfig](java-reference/telemetry/vision-telemetry-config.md)
   * [VisionTelemetryField](java-reference/telemetry/vision-telemetry-field.md)

@@ -83,3 +83,14 @@ Each simulated [`VisionCamera`](../yall/vision-camera.md) gets a PhotonVision `P
 
 * [CameraModel](camera-model.md)
 * [VisionCamera](../yall/vision-camera.md)
+
+***
+
+## Making a camera's simulation
+
+Vendor wrappers call these; robot code doesn't need to.
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `static createCameraSim(String name, VisionCameraConfig config, CameraModel defaultModel, PhotonCamera camera)` | `PhotonCameraSim` | Makes the PhotonVision simulation of a camera, from the config's camera properties (or `defaultModel`), and adds it to the config's world (or the default one). `camera` is the PhotonVision camera it publishes to, or `null` to make a private one named `YALL-<name>`. Returns `null` when the robot program isn't in simulation or the config turned simulation off. |
+| `static privateCameraName(String cameraName)` | `String` | `YALL-<cameraName>`, the name of that private camera. |

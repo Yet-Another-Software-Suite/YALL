@@ -23,7 +23,7 @@ Turn single fields on or off with [`VisionTelemetryConfig.withField`](vision-tel
 | `REJECTED_POSES` | `MID` | `rejectedPoses` (`Pose3d[]`): estimates the filter rejected in the last update. |
 | `REJECTION_REASON` | `MID` | `rejectionReason` (`String`): why the filter last rejected an estimate. |
 | `LATENCY` | `MID` | `latencyMillis` (`double`): the newest frame's latency. |
-| `FILTER_STATS` | `MID` | `stats/...`: the [`PoseFilterStats`](../filter/pose-filter-stats.md#networktables). |
+| `FILTER_STATS` | `HIGH` | `stats/...`: the [`PoseFilterStats`](../filter/pose-filter-stats.md#networktables). |
 | `TARGETS` | `HIGH` | `targets/fiducialIds` (`long[]`), `targets/yawDegrees`, `targets/pitchDegrees`, `targets/areaPercent` (`double[]`): every target in the newest frame. |
 
 | Method | Returns | Description |

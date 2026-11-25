@@ -24,7 +24,7 @@ import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
 import yall.sim.CameraModel;
-import yall.sim.SimulatedCamera;
+import yall.sim.VisionSim;
 
 /**
  * A Limelight, through LimelightLib 2.
@@ -61,7 +61,7 @@ public class LimelightWrapper extends VisionCamera {
     super(
         limelight.getName(),
         config,
-        SimulatedCamera.create(limelight.getName(), config, CameraModel.LIMELIGHT_4, null));
+        VisionSim.createCameraSim(limelight.getName(), config, CameraModel.LIMELIGHT_4, null));
     this.limelight = limelight;
     config.getVendorConfig().ifPresent(this::applyVendorConfig);
     if (!isSimulated()) {

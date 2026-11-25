@@ -1,15 +1,19 @@
 package yall.sim;
 
 import java.util.Optional;
+import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
+import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.smartdashboard.Field2d;
+import yall.VisionCameraConfig;
 
 /**
  * The simulated world every simulated {@link yall.VisionCamera} sees, whatever its vendor. It is
@@ -64,6 +68,48 @@ public class VisionSim {
    */
   public static synchronized void setDefault(VisionSim sim) {
     defaultSim = sim;
+  }
+
+  /**
+   * Makes the PhotonVision simulation of a camera and adds it to the camera's world (the config's,
+   * or {@link #getDefault()}), if the robot program runs in simulation and the config allows it.
+   * Camera wrappers call this; robot code doesn't need to.
+   *
+   * @param name Name of the camera.
+   * @param config The camera's config.
+   * @param defaultModel Camera to simulate when the config sets no camera properties.
+   * @param camera PhotonVision camera the simulation publishes to, or null to make a private one
+   *     named {@code YALL-<name>}.
+   * @return The simulated camera, or null when not simulating.
+   */
+  public static PhotonCameraSim createCameraSim(
+      String name, VisionCameraConfig config, CameraModel defaultModel, PhotonCamera camera) {
+    if (!RobotBase.isSimulation() || !config.isSimulationEnabled()) {
+      return null;
+    }
+    var photonCamera = camera != null ? camera : new PhotonCamera(privateCameraName(name));
+    SimCameraProperties properties =
+        config.getCameraProperties().orElseGet(defaultModel::getSimCameraProperties);
+    var cameraSim = new PhotonCameraSim(photonCamera, properties, config.getField());
+    cameraSim.enableRawStream(config.isSimulatedVideoStreamsEnabled());
+    cameraSim.enableProcessedStream(config.isSimulatedVideoStreamsEnabled());
+    cameraSim.enableDrawWireframe(
+        config.isSimulatedVideoStreamsEnabled() && config.isSimulatedWireframeEnabled());
+    config
+        .getVisionSim()
+        .orElseGet(VisionSim::getDefault)
+        .addCamera(cameraSim, config.getRobotToCamera().orElse(Transform3d.ZERO));
+    return cameraSim;
+  }
+
+  /**
+   * Name of the private PhotonVision camera made for a camera that isn't a PhotonVision camera.
+   *
+   * @param cameraName Name of the camera.
+   * @return {@code YALL-<cameraName>}.
+   */
+  public static String privateCameraName(String cameraName) {
+    return "YALL-" + cameraName;
   }
 
   /**

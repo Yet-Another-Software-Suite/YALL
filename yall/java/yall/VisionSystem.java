@@ -136,7 +136,7 @@ public class VisionSystem implements AutoCloseable {
    */
   public void updateSimulation(Pose2d robotPose) {
     var sims = new LinkedHashSet<VisionSim>();
-    cameras.forEach(c -> c.getSimulation().ifPresent(sim -> sims.add(sim.getVisionSim())));
+    cameras.forEach(c -> c.getVisionSim().ifPresent(sims::add));
     sims.forEach(sim -> sim.update(robotPose));
   }
 

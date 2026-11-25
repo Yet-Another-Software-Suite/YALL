@@ -12,7 +12,7 @@ In short: turns PhotonVision's results into YALL's.
 public final class PhotonVisionFrames
 ```
 
-Turns PhotonVision results into YALL frames. [`PhotonVisionWrapper`](photonvision-wrapper.md) uses it on real robots, and [`SimulatedCamera`](../sim/simulated-camera.md) uses it for every simulated camera, whatever its vendor. Robot code doesn't need it; it is for wrappers built on PhotonVision.
+Turns PhotonVision results into YALL frames. [`PhotonVisionWrapper`](photonvision-wrapper.md) uses it on real robots, and every simulated [`VisionCamera`](../yall/vision-camera.md) uses it for every simulated camera, whatever its vendor. Robot code doesn't need it; it is for wrappers built on PhotonVision.
 
 ***
 
@@ -38,4 +38,3 @@ Turns PhotonVision results into YALL frames. [`PhotonVisionWrapper`](photonvisio
 ## Read more
 
 * [PhotonVisionWrapper](photonvision-wrapper.md)
-* [SimulatedCamera](../sim/simulated-camera.md)

@@ -19,7 +19,7 @@ Each camera publishes to NetworkTables under `YALL/<camera name>`, updated by ev
 | `rejectedPoses` | `Pose3d[]` | `MID` | Estimates from the last `update()` the filter rejected |
 | `rejectionReason` | string | `MID` | Why the filter last rejected an estimate, for example `tags too far` |
 | `latencyMillis` | double | `MID` | The newest frame's latency |
-| `stats/...` | | `MID` | The pose filter stats: counts, `rejectedBy/<check>`, spread and a `reset` switch. See [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md). |
+| `stats/...` | | `HIGH` | The pose filter stats: counts, `rejectedBy/<check>`, spread and a `reset` switch. See [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md). |
 | `targets/fiducialIds`, `targets/yawDegrees`, `targets/pitchDegrees`, `targets/areaPercent` | arrays | `HIGH` | Every target in the newest frame |
 
 [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) publishes `YALL/fusedPose` (`Pose3d`) when it has one.

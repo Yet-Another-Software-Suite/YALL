@@ -102,7 +102,7 @@ photon.setLED(VisionLEDMode.kOff);
 photon.takeOutputSnapshot();
 ```
 
-PhotonVision's pose estimator for the real camera's results is `front.getPhotonPoseEstimator()`. In simulation, the camera's [`SimulatedCamera`](https://yall.yassrobotics.com/api-reference/java-reference/sim/simulated-camera) simulates this same `PhotonCamera`: reach it with `front.getSimulation()`, which has the PhotonVision simulated camera (`getCameraSim()`) and the pose estimator for simulated results (`getPhotonPoseEstimator()`).
+PhotonVision's pose estimator for the real camera's results is `front.getPhotonPoseEstimator()`. In simulation, the camera's PhotonVision simulation publishes to this same `PhotonCamera`: reach it with `front.getCameraSim()`, and the pose estimator for simulated results with `front.getSimulatedPoseEstimator()`.
 
 ## Synapse
 

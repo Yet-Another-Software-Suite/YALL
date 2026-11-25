@@ -24,7 +24,7 @@ import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
 import yall.sim.CameraModel;
-import yall.sim.SimulatedCamera;
+import yall.sim.VisionSim;
 
 /**
  * A Synapse camera.
@@ -60,7 +60,8 @@ public class SynapseWrapper extends VisionCamera {
     super(
         camera.getCameraName(),
         config,
-        SimulatedCamera.create(camera.getCameraName(), config, CameraModel.ARDUCAM_OV9281, null));
+        VisionSim.createCameraSim(
+            camera.getCameraName(), config, CameraModel.ARDUCAM_OV9281, null));
     this.camera = camera;
     config
         .getVendorConfig()

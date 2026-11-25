@@ -43,7 +43,7 @@ Throws `IllegalArgumentException` if the config has a vendor config: PhotonVisio
 | Method | Returns | Description |
 | --- | --- | --- |
 | `getCamera()` | `PhotonCamera` | The PhotonVision camera. |
-| `getPhotonPoseEstimator()` | `PhotonPoseEstimator` | PhotonVision's pose estimator for this camera's real results, for settings YALL doesn't cover. In simulation the simulation has its own: [`SimulatedCamera.getPhotonPoseEstimator()`](../sim/simulated-camera.md). |
+| `getPhotonPoseEstimator()` | `PhotonPoseEstimator` | PhotonVision's pose estimator for this camera's real results, for settings YALL doesn't cover. In simulation, the simulated results have their own: [`getSimulatedPoseEstimator()`](../yall/vision-camera.md). |
 
 Every other method comes from [`VisionCamera`](../yall/vision-camera.md).
 
@@ -53,7 +53,7 @@ Every other method comes from [`VisionCamera`](../yall/vision-camera.md).
 
 * **Results:** read with `PhotonCamera.getAllUnreadResults()`, which hands each result out only once. Let the wrapper read them; read results from the wrapper, not from `getCamera()`.
 * **Pose estimates:** from the wrapper's own `PhotonPoseEstimator`, through [`PhotonVisionFrames`](photonvision-frames.md): the coprocessor's multi-tag result, then the lowest-ambiguity tag. With `HEADING_ASSISTED`, the PnP distance trig solve comes first. `setRobotOrientation` adds heading data to it, and `setRobotToCamera` moves its camera offset.
-* **Simulation:** the wrapper's [`SimulatedCamera`](../sim/simulated-camera.md) simulates this same `PhotonCamera`, so code that uses `getCamera()` directly sees simulated results too.
+* **Simulation:** the camera's PhotonVision simulation ([`getCameraSim()`](../yall/vision-camera.md)) publishes to this same `PhotonCamera`, so code that uses `getCamera()` directly sees simulated results too.
 * **Pipeline and connection:** `PhotonCamera.setPipelineIndex`, `getPipelineIndex` and `isConnected`.
 * **Default camera model:** [`CameraModel.ARDUCAM_OV9281`](../sim/camera-model.md).
 

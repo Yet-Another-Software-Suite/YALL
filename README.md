@@ -273,8 +273,8 @@ verbosity, set with `withTelemetry(new VisionTelemetryConfig().withVerbosity(...
 | Verbosity | Publishes |
 | --- | --- |
 | `LOW` | `connected`, `hasTargets`, `targetCount`, `acceptedPoses` |
-| `MID` (default) | also `rejectedPoses`, `rejectionReason`, `latencyMillis` and the pose filter stats under `stats/` |
-| `HIGH` | also every target's ID, yaw, pitch and area under `targets/` |
+| `MID` (default) | also `rejectedPoses`, `rejectionReason` and `latencyMillis` |
+| `HIGH` | also the pose filter stats under `stats/` and every target's ID, yaw, pitch and area under `targets/` |
 
 `withField(...)` turns single fields on or off, `withTablePath(...)` moves the table, and
 `withTelemetry(false)` turns it off. `VisionSystem` publishes `YALL/fusedPose`.
@@ -282,7 +282,8 @@ verbosity, set with `withTelemetry(new VisionTelemetryConfig().withVerbosity(...
 ### Pose filter stats
 
 Each camera counts what its pose filter accepts and rejects (by check), and measures how spread
-out the accepted poses are: `camera.getFilterStats()`, also published under `stats/`. Hold the
+out the accepted poses are: `camera.getFilterStats()`, also published under `stats/` at `HIGH`
+verbosity (or with `withField(VisionTelemetryField.FILTER_STATS, true)`). Hold the
 robot still where it sees tags, set `stats/reset` to true, wait a few seconds, then read
 `stats/stdDevs`: that is the camera's real standard deviation at that distance.
 `stats/suggestedBaseStdDevs` turns it into the base for `VisionPoseFilter.withStdDevs(...)`.

@@ -9,7 +9,7 @@ import yall.VisionCamera;
 import yall.VisionCameraConfig;
 import yall.VisionFrame;
 import yall.sim.CameraModel;
-import yall.sim.SimulatedCamera;
+import yall.sim.VisionSim;
 
 /**
  * A PhotonVision camera.
@@ -41,7 +41,7 @@ public class PhotonVisionWrapper extends VisionCamera {
     super(
         camera.getName(),
         config,
-        SimulatedCamera.create(camera.getName(), config, CameraModel.ARDUCAM_OV9281, camera));
+        VisionSim.createCameraSim(camera.getName(), config, CameraModel.ARDUCAM_OV9281, camera));
     this.camera = camera;
     poseEstimator = new PhotonPoseEstimator(config.getField(), getRobotToCamera());
     config
@@ -89,7 +89,7 @@ public class PhotonVisionWrapper extends VisionCamera {
 
   /**
    * PhotonVision's pose estimator for this camera's real results, for settings YALL doesn't cover.
-   * In simulation, the simulation has its own: see {@link SimulatedCamera#getPhotonPoseEstimator()}.
+   * In simulation, the simulation has its own: see {@link VisionCamera#getSimulatedPoseEstimator()}.
    *
    * @return The pose estimator.
    */
