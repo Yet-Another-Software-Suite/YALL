@@ -75,12 +75,15 @@ class SimulatedCamerasTest {
             new LimelightWrapper(new Limelight("limelight-" + mode), config(sim, mode)),
             new SynapseWrapper(new SynapseCamera("synapse-" + mode), config(sim, mode)))) {
       var estimates = new ArrayList<VisionPoseEstimate>();
+      // The fused pose only covers the last update, which may have no new frame, so keep every one.
+      var fused = new ArrayList<VisionPoseEstimate>();
       for (int i = 0; i < 50; i++) {
         SimHooks.stepTiming(0.02);
         vision.updateSimulation(robot);
         vision.setRobotOrientation(robot.getRotation());
         vision.update();
         estimates.addAll(vision.getEstimatedPoses());
+        vision.getFusedPose().ifPresent(fused::add);
       }
       for (VisionCamera camera : vision.getCameras()) {
         assertTrue(camera.isSimulated(), camera.getName());
@@ -104,9 +107,11 @@ class SimulatedCamerasTest {
           assertEquals(mode == PoseEstimationMode.HEADING_ASSISTED, e.headingAssisted());
         }
       }
-      var fused = vision.getFusedPose();
-      assertTrue(fused.isPresent());
-      assertTrue(fused.get().pose2d().getTranslation().getDistance(robot.getTranslation()) < 0.25);
+      assertFalse(fused.isEmpty(), "no fused pose");
+      for (VisionPoseEstimate e : fused) {
+        double error = e.pose2d().getTranslation().getDistance(robot.getTranslation());
+        assertTrue(error < 0.25, "fused pose is " + error + " m off");
+      }
     }
   }
 
