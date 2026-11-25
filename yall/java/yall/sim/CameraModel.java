@@ -11,14 +11,17 @@ import org.wpilib.math.util.Nat;
  * Published specs of common FRC vision cameras, for simulating them. Pass one to {@link
  * yall.VisionCameraConfig#withCameraModel(CameraModel)}.
  *
- * <p>Each model simulates the resolution and frame rate its vendor gives for AprilTag tracking, with
- * the vendor's horizontal and vertical field of view. Vendors don't publish fixed latencies, so
- * every model uses an estimate; Limelights report their real latency at runtime.
+ * <p>Each model simulates its vendor's horizontal and vertical field of view. Smart cameras
+ * (Limelight, Luma) run at the AprilTag frame rate their vendor publishes. USB cameras run at their
+ * full-resolution capture rate; the coprocessor may track AprilTags slower, so lower it with {@link
+ * yall.VisionCameraConfig#withCameraProperties} if yours does. Vendors don't publish fixed latencies,
+ * so every model uses an estimate; Limelights report their real latency at runtime.
  *
  * <p>Sources: the Limelight quick-start pages and hardware comparison at
  * https://docs.limelightvision.io/docs/docs-limelight/getting-started/, the Luma P1 docs at
- * https://docs.luma.vision/p1/ and Luma P2 page at https://luma.vision/products/luma-p2, and
- * Arducam's B0332 listing.
+ * https://docs.luma.vision/p1/ and Luma P2 page at https://luma.vision/products/luma-p2, The Thrifty
+ * Bot's docs at https://docs.thethriftybot.com/thriftycam and
+ * https://docs.thethriftybot.com/thriftiest-cam, and Arducam's B0332 quick start guide.
  */
 public enum CameraModel {
   /** Limelight 2: OV5647, 62.5° by 48.9°, AprilTags at about 6 fps at 1280x960. */
@@ -45,11 +48,19 @@ public enum CameraModel {
   /** Luma P2: the same camera and performance as the Luma P1. */
   LUMA_P2(1280, 800, 80, 56, 60, 20),
   /**
-   * Arducam B0332, the common OV9281 USB camera for PhotonVision: 1280x800, 70° horizontal field of
-   * view. Arducam doesn't give the vertical field of view, so it comes from the 16:10 sensor:
-   * 47.3°. The frame rate depends on the coprocessor; 30 fps is a typical AprilTag rate.
+   * ThriftyCam with its stock 80° lens: OmniVision OG02B1B global shutter, 1600x1304 at 70 fps
+   * (firmware 5.10 or newer). The lens is specified as 71° by 48° on a different image size; on this
+   * sensor its 4.1 mm focal length and 3 µm pixels give 60.7° by 51°, which this simulates.
    */
-  ARDUCAM_B0332(1280, 800, 70, 47.3, 30, 30);
+  THRIFTYCAM(1600, 1304, 60.7, 51.0, 70, 30),
+  /** Thriftiest Cam: OV9281 global shutter, 1280x800 at 120 fps, 82° by 56°. */
+  THRIFTIEST_CAM(1280, 800, 82, 56, 120, 30),
+  /**
+   * Arducam OV9281 USB camera (B0332), the common PhotonVision camera: 1280x800 at 100 fps, 70°
+   * horizontal field of view. Arducam's manual says 120 fps and resellers say 100, so this uses
+   * 100. Arducam doesn't give the vertical field of view, so it comes from the 16:10 sensor: 47.3°.
+   */
+  ARDUCAM_OV9281(1280, 800, 70, 47.3, 100, 30);
 
   private final int widthPixels;
   private final int heightPixels;

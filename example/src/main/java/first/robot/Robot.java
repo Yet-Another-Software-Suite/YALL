@@ -97,7 +97,7 @@ public class Robot extends TimedRobot {
         new SynapseWrapper(
             new SynapseCamera("side"),
             new VisionCameraConfig()
-                .withCameraModel(CameraModel.ARDUCAM_B0332)
+                .withCameraModel(CameraModel.ARDUCAM_OV9281)
                 // 12" left, facing left.
                 .withRobotToCamera(
                     Inches.zero(),

@@ -66,13 +66,13 @@ public class PhotonVisionWrapper extends VisionCamera {
   }
 
   /**
-   * An Arducam B0332, the common OV9281 USB camera for PhotonVision.
+   * An Arducam OV9281 USB camera, the common PhotonVision camera.
    *
    * @return Camera properties.
    */
   @Override
   protected SimCameraProperties defaultCameraProperties() {
-    return CameraModel.ARDUCAM_B0332.getSimCameraProperties();
+    return CameraModel.ARDUCAM_OV9281.getSimCameraProperties();
   }
 
   @Override

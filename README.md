@@ -60,7 +60,7 @@ public class Drivetrain extends SubsystemBase {
           new PhotonCamera("front"),
           new VisionCameraConfig()
               // The real camera, so simulation sees what it would.
-              .withCameraModel(CameraModel.ARDUCAM_B0332)
+              .withCameraModel(CameraModel.ARDUCAM_OV9281)
               // 12" forward of center, centered, 10" up, tilted 15° up.
               .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
                                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
@@ -224,13 +224,23 @@ resolution, field of view and AprilTag frame rate:
 | `LIMELIGHT_4` | 1280x800 | 82° × 56.2° | 40 |
 | `LUMA_P1` | 1280x800 | 80° × 56° | 60 |
 | `LUMA_P2` | 1280x800 | 80° × 56° | 60 |
-| `ARDUCAM_B0332` | 1280x800 | 70° × 47.3° | 30 |
+| `THRIFTYCAM` | 1600x1304 | 60.7° × 51° | 70 |
+| `THRIFTIEST_CAM` | 1280x800 | 82° × 56° | 120 |
+| `ARDUCAM_OV9281` | 1280x800 | 70° × 47.3° | 100 |
 
-The specs come from Limelight's, Luma's and Arducam's published pages. The Arducam's vertical field
-of view follows from its 16:10 sensor, and its frame rate depends on the coprocessor. Latencies
-aren't published, so they are estimates. Without a model, a Limelight is simulated as a Limelight 4
-and the others as an Arducam B0332. For other cameras, pass PhotonVision camera properties to
-`withCameraProperties(...)`. Add game pieces for object detection
+The specs come from Limelight's, Luma's, The Thrifty Bot's and Arducam's published pages:
+
+- **Frame rates:** Limelights and Lumas run at the AprilTag rate their vendor publishes. USB
+  cameras (ThriftyCam, Thriftiest Cam, Arducam) run at their full-resolution capture rate; lower it
+  with `withCameraProperties(...)` if your coprocessor tracks AprilTags slower.
+- **ThriftyCam:** its stock lens is specified as 71° × 48° on a different image size. On the
+  ThriftyCam's sensor, its 4.1 mm focal length gives 60.7° × 51°.
+- **Arducam OV9281 (B0332):** Arducam gives only the 70° horizontal field of view, so the vertical
+  one follows from the 16:10 sensor. Arducam's manual says 120 fps and resellers say 100.
+- **Latency:** no vendor publishes one, so these are estimates.
+
+Without a model, a Limelight is simulated as a Limelight 4 and the others as an Arducam OV9281. For
+other cameras, pass PhotonVision camera properties to `withCameraProperties(...)`. Add game pieces for object detection
 with `VisionSim.getDefault().addVisionTargets(...)`.
 
 ### Vendor settings

@@ -190,7 +190,7 @@ public class SynapseWrapper extends VisionCamera {
   }
 
   /**
-   * An Arducam B0332 OV9281 USB camera. Set the real camera with {@link
+   * An Arducam OV9281 USB camera. Set the real camera with {@link
    * VisionCameraConfig#withCameraModel} or {@link VisionCameraConfig#withCameraProperties}: Synapse
    * needs it to turn pixels into angles.
    *
@@ -198,7 +198,7 @@ public class SynapseWrapper extends VisionCamera {
    */
   @Override
   protected SimCameraProperties defaultCameraProperties() {
-    return CameraModel.ARDUCAM_B0332.getSimCameraProperties();
+    return CameraModel.ARDUCAM_OV9281.getSimCameraProperties();
   }
 
   @Override
