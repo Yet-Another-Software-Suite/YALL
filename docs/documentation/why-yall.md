@@ -4,70 +4,40 @@ icon: rocket
 
 # Why YALL?
 
-## The problem with LimelightHelpers
+## One API for every camera
 
-LimelightVision publishes [`LimelightHelpers`](https://github.com/LimelightVision/limelightlib-wpijava) as a single drop-in `.java` file, a set of static methods keyed by raw NetworkTables entry names (`ledMode`, `pipeline_set`, `botpose_wpiblue`, `rawfiducials`, ...). It's simple, but that simplicity has costs:
+PhotonVision, Limelight and Synapse each have their own library, with their own result types, angle conventions, pose estimation calls and timestamps. Switching vendors, or running two vendors on one robot, means writing the vision code twice.
 
-* Every call re-fetches an NT entry, so no typed object holds settings or results for you.
-* MegaTag1 vs. MegaTag2, alliance color, and coordinate frame are separate helper methods, easy to mix up.
-* Results decode into loose arrays and parallel static fields, not classes.
-* There's no chaining, since configuring a camera means many independent one-line calls with no obvious grouping.
-* AprilTag ambiguity, standard deviations, and per-tag detail live in different places depending on which method you called.
-
-## What YALL replaces it with
-
-YALL models the same underlying NetworkTables API as **one object per camera**, with typed sub-objects for every concern:
+YALL wraps each vendor's camera object in a `VisionCamera`, the way YAMS wraps motor controllers:
 
 ```java
-Limelight limelight = new Limelight("limelight");
-
-limelight.getSettings()
-         .withLimelightLEDMode(LEDMode.PipelineControl)
-         .withCameraOffset(cameraOffset)
-         .save();
-
-LimelightPoseEstimator poseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
+VisionCamera front = new PhotonVisionWrapper(new PhotonCamera("front"), frontConfig);
+VisionCamera back = new LimelightWrapper(new Limelight("limelight-back"), backConfig);
+VisionCamera side = new SynapseWrapper(new SynapseCamera("side"), sideConfig);
 ```
 
-* **`Limelight`**: one per physical camera, resolves and validates its NT table by name.
-* **`LimelightSettings`**: every writable setting as a chainable `.withXXXX()` call.
-* **`LimelightPoseEstimator`** / **`PoseEstimate`**: MegaTag1/MegaTag2 pose, alliance-aware, with per-tag ambiguity already decoded for filtering.
-* **`LimelightResults`**: the full JSON frame, with typed arrays for every pipeline type instead of parallel loose fields.
-* **`LimelightData`**: direct, cheap NetworkTables reads (raw fiducials/detections, barcodes, Python I/O) for callers who don't need the full JSON parse.
+Every camera then reads the same way:
 
-## MegaTag2 done correctly
+* **Targets** come back as `VisionTarget`: yaw, pitch, area, AprilTag ID, object class and confidence.
+* **Robot poses** come back as `VisionPoseEstimate`: pose, capture timestamp, tags used, tag distance, ambiguity and standard deviations.
+* **Pipelines, connection state and the camera's position on the robot** use the same methods for every vendor.
 
-MegaTag2 requires the robot to submit its current heading to the Limelight every loop _before_ reading a pose estimate, a step that's easy to get wrong or forget with raw NetworkTables calls. YALL makes the requirement explicit through the API:
+## Simulation for every vendor
 
-```java
-limelight.getSettings()
-         .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
-                                                  new AngularVelocity3d(DegreesPerSecond.of(gyro.getPitchVelocity()),
-                                                                        DegreesPerSecond.of(gyro.getRollVelocity()),
-                                                                        DegreesPerSecond.of(gyro.getYawVelocity()))))
-         .save();
+Limelight and Synapse have no simulation of their own. YALL simulates every camera with PhotonVision's camera simulation: AprilTags and game pieces are projected through a simulated lens, with noise and latency. In simulation, a `LimelightWrapper` returns simulated results through the same methods it uses on the robot.
 
-Optional<PoseEstimate> visionEstimate = limelight.createPoseEstimator(EstimationMode.MEGATAG2).getPoseEstimate();
-```
+## Pose filtering built in
 
-`PoseEstimate` carries `tagCount`, `avgTagDist`, `avgTagArea`, and per-tag `RawFiducial` ambiguity so you can gate `addVisionMeasurement` calls without hand-rolling the array decoding yourself. See [Pose Estimation & Ambiguity](understanding/pose-estimation-and-ambiguity.md).
+Every pose estimate goes through a `VisionPoseFilter` before your code sees it. It rejects estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning, or too old. Each check has a default, can be tuned, and turns off when you pass `null`. Accepted estimates get standard deviations that grow with tag distance and shrink with tag count, ready for `addVisionMeasurement`. See [Pose Estimation & Filtering](understanding/pose-estimation-and-filtering.md).
 
-## One API, every pipeline type
+## Several cameras, one pose
 
-Whatever pipeline is active (AprilTag, retroreflective, neural classifier, neural detector, or barcode), `LimelightResults` exposes it as a typed array (`targets_Fiducials`, `targets_Retro`, `targets_Classifier`, `targets_Detector`, `targets_Barcode`) instead of a grab-bag of loosely related fields. See [Target & Pipeline Types](understanding/target-and-pipeline-types.md).
+`VisionSystem` updates every camera and feeds each accepted estimate to your pose estimator, oldest first. `getFusedPose()` combines the cameras' newest estimates into one pose, weighted by how much each is trusted. See [How do I use multiple cameras?](how-to-guides/how-do-i-use-multiple-cameras.md)
 
-## Raw data when you need speed
+## The vendor library is still there
 
-`getLatestResults()` parses a full JSON payload with Jackson on every call. When a periodic loop only needs tag or detection geometry, `LimelightData.getRawFiducials()` / `getRawDetections()` read the equivalent NetworkTables double-array entries directly, with no JSON parsing at all. See [Results JSON vs. Raw NetworkTables](understanding/results-json-vs-raw-networktables.md).
+YALL covers what the vendors have in common. For everything else, `getCamera()` returns the vendor's own camera object, and `withVendorConfig(...)` passes vendor config objects through. See [How do I use vendor-specific settings?](how-to-guides/how-do-i-use-vendor-specific-settings.md)
 
-## Simulation without hardware
+## Telemetry you can see
 
-`LimelightHelpers` has no simulation story: without a physical camera on the network, every NT entry it reads is empty. YALL ships `LimelightSim`, which projects the current season's AprilTags into a simple camera model from your simulated robot pose and publishes the same NetworkTables keys real hardware would. Code written against `Limelight`, `LimelightData`, and `LimelightPoseEstimator` runs unchanged in desktop simulation. See [Simulating a Limelight](tutorials/simulating-a-limelight.md).
-
-The `Field2d` raycast visualization that makes this easy to watch in action was contributed by FRC Team 9738.
-
-## Java and Python, one model
-
-YALL ships a Python port alongside the Java library with the same class names and (mostly) the same method names, so teams that write robot code in Python aren't stuck hand-rolling their own wrapper. See [Python & C++ Support](understanding/python-and-cpp-support.md).
-
-The Python port was originally written by FRC Team 9738 and merged into YALL for the whole community to use.
+Each camera publishes its accepted and rejected poses, why it last rejected one, its target count, latency and connection state under `YALL/<camera name>` in NetworkTables. Plot the accepted and rejected poses on a field in AdvantageScope or Elastic to see the filter working. See [Telemetry](understanding/telemetry.md).

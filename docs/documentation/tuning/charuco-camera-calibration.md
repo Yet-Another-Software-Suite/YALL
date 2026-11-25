@@ -1,6 +1,6 @@
 # ChArUco Camera Calibration
 
-Every `getXXXPose_YYYSpace()` call on `AprilTagFiducial`/`RetroreflectiveTape`, every `PoseEstimate` from `LimelightPoseEstimator`, and AprilTag 3D tracking in general all depend on SolvePnP, which depends on an accurate camera intrinsic calibration. The factory calibration gets you close; a ChArUco calibration done on your specific camera gets you accurate. If you're only using `tx`/`ty` for visual servoing, you can skip this, since it's only worth doing when 3D pose accuracy matters.
+Every `VisionTarget.cameraToTarget()`, every `VisionPoseEstimate`, and AprilTag 3D tracking in general all depend on SolvePnP, which depends on an accurate camera intrinsic calibration. The factory calibration gets you close; a ChArUco calibration done on your specific camera gets you accurate. If you're only using a target's yaw and pitch for visual servoing, you can skip this, since it's only worth doing when 3D pose accuracy matters.
 
 ## Prepare the board
 
@@ -25,10 +25,10 @@ Capture **at least 25 images, 50+ recommended**, with deliberate variety:
 
 ## What "good" looks like
 
-| Metric             | Good                         | Investigate if                                                                 |
-| ------------------ | ---------------------------- | ------------------------------------------------------------------------------ |
-| Reprojection error | < 1 px (0.3–0.8 typical)     | Consistently > 1 px: board is likely warped or the marker measurements are off |
-| Pixel aspect ratio | \~1.0 (0.99–1.01 acceptable) | Noticeably off 1.0: same causes as above                                       |
+| Metric | Good | Investigate if |
+| --- | --- | --- |
+| Reprojection error | < 1 px (0.3–0.8 typical) | Consistently > 1 px: board is likely warped or the marker measurements are off |
+| Pixel aspect ratio | ~1.0 (0.99–1.01 acceptable) | Noticeably off 1.0: same causes as above |
 
 A good calibration's per-image reprojection error plot is tight and evenly scattered around zero. A warning-level calibration shows a visibly larger spread, which is your cue to redo the capture pass with more foreshortened images or a flatter board:
 
@@ -39,5 +39,5 @@ A good calibration's per-image reprojection error plot is tight and evenly scatt
 ## See Also
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
-* [Pose Estimation & Ambiguity](../understanding/pose-estimation-and-ambiguity.md)
+* [Pose Estimation & Filtering](../understanding/pose-estimation-and-filtering.md)
 * [AprilTag & MegaTag2 Localization Tuning](apriltag-and-megatag2-tuning.md)

@@ -12,7 +12,7 @@ Before touching any pipeline's thresholds or filters, tune the camera sensor its
 The goal is a **mostly-black image** where only the target (retroreflective tape, AprilTag, game piece) stands out clearly. Everything downstream, from HSV thresholds to contour filters to AprilTag detection reliability, gets easier against that kind of image.
 
 {% hint style="warning" %}
-None of these are exposed through `LimelightSettings`. They're stored in the pipeline's JSON on the Limelight itself and tuned once per pipeline in the web UI, not from robot code.
+None of these are set through YALL. They're stored in the pipeline's JSON on the Limelight itself and tuned once per pipeline in the web UI, not from robot code.
 {% endhint %}
 
 ## See Also

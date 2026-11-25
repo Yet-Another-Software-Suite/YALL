@@ -1,59 +1,64 @@
 # Object Detection
 
-This tutorial reads neural classifier results, the pipeline type used for game-piece detection (e.g. spotting a piece on the field before intaking it).
+This tutorial finds game pieces with a camera running an object detection pipeline: a Limelight neural detector or a PhotonVision object detection pipeline. Detected objects come back as `VisionTarget`s with a class ID and confidence, the same for both vendors.
 
-## 1. Switch to a classifier or detector pipeline
+{% hint style="info" %}
+Synapse's Java library reports AprilTag and color pipelines, not object detection. A Synapse color pipeline's targets come back with yaw and pitch but no class ID.
+{% endhint %}
 
-Configure the correct pipeline index in the Limelight web UI, or switch it from code:
-
-```java
-limelight.getSettings().withPipelineIndex(1).save();
-```
-
-## 2. Read results from the JSON payload
-
-`getLatestResults()` returns the full frame, including whichever target arrays are populated for the active pipeline:
+## Reading detections
 
 ```java
-limelight.getLatestResults().ifPresent((LimelightResults result) -> {
-    for (NeuralClassifier object : result.targets_Classifier) {
-        if (object.className.equals("algae") && object.confidence > 0.7) {
-            // valid detection: object.tx / object.ty give position in the image
-        }
-    }
-});
-```
+camera.update();
 
-`targets_Classifier` is empty unless the active pipeline is a neural classifier pipeline. Check `result.pipeline_type` if you're unsure which pipeline produced a frame.
+List<VisionTarget> objects = camera.getLatestResult()
+    .map(VisionResult::getDetectedObjects)
+    .orElse(List.of());
 
-## 3. Neural Detector: bounding boxes instead of whole-frame labels
-
-If your pipeline is a **detector** (bounding boxes) rather than a **classifier** (whole-frame/zone label), read `targets_Detector` instead. It's the same `LimelightResults` object, just a different array:
-
-```java
-limelight.getLatestResults().ifPresent((LimelightResults result) -> {
-    for (NeuralDetector object : result.targets_Detector) {
-        if (object.className.equals("coral")) {
-            // object.tx / object.ty are crosshair-relative degrees, like an AprilTag result
-            // object.ta is the bounding box area as a percentage of the image
-        }
-    }
-});
-```
-
-## 4. Faster path: raw detections without JSON parsing
-
-If you only need position and don't need `className`/`confidence`, `LimelightData.getRawDetections()` decodes the `rawdetections` NetworkTables entry directly, including the four bounding-box corners, which the JSON `NeuralDetector` result doesn't expose:
-
-```java
-for (RawDetection detection : limelight.getData().getRawDetections()) {
-    // detection.classId, detection.txnc, detection.tync, detection.ta
-    // detection.corner0_X .. detection.corner3_Y (pixel coordinates)
+for (VisionTarget object : objects) {
+  int classId = object.classId();         // index into your model's labels
+  double confidence = object.confidence(); // 0 to 1
+  double yaw = object.yawDegrees();       // positive right
+  double pitch = object.pitchDegrees();   // positive up
 }
 ```
 
-## Next steps
+`isDetectedObject()` is true for targets with a class ID. Class IDs are the order of labels in your model; keep a list of names next to it in your code.
 
-* [Target & Pipeline Types](../understanding/target-and-pipeline-types.md): every target type and what pipeline produces it.
-* [Results JSON vs. Raw NetworkTables](../understanding/results-json-vs-raw-networktables.md): when to use `getLatestResults()` vs. the raw accessors.
-* [Tuning a Neural Network Pipeline](../tuning/neural-network-pipeline-tuning.md): confidence threshold and crop window.
+## Driving to the closest game piece
+
+On a downward-tilted camera, the closest game piece is the one lowest in the image:
+
+```java
+Optional<VisionTarget> closest = objects.stream()
+    .filter(o -> o.classId() == GAME_PIECE_CLASS && o.confidence() > 0.6)
+    .min(Comparator.comparingDouble(VisionTarget::pitchDegrees));
+
+closest.ifPresent(piece -> {
+  double turn = -kP * piece.yawDegrees();
+  drive.arcadeDrive(0.5, turn);
+});
+```
+
+Apply a confidence threshold in code when you want it stricter than the pipeline's, for example only in autonomous.
+
+## Simulating game pieces
+
+Add game pieces to the simulated world with a class ID. Every simulated camera, whatever its vendor, then reports them as detected objects:
+
+```java
+VisionTargetSim piece = new VisionTargetSim(
+    new Pose3d(5, 4, 0.1, Rotation3d.ZERO),
+    new TargetModel(0.15), // a 15 cm sphere
+    GAME_PIECE_CLASS,
+    0.9f);
+VisionSim.getDefault().addVisionTargets("gamePieces", piece);
+```
+
+`VisionTargetSim` and `TargetModel` are PhotonVision's (`org.photonvision.simulation`, `org.photonvision.estimation`). Remove the group with `removeVisionTargets("gamePieces")`.
+
+## See Also
+
+* [Tuning a Neural Network Pipeline](../tuning/neural-network-pipeline-tuning.md)
+* [Simulating Cameras](simulating-cameras.md)
+* [Results Model](../understanding/results-model.md)

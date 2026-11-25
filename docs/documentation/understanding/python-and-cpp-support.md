@@ -1,27 +1,22 @@
 # Python & C++ Support
 
-## Python: a full, parallel port
+## Java only
+
+The YALL camera API (`VisionCamera`, the vendor wrappers, `VisionPoseFilter`, `VisionSystem` and `VisionSim`) is Java-only. The vendordep ships no C++ or Python artifact.
+
+## The old Limelight library
+
+The repository's `yall/python` and `yall/cpp` folders hold the earlier, Limelight-only YALL library, not the camera API on this site.
 
 {% hint style="info" %}
-The Python port was written by FRC Team 9738, who did the original translation of the Java API and contributed it back to YALL. Thanks to them, teams running Python robot code get the same library everyone else does.
+The Python port of the earlier library was written by FRC Team 9738, who translated the Java API and contributed it back to YALL.
 {% endhint %}
 
-YALL ships a Python package (`yall`) alongside the Java library, mirroring its class names and most method signatures:
+* **Python**: a `yall` package mirroring the old Java `Limelight` API (`from yall.limelight import Limelight`). It reads Limelight NetworkTables directly and has no PhotonVision or Synapse support.
+* **C++**: `yall/cpp/Limelight.cpp` is a placeholder; no C++ library is built.
 
-```python
-from yall.limelight import Limelight, EstimationMode
-limelight = Limelight("limelight")
-```
-
-The Python port was translated from an earlier revision of the Java API and hasn't caught up to every recent addition. Notably, there's no Python equivalent yet for `IMUResults`, `HardwareReport`, `HailoStats`, `RewindStats`, rewind capture, or USB port forwarding. A couple of method names also differ slightly (`withCameraToRobot` instead of `withCameraOffset`, `createPoseEstimator(bool)` instead of taking an `EstimationMode` enum). See the Python reference overview for the full list of differences.
-
-For everything else, including settings, pose estimation, and target results, the concepts on this site apply directly; only the syntax changes.
-
-## C++: not yet implemented
-
-A C++ source file exists in the repository (`yall/cpp/Limelight.cpp`) as a placeholder, and the vendordep JSON currently ships no C++ artifact. If your team writes robot code in C++, track the [GitHub repository](https://github.com/BroncBotz3481/YALL) for progress rather than expecting a working C++ API today.
+For Limelight in C++, use LimelightLib 2's own C++ library. For PhotonVision, use PhotonLib's C++ library.
 
 ## See Also
 
-* Python API reference
-* Java API reference
+* [Why YALL?](../why-yall.md)

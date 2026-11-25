@@ -1,6 +1,6 @@
 # Crosshair Calibration
 
-The crosshair is the reference point `tx`/`ty` (`LimelightTargetData.getHorizontalOffset()` / `getVerticalOffset()`) are measured against. If you're driving directly off `tx`/`ty` (visual servoing, not a full 3D pose), calibrating it correctly is what makes "`tx == 0`" actually mean "aligned with where I want to score," instead of just "aligned with the sensor's optical center."
+The crosshair is the reference point Limelight's `tx`/`ty`, and so YALL's `VisionTarget.yawDegrees()` / `pitchDegrees()`, are measured against. If you're driving directly off `tx`/`ty` (visual servoing, not a full 3D pose), calibrating it correctly is what makes "`tx == 0`" actually mean "aligned with where I want to score," instead of just "aligned with the sensor's optical center."
 
 ## Single crosshair mode
 
@@ -20,7 +20,7 @@ Use this for off-axis cameras or shooters that need real-time compensation as ra
 3. As the robot moves between those distances, the Limelight uses the target's area to interpolate between A and B automatically, with no additional code required.
 
 {% hint style="info" %}
-Crosshair calibration only affects `tx`/`ty` (and the values `LimelightTargetData` reads from them). It has no effect on 3D pose data (`getXXXPose_YYYSpace()`, `PoseEstimate`); that accuracy comes from [camera calibration](charuco-camera-calibration.md) instead.
+Crosshair calibration only affects `tx`/`ty` (and the yaw and pitch YALL reads from them). It has no effect on 3D pose data (`cameraToTarget()`, `VisionPoseEstimate`); that accuracy comes from [camera calibration](charuco-camera-calibration.md) instead.
 {% endhint %}
 
 ## See Also

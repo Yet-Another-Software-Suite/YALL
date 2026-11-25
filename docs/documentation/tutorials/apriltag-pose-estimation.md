@@ -1,82 +1,90 @@
 # AprilTag Pose Estimation
 
-This tutorial fuses Limelight MegaTag2 vision measurements into a WPILib pose estimator, the way `DrivebaseSubsystem` does in YALL's [example project](https://github.com/BroncBotz3481/YALL/tree/main/example).
+This tutorial feeds a camera's AprilTag pose estimates into a WPILib pose estimator, so odometry stays corrected over a match.
 
-## 1. Set up the camera offset once
+## 1. Give the camera its offset
 
-MegaTag needs to know where the camera sits relative to robot center. Do this at construction time:
+Pose estimates are only as good as the camera's position on the robot:
 
 ```java
-Pose3d cameraOffset = new Pose3d(Inches.of(5).in(Meters),
-                                  Inches.of(5).in(Meters),
-                                  Inches.of(5).in(Meters),
-                                  Rotation3d.kZero);
-
-limelight = new Limelight("limelight");
-limelight.getSettings()
-         .withLimelightLEDMode(LEDMode.PipelineControl)
-         .withCameraOffset(cameraOffset)
-         .save();
-
-poseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
+VisionCameraConfig config = new VisionCameraConfig()
+    .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
+                       Degrees.zero(), Degrees.of(-15), Degrees.zero());
 ```
 
-## 2. Submit robot orientation every loop
+## 2. Choose how tags become a pose
 
-MegaTag2 fuses AprilTag detections with your robot's current heading. This only works if you tell the Limelight your heading **every periodic loop, before reading a pose estimate**:
+```java
+config.withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED);
+```
+
+| Mode | Limelight | PhotonVision | Synapse |
+| --- | --- | --- | --- |
+| `TAGS_ONLY` (default) | MegaTag1 | Multi-tag result, falling back to the lowest-ambiguity tag | Field-space camera pose |
+| `HEADING_ASSISTED` | MegaTag2 | PnP distance trig solve, falling back to `TAGS_ONLY` | Same as `TAGS_ONLY` |
+
+`HEADING_ASSISTED` uses the gyro heading to steady the estimate, so it needs `setRobotOrientation` every loop. See [How do I choose a pose estimation mode?](../how-to-guides/how-do-i-choose-a-pose-estimation-mode.md)
+
+## 3. Send the gyro every loop
+
+```java
+camera.setRobotOrientation(gyro.getRotation3d(), DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
+```
+
+Call it before `update()`. With only a heading, use `camera.setRobotOrientation(gyro.getRotation2d())`; the pose filter's yaw rate check is then skipped.
+
+## 4. Add the estimates to your pose estimator
 
 ```java
 @Override
 public void periodic() {
-    limelight.getSettings()
-             .withRobotOrientation(new Orientation3d(gyro.getRotation3d(),
-                                                      new AngularVelocity3d(DegreesPerSecond.of(0),
-                                                                            DegreesPerSecond.of(0),
-                                                                            DegreesPerSecond.of(0))))
-             .save();
-    // ...
+  poseEstimator.update(gyro.getRotation2d(), getModulePositions());
+
+  camera.setRobotOrientation(gyro.getRotation3d(), DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
+  camera.update();
+  camera.addVisionMeasurements(poseEstimator);
 }
 ```
 
-{% hint style="warning" %}
-Skip this step and MegaTag2 pose estimates will be inaccurate or stale. This is the single most common mistake when adopting MegaTag2. See [How do I choose between MegaTag1 and MegaTag2?](../how-to-guides/how-do-i-choose-megatag1-vs-megatag2.md)
-{% endhint %}
+`addVisionMeasurements` passes every estimate that passed the filter, oldest first, with its capture timestamp and standard deviations. It works with any WPILib pose estimator (`SwerveDrivePoseEstimator`, `DifferentialDrivePoseEstimator`, ...).
 
-## 3. Read and filter the pose estimate
+For a drivetrain with its own vision method, pass each estimate yourself:
 
 ```java
-Optional<PoseEstimate> visionEstimate = poseEstimator.getPoseEstimate();
-visionEstimate.ifPresent((PoseEstimate poseEstimate) -> {
-    // Reject long-range or ambiguous reads before fusing.
-    if (poseEstimate.avgTagDist < 4
-        && poseEstimate.tagCount > 0
-        && poseEstimate.getMinTagAmbiguity() < 0.3) {
-        poseEstimator.addVisionMeasurement(poseEstimate.pose.toPose2d(), poseEstimate.timestampSeconds);
-    }
+camera.forEachEstimatedPose(estimate ->
+    drivetrain.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
+```
+
+## 5. Check what the filter rejects
+
+Every estimate goes through the camera's `VisionPoseFilter` first. The defaults reject estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning faster than 720 °/s, or older than 0.5 s.
+
+```java
+List<VisionPoseEstimate> accepted = camera.getEstimatedPoses();
+List<VisionPoseEstimate> rejected = camera.getRejectedPoses();
+String why = camera.getLastRejectionReason(); // for example "tags too far"
+```
+
+The same lists are published to NetworkTables under `YALL/<camera name>` as `acceptedPoses`, `rejectedPoses` and `rejectionReason`. Plot them on a field to see the filter at work. To change a check, see [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
+
+## The estimate itself
+
+`getEstimatedPose()` returns the newest accepted estimate from the last `update()`:
+
+```java
+camera.getEstimatedPose().ifPresent(estimate -> {
+  Pose2d pose = estimate.pose2d();
+  double timestamp = estimate.timestampSeconds();       // capture time
+  int tags = estimate.tagCount();
+  double distance = estimate.averageTagDistanceMeters();
+  Matrix<N3, N1> stdDevs = estimate.stdDevs();          // x, y (m), heading (rad)
 });
 ```
 
-`poseEstimator` above is your WPILib `SwerveDrivePoseEstimator` / `DifferentialDrivePoseEstimator`, a different object than YALL's `LimelightPoseEstimator`. Filtering on tag count, distance, and ambiguity before calling `addVisionMeasurement` keeps a single noisy or distant reading from corrupting your odometry.
+It is empty when the last `update()` produced no accepted estimate, so don't treat empty as "no tags in view".
 
-## Alternative: the BotPose enum directly
+## See Also
 
-If you don't need a `LimelightPoseEstimator` instance around, `BotPose` gives the same data directly:
-
-```java
-Optional<PoseEstimate> estimate = BotPose.BLUE_MEGATAG2.get(limelight);
-```
-
-Or fetch the alliance-relative estimate without checking `DriverStation` yourself:
-
-```java
-Optional<PoseEstimate> estimate = poseEstimator.getAlliancePoseEstimate();
-```
-
-## Next steps
-
-* [Pose Estimation & Ambiguity](../understanding/pose-estimation-and-ambiguity.md): what each `PoseEstimate` field means and how to tune your filter thresholds.
-* [How do I mount a Limelight on a moving mechanism?](../how-to-guides/how-do-i-mount-a-limelight-on-a-moving-mechanism.md): updating `withCameraOffset` dynamically for a turret.
-* [How do I filter AprilTags by ID?](../how-to-guides/how-do-i-filter-apriltags-by-id.md)
-* [Simulating a Limelight](simulating-a-limelight.md): exercise this fusion code in desktop simulation without hardware.
-* [AprilTag & MegaTag2 Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md): IMU modes, assist alpha, and the setup mistakes that silently break MegaTag2.
-* [ChArUco Camera Calibration](../tuning/charuco-camera-calibration.md): improves the accuracy of every pose this tutorial produces.
+* [Pose Estimation & Filtering](../understanding/pose-estimation-and-filtering.md)
+* [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
+* [AprilTag & MegaTag2 Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md)
