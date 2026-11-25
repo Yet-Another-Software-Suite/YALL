@@ -6,8 +6,9 @@ import org.wpilib.math.geometry.Transform3d;
 /**
  * One target a camera sees, in the same form for every camera vendor.
  *
- * <p>Angles follow the convention PhotonVision and Limelight share: yaw is positive to the right of
- * the crosshair, pitch is positive above it.
+ * <p>Angles follow PhotonVision's convention: yaw is positive to the right of the crosshair, pitch
+ * is positive above it. Limelight's tx is already positive right; its ty is positive down, so the
+ * Limelight wrapper negates it.
  *
  * @param yawDegrees Horizontal angle from the crosshair to the target, positive right.
  * @param pitchDegrees Vertical angle from the crosshair to the target, positive up.

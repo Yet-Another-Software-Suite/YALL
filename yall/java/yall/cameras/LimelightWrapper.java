@@ -98,14 +98,14 @@ public class LimelightWrapper extends VisionCamera {
     double latencyMillis = results.captureLatencyMillis + results.targetingLatencyMillis;
     double timestamp = results.receiveTimestampSeconds - latencyMillis / 1000.0;
     var targets = new ArrayList<VisionTarget>();
-    // Limelight's tx is positive right of the crosshair, as PhotonVision's yaw is, so it passes
-    // through unchanged.
+    // A Limelight target's tx is positive right of the crosshair, as PhotonVision's yaw is, so it
+    // passes through. Its ty is positive down, so it is negated to give a positive-up pitch.
     for (FiducialTarget tag : results.fiducialTargets) {
       Pose3d cameraToTag = tag.getTargetPose_CameraSpace();
       targets.add(
           new VisionTarget(
               tag.txDegrees,
-              tag.tyDegrees,
+              -tag.tyDegrees,
               tag.targetAreaPercent,
               tag.fiducialId,
               -1,
@@ -118,7 +118,7 @@ public class LimelightWrapper extends VisionCamera {
       targets.add(
           new VisionTarget(
               detection.txDegrees,
-              detection.tyDegrees,
+              -detection.tyDegrees,
               detection.targetAreaPercent,
               -1,
               detection.classId,
@@ -130,7 +130,7 @@ public class LimelightWrapper extends VisionCamera {
       targets.add(
           new VisionTarget(
               retro.txDegrees,
-              retro.tyDegrees,
+              -retro.tyDegrees,
               retro.targetAreaPercent,
               -1,
               -1,
