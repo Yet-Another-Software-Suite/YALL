@@ -1,4 +1,10 @@
+---
+icon: sliders
+---
+
 # VisionCameraConfig
+
+In short: the settings for one camera: where it sits, which model it is, and how it filters pose guesses.
 
 **Package:** `yall`
 
@@ -81,10 +87,11 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | --- | --- |
 | `withCameraModel(CameraModel model)` | Sets the camera's resolution, field of view and frame rate from a camera's published specs. Use the model that matches the real camera, so simulation sees what it would. |
 | `withCameraProperties(SimCameraProperties properties)` | Sets the camera's resolution, field of view, frame rate, latency and noise from PhotonVision camera properties. Simulation uses them, and Synapse uses them to turn pixel positions into angles. |
-| `withCameraProperties(int widthPixels, int heightPixels, Rotation2d diagonalFov, double fps)` | Sets the resolution, diagonal field of view and frame rate, with a 25 ± 5 ms latency and 0.25 ± 0.08 px calibration error. |
+| `withCameraProperties(int widthPixels, int heightPixels, Angle diagonalFov, Frequency frameRate)` | Sets the resolution, diagonal field of view and frame rate, with a 25 ± 5 ms latency and 0.25 ± 0.08 px calibration error. For example `withCameraProperties(1280, 720, Degrees.of(70), Hertz.of(30))`. |
 | `withSimulation(boolean enabled)` | Sets whether the camera gives simulated results when the robot program runs in simulation. |
 | `withSimulation(VisionSim sim)` | Sets the simulated world the camera belongs to, and turns simulation on. |
-| `withSimulatedVideoStreams(boolean enabled)` | Sets whether the simulated camera streams rendered raw and processed video. The streams cost CPU. |
+| `withSimulatedVideoStreams(boolean enabled)` | Sets whether the simulated camera streams what it would see. Off by default because it costs a lot of CPU. Streams are served by CameraServer as `<name>-raw` and `<name>-processed` for a PhotonVision camera, or `YALL-<camera name>-raw` and `-processed` for others, at `http://localhost:1181`, `1182` and up, one port per stream. |
+| `withSimulatedWireframe(boolean enabled)` | Sets whether the simulated streams also draw the field's floor and walls. Off by default because it costs more CPU. Needs `withSimulatedVideoStreams(true)`. |
 
 ***
 
@@ -110,12 +117,13 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | `isSimulationEnabled()` | `boolean` | Whether the camera is simulated in simulation. |
 | `getVisionSim()` | `Optional<VisionSim>` | The simulated world, if set. |
 | `isSimulatedVideoStreamsEnabled()` | `boolean` | Whether the simulated camera streams video. |
+| `isSimulatedWireframeEnabled()` | `boolean` | Whether the simulated streams draw the field. |
 | `getVendorConfig()` | `Optional<Object>` | The vendor config object, if set. |
 | `isTelemetryEnabled()` | `boolean` | Whether the camera publishes telemetry. |
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCamera](vision-camera.md)
 * [VisionPoseFilter](../filter/vision-pose-filter.md)

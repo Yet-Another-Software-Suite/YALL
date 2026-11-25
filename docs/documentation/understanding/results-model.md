@@ -1,6 +1,16 @@
+---
+icon: list
+---
+
 # Results Model
 
-Every camera, whatever its vendor, reports through three records in `yall.results`.
+Every camera, whatever its maker, reports what it saw the same way, with three kinds of result:
+
+* a **frame** (`VisionResult`): one picture the camera processed;
+* a **target** (`VisionTarget`): one thing in that picture, like an AprilTag or a game piece;
+* a **pose estimate** (`VisionPoseEstimate`): where the camera thinks the robot is.
+
+They live in the `yall.results` package.
 
 ## `VisionResult`: one frame
 
@@ -16,6 +26,8 @@ Helpers: `hasTargets()`, `getBestTarget()`, `getAprilTags()`, `getDetectedObject
 A camera's `update()` reads every frame since the last call. `getUnreadResults()` returns them, oldest first; `getLatestResult()` returns the newest frame ever read.
 
 ## `VisionTarget`: one target
+
+![A camera image with a crosshair in the middle. A target up and to the right has a positive yaw and a positive pitch.](../.gitbook/assets/yaw-and-pitch.png)
 
 | Field | Meaning |
 | --- | --- |
@@ -44,7 +56,7 @@ See [Pose Estimation & Filtering](pose-estimation-and-filtering.md#what-an-estim
 | AprilTags | yes, with ambiguity and camera-to-tag transform | yes, with ambiguity and camera-to-tag transform | IDs and angles only; no area, ambiguity or transform |
 | Object detection | neural detector: class ID and confidence | object detection pipeline: class ID and confidence | not in Synapse's Java library |
 | Color / retroreflective | retroreflective targets, no ID | color targets, no ID | color pipeline targets, no ID |
-| Not mapped | classifier, barcode, OCR | — | — |
+| Not mapped | classifier, barcode, OCR | none | none |
 | Timestamp | LimelightLib's receive time minus capture and targeting latency | PhotonVision's time-synced capture time | NetworkTables arrival time minus Synapse's capture and process latency |
 
 When you compare a YALL pitch to a raw Limelight `ty`, flip the sign: YALL's pitch is the negative of Limelight's per-target `ty`.
@@ -53,7 +65,7 @@ Synapse reports target positions in pixels. YALL turns them into angles with the
 
 For results YALL doesn't map, use the vendor's library through `getCamera()`. See [How do I use vendor-specific settings?](../how-to-guides/how-do-i-use-vendor-specific-settings.md)
 
-## See Also
+## Read more
 
-* [Basic Setup](../tutorials/basic-setup.md#reading-targets)
+* [Basic Setup](../tutorials/basic-setup.md#read-the-camera-every-loop)
 * [Object Detection](../tutorials/object-detection.md)

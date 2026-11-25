@@ -1,4 +1,10 @@
+---
+icon: filter
+---
+
 # VisionPoseFilter
+
+In short: throws out pose guesses that can't be right, and says how much to trust the rest.
 
 **Package:** `yall.filter`
 
@@ -52,7 +58,7 @@ Accepted estimates get standard deviations of `base * (1 + d² / distanceDivisor
 | Method | Default | Description |
 | --- | --- | --- |
 | `withStdDevs(Matrix<N3, N1> singleTagBase, Matrix<N3, N1> multiTagBase, double distanceDivisor)` | (4, 4, 8) for one tag, (0.5, 0.5, 1) for several, divisor 30 | Base standard deviations of x (m), y (m) and heading (rad). A smaller divisor makes distant tags count for less. |
-| `withHeadingAssistedThetaStdDev(double thetaStdDev)` | 1e6 rad | Heading standard deviation for heading-assisted estimates (Limelight MegaTag2, PhotonVision's trig solve). Their heading is the gyro's, so it should carry almost no weight. |
+| `withHeadingAssistedThetaStdDev(Angle thetaStdDev)` | 1e6 rad | Heading standard deviation for heading-assisted estimates (Limelight MegaTag2, PhotonVision's trig solve). Their heading is the gyro's, so it should carry almost no weight. |
 
 ***
 
@@ -86,7 +92,7 @@ Cameras call these; robot code rarely needs to.
 
 ***
 
-## See Also
+## Read more
 
 * [VisionPoseEstimate](../results/vision-pose-estimate.md)
 * [VisionCameraConfig](../yall/vision-camera-config.md)

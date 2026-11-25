@@ -1,4 +1,12 @@
+---
+icon: scale-balanced
+---
+
 # Pose Estimation & Filtering
+
+A **pose estimate** is a camera's guess at where the robot is. This page explains where the guesses come from, why some get thrown out, and how much the rest are trusted.
+
+![How a camera finds the robot: the camera sees AprilTag 7 and how far away it is, the field map knows where tag 7 is, so the robot must be where the arrow points.](../.gitbook/assets/how-vision-finds-the-robot.png)
 
 ## Where an estimate comes from
 
@@ -34,6 +42,8 @@ Not every estimate is trustworthy. A single distant tag seen at a sharp angle ca
 
 ## The filter
 
+![A field with six position guesses: one accepted, and five thrown out for being off the field, floating in the air, from tags too far away, too ambiguous, or taken while the robot spun too fast.](../.gitbook/assets/pose-filter-checks.png)
+
 Every estimate goes through the camera's `VisionPoseFilter` in `update()`. The first failing check rejects it; the rest go to `getEstimatedPoses()`. Checks run in this order:
 
 | Check | Default | Rejects when |
@@ -55,6 +65,8 @@ Every check except "no tags" turns off with `null`. See [How do I tune the pose 
 
 ## Standard deviations
 
+A **standard deviation** says how far off a guess might be. The pose estimator moves the robot's position a lot for a guess with a small standard deviation, and barely at all for one with a big standard deviation.
+
 Accepted estimates get standard deviations that grow with the square of the tag distance:
 
 ```
@@ -65,7 +77,7 @@ stdDev = base * (1 + d² / 30)
 * `d` is the average tag distance in meters. A tag 3 m away scales the base by 1.3; one 6 m away by 2.2.
 * Heading-assisted estimates get a heading standard deviation of 1,000,000 rad, so the pose estimator ignores their heading, which is the gyro's anyway.
 
-Change all of these with `withStdDevs(...)` and `withHeadingAssistedThetaStdDev(...)`.
+Change all of these with `withStdDevs(...)` and `withHeadingAssistedThetaStdDev(Radians.of(...))`.
 
 ## Limelight's own filter
 
@@ -73,10 +85,12 @@ A Limelight given a `PoseEstimateConfig` through `withVendorConfig` uses Limelig
 
 ## Several cameras
 
+![Two cameras guess the robot's position. The close camera is sure of itself (small circle); the far one is less sure (big circle). The fused pose sits close to the sure one.](../.gitbook/assets/fusing-cameras.png)
+
 `VisionSystem.addVisionMeasurements` adds every camera's accepted estimates, oldest first. `getFusedPose()` combines the cameras' newest ones into a single pose weighted by their standard deviations. See [How do I use multiple cameras?](../how-to-guides/how-do-i-use-multiple-cameras.md)
 
-## See Also
+## Read more
 
 * [AprilTag Pose Estimation tutorial](../tutorials/apriltag-pose-estimation.md)
-* [AprilTag & MegaTag2 Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md)
+* [AprilTag Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md)
 * [ChArUco Camera Calibration](../tuning/charuco-camera-calibration.md): accurate intrinsics are what make the estimates accurate in the first place.

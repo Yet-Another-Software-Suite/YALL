@@ -1,113 +1,232 @@
+---
+icon: camera
+---
+
 # Basic Setup
 
-This tutorial creates one camera, tells YALL where it sits on the robot, and reads its targets. It works the same for PhotonVision, Limelight and Synapse cameras. Install YALL first: [How do I install YALL?](../how-to-guides/how-do-i-install-yall.md)
+In this tutorial you add one camera to a robot program, run it in simulation, and watch it see AprilTags. It takes about 15 minutes, and you don't need a robot.
 
-## The basic config
+## Before you start
 
-One camera feeding a drivetrain's pose estimator. Everything not set here keeps its default: the current season's field, the default pose filter and `PoseEstimationMode.TAGS_ONLY`. Set the camera model to your real camera; [Simulating Cameras](simulating-cameras.md#2-match-the-simulated-camera-to-the-real-one) lists them.
+* Install YALL and its vendordeps: [How do I install YALL?](../how-to-guides/how-do-i-install-yall.md) A **vendordep** (vendor dependency) is a library you add to a WPILib project from the **WPILib: Manage Vendor Libraries** menu.
+* You need a WPILib 2027 Java robot project. Robot code lives in the `first.robot` package, started by `first/Main.java`.
+
+## The pieces, in one sentence each
+
+* **A camera** (`VisionCamera`) wraps your camera's own library (PhotonVision, Limelight or Synapse) so every camera works the same way.
+* **Its config** (`VisionCameraConfig`) says which camera it is and where it sits on the robot.
+* **The pose filter** (`VisionPoseFilter`) throws out bad position guesses. It has good defaults, so you can ignore it for now.
+* **The simulated world** (`VisionSim`) is a pretend field full of AprilTags that every camera sees when the program runs on your computer.
+* **A vision system** (`VisionSystem`) runs several cameras together. You need it once you have more than one camera.
+
+{% hint style="info" %}
+**AprilTags** are the square black and white codes stuck around an FRC field. Each one has an ID number and a known spot on the field, so a camera that sees one can work out where the robot is.
+{% endhint %}
+
+{% stepper %}
+{% step %}
+### Add the camera
+
+Open `first/robot/Robot.java` and add a camera as a field of the `Robot` class. This one is a PhotonVision camera named `front`. Use `LimelightWrapper` with `new Limelight("limelight")`, or `SynapseWrapper` with `new SynapseCamera("camera")`, for the other vendors.
 
 ```java
+private final VisionCamera camera =
+    new PhotonVisionWrapper(
+        new PhotonCamera("front"),
+        new VisionCameraConfig()
+            .withCameraModel(CameraModel.ARDUCAM_OV9281)
+            .withRobotToCamera(
+                Inches.of(12), Inches.zero(), Inches.of(10),
+                Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+```
+
+* `withCameraModel` says which camera you have, so the simulation sees what the real one would: its **field of view** (how wide it sees) and frame rate. [Simulating Cameras](simulating-cameras.md) lists the models.
+* `withRobotToCamera` says where the camera is, measured from the middle of the robot on the floor: forward, left, up, then how it is turned. This one is 12" forward, centered, 10" up and tilted 15° up.
+
+![Top and side views of a robot. Forward, left and up are measured from the robot center on the floor. A negative pitch tilts the camera up.](../.gitbook/assets/robot-to-camera.png)
+
+**Check it:** the project builds (**WPILib: Build Robot Code**).
+{% endstep %}
+
+{% step %}
+### Read the camera every loop
+
+Call `update()` once per loop, in `robotPeriodic()`. It reads every picture the camera took since the last loop. Then log what it found:
+
+```java
+@Override
+public void robotPeriodic() {
+  camera.update();
+  camera.getBestTarget().ifPresent(target -> {
+    Telemetry.log("Vision/best tag", target.fiducialId());
+    Telemetry.log("Vision/best yaw", Degrees.of(target.yawDegrees()));
+    Telemetry.log("Vision/best pitch", Degrees.of(target.pitchDegrees()));
+  });
+}
+```
+
+**Yaw** is how far left or right of the crosshair a target is (right is positive). **Pitch** is how far up or down (up is positive).
+
+![A camera image with a crosshair in the middle. A target up and to the right has a positive yaw and a positive pitch.](../.gitbook/assets/yaw-and-pitch.png)
+
+**Check it:** the project builds.
+{% endstep %}
+
+{% step %}
+### Give the simulation a robot pose
+
+A **pose** is where the robot is on the field (x and y in meters) and which way it faces. In simulation there's no real camera, so YALL needs to know where the pretend robot stands. Add `simulationPeriodic()`:
+
+```java
+private static final Pose2d SIMULATED_ROBOT_POSE = new Pose2d(3.0, 4.0, Rotation2d.ZERO);
+
+@Override
+public void simulationPeriodic() {
+  VisionSim.getDefault().update(SIMULATED_ROBOT_POSE);
+}
+```
+
+This robot stands 3 m from the blue wall, facing the blue hub and its AprilTags.
+
+**Check it:** the project builds.
+{% endstep %}
+
+{% step %}
+### Run it and look
+
+Run the simulation (**WPILib: Simulate Robot Code**) and open a dashboard such as Elastic or AdvantageScope. Look at:
+
+* `YALL/front/targetCount`: how many targets the camera sees.
+* `Vision/best tag`, `Vision/best yaw` and `Vision/best pitch`: the target closest to the crosshair.
+
+**Check it:** `targetCount` is above 0 (it's 8 from this spot), and the best tag's yaw is close to 0, because the camera faces it.
+{% endstep %}
+{% endstepper %}
+
+{% hint style="info" %}
+**Why `Robot.java`?** YALL doesn't use the command framework, so it works the same with Commands v2 and Commands v3. Both robot classes, `TimedRobot` (Commands v2) and `OpModeRobot` (Commands v3), have `robotPeriodic()`, which runs every loop, and `simulationPeriodic()`, which runs every loop in simulation. Commands v3 mechanisms have no `simulationPeriodic()`, so `Robot.java` is the one place that works for both.
+{% endhint %}
+
+## If it did not work
+
+* **The build fails on `PhotonCamera`, `Limelight` or `SynapseCamera`:** a vendordep is missing. See [How do I install YALL?](../how-to-guides/how-do-i-install-yall.md)
+* **`targetCount` stays 0:** check that `simulationPeriodic()` calls `VisionSim.getDefault().update(...)`, and that the pose faces some AprilTags.
+* **More problems:** [Troubleshooting](../how-to-guides/troubleshooting.md).
+
+## The complete file
+
+{% tabs %}
+{% tab title="Commands v2" %}
+`first/robot/Robot.java`:
+
+```java
+package first.robot;
+
 import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Inches;
 
 import org.photonvision.PhotonCamera;
+import org.wpilib.framework.TimedRobot;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.telemetry.Telemetry;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
 import yall.cameras.PhotonVisionWrapper;
 import yall.sim.CameraModel;
 import yall.sim.VisionSim;
 
-public class Drivetrain extends SubsystemBase {
-  // Swap in LimelightWrapper(new Limelight("limelight"), ...) or
-  // SynapseWrapper(new SynapseCamera("camera"), ...) for the other vendors.
+public class Robot extends TimedRobot {
+  // In simulation, the robot stands still here: 3 m from the blue wall, facing the blue hub.
+  private static final Pose2d SIMULATED_ROBOT_POSE = new Pose2d(3.0, 4.0, Rotation2d.ZERO);
+
   private final VisionCamera camera =
       new PhotonVisionWrapper(
           new PhotonCamera("front"),
           new VisionCameraConfig()
-              // The real camera, so simulation sees what it would.
+              // Which camera this is, so the simulation sees what it would.
               .withCameraModel(CameraModel.ARDUCAM_OV9281)
               // 12" forward of center, centered, 10" up, tilted 15° up.
-              .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
-                                 Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+              .withRobotToCamera(
+                  Inches.of(12), Inches.zero(), Inches.of(10),
+                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
 
   @Override
-  public void periodic() {
-    poseEstimator.update(gyro.getRotation2d(), getModulePositions());
-    camera.setRobotOrientation(gyro.getRotation2d());
+  public void robotPeriodic() {
     camera.update();
-    camera.addVisionMeasurements(poseEstimator);
+    camera
+        .getBestTarget()
+        .ifPresent(
+            target -> {
+              Telemetry.log("Vision/best tag", target.fiducialId());
+              Telemetry.log("Vision/best yaw", Degrees.of(target.yawDegrees()));
+              Telemetry.log("Vision/best pitch", Degrees.of(target.pitchDegrees()));
+            });
   }
 
   @Override
   public void simulationPeriodic() {
-    // The simulated cameras see the field from the robot's true pose.
-    VisionSim.getDefault().update(simulatedTruePose);
+    VisionSim.getDefault().update(SIMULATED_ROBOT_POSE);
   }
 }
 ```
+{% endtab %}
 
-## Where the camera is
-
-`withRobotToCamera` takes measurements from the robot's center on the floor, in the same order as Limelight's camera pose:
-
-| Argument | Positive means |
-| --- | --- |
-| forward | in front of the robot center |
-| left | left of the robot center |
-| up | above the floor |
-| roll | rotated counterclockwise about the forward axis |
-| pitch | tilted **down**. Use a negative pitch for a camera tilted up. |
-| yaw | turned counterclockwise. `Degrees.of(180)` faces backward. |
-
-If you already have a `Transform3d`, pass it instead: `withRobotToCamera(new Transform3d(...))`.
-
-Measure carefully. Every pose estimate is only as good as this offset.
-
-## Reading targets
-
-`update()` reads every frame the camera produced since the last call. Call it once per loop, then read what it found:
+{% tab title="Commands v3" %}
+`first/robot/Robot.java`:
 
 ```java
-camera.update();
+package first.robot;
 
-if (camera.hasTargets()) {
-  VisionTarget target = camera.getBestTarget().get();
-  double yaw = target.yawDegrees();     // positive right of the crosshair
-  double pitch = target.pitchDegrees(); // positive above the crosshair
-  double area = target.areaPercent();   // 0 to 100; NaN on Synapse
-  int tagId = target.fiducialId();      // -1 if not an AprilTag
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Inches;
+
+import org.photonvision.PhotonCamera;
+import org.wpilib.framework.OpModeRobot;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.telemetry.Telemetry;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.cameras.PhotonVisionWrapper;
+import yall.sim.CameraModel;
+import yall.sim.VisionSim;
+
+public class Robot extends OpModeRobot {
+  // In simulation, the robot stands still here: 3 m from the blue wall, facing the blue hub.
+  private static final Pose2d SIMULATED_ROBOT_POSE = new Pose2d(3.0, 4.0, Rotation2d.ZERO);
+
+  private final VisionCamera camera =
+      new PhotonVisionWrapper(
+          new PhotonCamera("front"),
+          new VisionCameraConfig()
+              // Which camera this is, so the simulation sees what it would.
+              .withCameraModel(CameraModel.ARDUCAM_OV9281)
+              // 12" forward of center, centered, 10" up, tilted 15° up.
+              .withRobotToCamera(
+                  Inches.of(12), Inches.zero(), Inches.of(10),
+                  Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+
+  @Override
+  public void robotPeriodic() {
+    camera.update();
+    camera
+        .getBestTarget()
+        .ifPresent(
+            target -> {
+              Telemetry.log("Vision/best tag", target.fiducialId());
+              Telemetry.log("Vision/best yaw", Degrees.of(target.yawDegrees()));
+              Telemetry.log("Vision/best pitch", Degrees.of(target.pitchDegrees()));
+            });
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    VisionSim.getDefault().update(SIMULATED_ROBOT_POSE);
+  }
 }
 ```
+{% endtab %}
+{% endtabs %}
 
-* `getLatestResult()` returns the newest frame (`VisionResult`), even if the last `update()` read none.
-* `getUnreadResults()` returns every frame the last `update()` read, oldest first.
-* `getTargets()` and `getBestTarget()` read the newest frame. The best target is the camera's own ranking.
-
-## Aiming at a target
-
-Turn toward the best target with a proportional controller:
-
-```java
-double kP = 0.03;
-double turn = camera.getBestTarget()
-    .map(target -> -kP * target.yawDegrees()) // target to the right: turn clockwise
-    .orElse(0.0);
-```
-
-Yaw is positive right, and WPILib turns are counterclockwise-positive, so the sign flips. See [PID Tuning for Aiming & Ranging](../tuning/pid-tuning-for-aiming-and-ranging.md) to tune the gain.
-
-## Pipelines and connection
-
-```java
-camera.setPipelineIndex(1);
-int pipeline = camera.getPipelineIndex();
-boolean connected = camera.isConnected(); // always true in simulation
-```
-
-Set the starting pipeline in the config with `withPipelineIndex(1)`.
-
-## See Also
-
-* [AprilTag Pose Estimation](apriltag-pose-estimation.md)
-* [Simulating Cameras](simulating-cameras.md)
-* [Results Model](../understanding/results-model.md)
+Pick a target the robot should drive toward with its yaw, as in [PID Tuning for Aiming & Ranging](../tuning/pid-tuning-for-aiming-and-ranging.md).

@@ -1,12 +1,12 @@
 ---
-icon: rocket
+icon: lightbulb
 ---
 
 # Why YALL?
 
 ## One API for every camera
 
-PhotonVision, Limelight and Synapse each have their own library, with their own result types, angle conventions, pose estimation calls and timestamps. Switching vendors, or running two vendors on one robot, means writing the vision code twice.
+PhotonVision, Limelight and Synapse each have their own library, and each one names things differently, measures angles differently and times its pictures differently. Switching cameras, or using two kinds on one robot, means writing your vision code twice. YALL lets you write it once.
 
 YALL wraps each vendor's camera object in a `VisionCamera`, the way YAMS wraps motor controllers:
 
@@ -24,11 +24,13 @@ Every camera then reads the same way:
 
 ## Simulation for every vendor
 
-Limelight and Synapse have no simulation of their own. YALL simulates every camera with PhotonVision's camera simulation: AprilTags and game pieces are projected through a simulated lens, with noise and latency. In simulation, a `LimelightWrapper` returns simulated results through the same methods it uses on the robot.
+Limelight and Synapse have no simulation of their own. YALL simulates every camera with PhotonVision's camera simulation: it works out what each camera would see from where the robot is, with a little noise and delay like a real camera. You can even watch it:
+
+![The simulated view of the front camera while the robot drives: AprilTags and the field's outline, a crosshair, and the yaw and pitch of the tag nearest the middle.](.gitbook/assets/simulated-camera-view.gif)
 
 ## Pose filtering built in
 
-Every pose estimate goes through a `VisionPoseFilter` before your code sees it. It rejects estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning, or too old. Each check has a default, can be tuned, and turns off when you pass `null`. Accepted estimates get standard deviations that grow with tag distance and shrink with tag count, ready for `addVisionMeasurement`. See [Pose Estimation & Filtering](understanding/pose-estimation-and-filtering.md).
+Every pose estimate (a camera's guess at where the robot is) goes through a `VisionPoseFilter` before your code sees it. It rejects estimates that are off the field, off the floor, too ambiguous, from tags too far away, taken while spinning, or too old. Each check has a default, can be tuned, and turns off when you pass `null`. Accepted estimates get standard deviations that grow with tag distance and shrink with tag count, ready for `addVisionMeasurement`. See [Pose Estimation & Filtering](understanding/pose-estimation-and-filtering.md).
 
 ## Several cameras, one pose
 

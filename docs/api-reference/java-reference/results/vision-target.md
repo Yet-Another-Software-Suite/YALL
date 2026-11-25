@@ -1,4 +1,10 @@
+---
+icon: bullseye
+---
+
 # VisionTarget
+
+In short: one thing the camera saw, like an AprilTag or a game piece, and where it is in the picture.
 
 **Package:** `yall.results`
 
@@ -50,7 +56,7 @@ camera.getBestTarget().ifPresent(target -> {
 
 ***
 
-## See Also
+## Read more
 
 * [VisionResult](vision-result.md)
 * [VisionPoseEstimate](vision-pose-estimate.md)

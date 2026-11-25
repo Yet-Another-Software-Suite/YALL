@@ -1,4 +1,10 @@
+---
+icon: lightbulb
+---
+
 # LimelightWrapper
+
+In short: makes a Limelight into a YALL `VisionCamera`.
 
 **Package:** `yall.cameras`
 
@@ -71,7 +77,7 @@ Any other type throws `IllegalArgumentException`.
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCamera](../yall/vision-camera.md)
 * [PoseEstimationMode](../yall/pose-estimation-mode.md)

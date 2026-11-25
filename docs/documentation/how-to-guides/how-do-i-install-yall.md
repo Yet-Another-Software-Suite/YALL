@@ -1,45 +1,63 @@
+---
+icon: download
+---
+
 # How do I install YALL?
 
-YALL is a WPILib 2027 vendordep. A camera's vendor library is needed only for the cameras you construct.
+YALL is a **vendordep**: a library you add to a WPILib project. You add a few, in this order. You only need a camera maker's library for the cameras you actually use.
 
-## 1. YALL
+{% stepper %}
+{% step %}
+### Add YALL
 
-In WPILib VS Code: **WPILib: Manage Vendor Libraries → Install new library (online)**, then paste:
+In WPILib VS Code, open the command palette and choose **WPILib: Manage Vendor Libraries**, then **Install new library (online)**, and paste:
 
 ```
 https://Yet-Another-Software-Suite.github.io/YALL/yall.json
 ```
 
-## 2. PhotonLib
+**Check it:** `vendordeps/yall.json` is in your project.
+{% endstep %}
 
-Required for every team, whatever cameras you use: YALL simulates every camera with PhotonVision. Install it from PhotonVision's vendordep URL in the [PhotonVision docs](https://docs.photonvision.org/).
+{% step %}
+### Add PhotonLib
 
-## 3. WPILib's CameraServer and AprilTag vendordeps
+Every team needs PhotonLib, whatever cameras you use: YALL simulates every camera with PhotonVision. Install it from the vendordep URL in the [PhotonVision docs](https://docs.photonvision.org/).
 
-PhotonVision's simulation needs both. They ship with WPILib 2027: **WPILib: Manage Vendor Libraries → Install new libraries (offline)**, then pick **CameraServer** and **AprilTag**.
+**Check it:** a `photonlib` JSON file is in `vendordeps/`.
+{% endstep %}
 
-## 4. Your cameras' libraries
+{% step %}
+### Add WPILib's CameraServer and AprilTag
+
+PhotonVision's simulation needs both. They come with WPILib 2027: **WPILib: Manage Vendor Libraries**, then **Install new libraries (offline)**, then pick **CameraServer** and **AprilTag**.
+
+**Check it:** `CameraServer.json` and `AprilTag.json` are in `vendordeps/`.
+{% endstep %}
+
+{% step %}
+### Add your cameras' libraries
 
 | Camera | Vendordep |
 | --- | --- |
-| PhotonVision | PhotonLib (already installed in step 2) |
+| PhotonVision (including Luma, ThriftyCam and Arducam cameras running PhotonVision) | PhotonLib, already added |
 | Limelight | LimelightLib 2: `https://limelightvision.github.io/limelightlib-public/LimelightLib-alpha7.json` |
 | Synapse | SynapseLib: `https://danpeled.github.io/Synapse/SynapseLib.json` |
 
-## Verify it worked
-
-After a Gradle build, these should resolve:
+**Check it:** build the project (**WPILib: Build Robot Code**). These imports work:
 
 ```java
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
 import yall.cameras.PhotonVisionWrapper;
 ```
+{% endstep %}
+{% endstepper %}
 
-If the robot program fails in simulation with `photontargetingJNI could not be loaded` or `libcscore.so: cannot open shared object file`, the CameraServer vendordep is missing. A `NoClassDefFoundError` for `AprilTagImageGenerator` means the AprilTag vendordep is missing.
+## If it did not work
 
-Javadocs for every class are at [yet-another-software-suite.github.io/YALL/javadocs](https://yet-another-software-suite.github.io/YALL/javadocs/).
+* **Simulation crashes with `photontargetingJNI could not be loaded` or `libcscore.so: cannot open shared object file`:** the CameraServer vendordep is missing.
+* **`NoClassDefFoundError` for `AprilTagImageGenerator`:** the AprilTag vendordep is missing.
+* **`PhotonCamera`, `Limelight` or `SynapseCamera` can't be found:** that camera's vendordep is missing.
 
-## See Also
-
-* [Basic Setup](../tutorials/basic-setup.md)
+Start using it in [Basic Setup](../tutorials/basic-setup.md). Javadocs for every class are at [YALL Javadocs](https://yet-another-software-suite.github.io/YALL/javadocs/).

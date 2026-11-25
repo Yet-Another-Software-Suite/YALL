@@ -7,8 +7,9 @@
 
 * [Basic Setup](tutorials/basic-setup.md)
 * [AprilTag Pose Estimation](tutorials/apriltag-pose-estimation.md)
-* [Object Detection](tutorials/object-detection.md)
 * [Simulating Cameras](tutorials/simulating-cameras.md)
+* [Running on the Real Robot](tutorials/running-on-the-real-robot.md)
+* [Object Detection](tutorials/object-detection.md)
 
 ## How-To Guides
 
@@ -19,6 +20,7 @@
 * [How do I mount a camera on a moving mechanism?](how-to-guides/how-do-i-mount-a-camera-on-a-moving-mechanism.md)
 * [How do I use vendor-specific settings?](how-to-guides/how-do-i-use-vendor-specific-settings.md)
 * [How do I use a USB Limelight?](how-to-guides/how-do-i-use-a-usb-limelight.md)
+* [Troubleshooting](how-to-guides/troubleshooting.md)
 
 ## Tuning
 
@@ -27,8 +29,8 @@
 * [Crosshair Calibration](tuning/crosshair-calibration.md)
 * [ChArUco Camera Calibration](tuning/charuco-camera-calibration.md)
 * [Tuning a Retroreflective Pipeline](tuning/retroreflective-pipeline-tuning.md)
-* [AprilTag & MegaTag2 Localization Tuning](tuning/apriltag-and-megatag2-tuning.md)
-* [Tuning a Neural Network Pipeline](tuning/neural-network-pipeline-tuning.md)
+* [AprilTag Localization Tuning](tuning/apriltag-and-megatag2-tuning.md)
+* [Tuning an Object Detection Pipeline](tuning/neural-network-pipeline-tuning.md)
 * [PID Tuning for Aiming & Ranging](tuning/pid-tuning-for-aiming-and-ranging.md)
 
 ## Understanding

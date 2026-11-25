@@ -1,4 +1,10 @@
+---
+icon: plug
+---
+
 # PhotonVisionWrapper
+
+In short: makes a PhotonVision camera into a YALL `VisionCamera`.
 
 **Package:** `yall.cameras`
 
@@ -52,7 +58,7 @@ Every other method comes from [`VisionCamera`](../yall/vision-camera.md).
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCamera](../yall/vision-camera.md)
 * [LimelightWrapper](limelight-wrapper.md)

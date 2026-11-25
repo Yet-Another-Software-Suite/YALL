@@ -1,6 +1,10 @@
+---
+icon: sliders
+---
+
 # How do I use vendor-specific settings?
 
-YALL covers what PhotonVision, Limelight and Synapse have in common. For everything else, reach the vendor's library directly:
+Each camera maker's library can do things the others can't, like a Limelight's LEDs or snapshots. YALL covers what PhotonVision, Limelight and Synapse have in common. For everything else, reach the vendor's library directly:
 
 * **`getCamera()`** returns the vendor's camera object: a `PhotonCamera`, a LimelightLib `Limelight` or a `SynapseCamera`. Each wrapper's `getCamera()` returns its own type, so no cast is needed.
 * **`withVendorConfig(...)`** passes a vendor config object to the wrapper, as YAMS does for motor controllers. Each wrapper takes the types listed below and throws `IllegalArgumentException` for anything else.
@@ -47,7 +51,7 @@ Clear them with `clearFiducialIDFiltersOverride()` and `clearPriorityTagIDOverri
 
 ### Less heat while disabled
 
-`setThrottle(n)` makes the Limelight skip `n` frames between processed ones. LimelightLib suggests 100–200 while disabled:
+`setThrottle(n)` makes the Limelight skip `n` frames between processed ones. LimelightLib suggests 100 to 200 while disabled:
 
 ```java
 @Override
@@ -81,7 +85,7 @@ limelight.setIMUMode(IMUMode.INTERNAL_EXTERNAL_ASSIST);
 limelight.setCropWindowOverride(-0.5, 0.5, -0.5, 0.5); // x min, x max, y min, y max, each -1 to 1
 ```
 
-See [AprilTag & MegaTag2 Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md) for the IMU modes.
+See [AprilTag Localization Tuning](../tuning/apriltag-and-megatag2-tuning.md) for the IMU modes.
 
 ### Raw results
 
@@ -110,7 +114,7 @@ synapse.setSetting(SynapseCamera.Setting.kExposure, 10.0);
 synapse.setRecordStatus(true);
 ```
 
-## See Also
+## Read more
 
 * [Vendor Wrappers & Pass-Through](../understanding/vendor-wrappers-and-pass-through.md)
 * [How do I tune the pose filter?](how-do-i-tune-the-pose-filter.md)

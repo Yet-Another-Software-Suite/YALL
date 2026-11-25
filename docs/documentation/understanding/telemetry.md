@@ -1,4 +1,10 @@
+---
+icon: chart-line
+---
+
 # Telemetry
+
+**Telemetry** is data the robot program sends out while it runs, so you can watch it on a dashboard. YALL sends what each camera sees and what the pose filter decided.
 
 ## What YALL publishes
 
@@ -24,6 +30,9 @@ Add `acceptedPoses` and `rejectedPoses` to a field view in AdvantageScope or Ela
 
 ## In simulation
 
+To see the simulated camera's picture, turn on its video stream: see [Simulating Cameras](../tutorials/simulating-cameras.md#see-what-the-camera-sees).
+
+
 PhotonVision publishes a debug field for each simulated world, `VisionSystemSim-YALL/Sim Field` for the default one, with the robot, the cameras and the targets they see. `VisionSim.getDefault().getDebugField()` returns the same `Field2d`.
 
 ## Vendor telemetry
@@ -34,7 +43,7 @@ Vendor libraries publish their own telemetry too:
 * **PhotonVision**: under `photonvision/<camera name>`.
 * **Synapse**: under `Synapse/<camera name>`.
 
-## See Also
+## Read more
 
 * [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
 * [How do I use vendor-specific settings?](../how-to-guides/how-do-i-use-vendor-specific-settings.md)

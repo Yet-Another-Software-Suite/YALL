@@ -1,64 +1,230 @@
+---
+icon: magnifying-glass
+---
+
 # Object Detection
 
-This tutorial finds game pieces with a camera running an object detection pipeline: a Limelight neural detector or a PhotonVision object detection pipeline. Detected objects come back as `VisionTarget`s with a class ID and confidence, the same for both vendors.
+**Object detection** finds game pieces in the camera's picture with a trained model. In this tutorial a camera finds a ball in simulation and tells you which way to turn to reach it.
+
+## Before you start
+
+* Finish [Basic Setup](basic-setup.md).
+* On a real robot you need a camera that runs object detection: a Limelight neural detector pipeline, or a PhotonVision object detection pipeline.
+  * Tuning a PhotonVision camera: [About Object Detection](https://docs.photonvision.org/en/latest/docs/objectDetection/about-object-detection.html).
+  * Tuning a Limelight: [Getting Started with Neural Networks](https://docs.limelightvision.io/docs/docs-limelight/pipeline-neural/getting-started-with-neural-networks).
+* Synapse's Java library reports AprilTag and color pipelines, not object detection. A Synapse color target comes back with yaw and pitch but no class ID.
+
+Every detected object comes back as a `VisionTarget` with a **class ID** (which kind of object, numbered in the order of your model's labels) and a **confidence** (0 to 1: how sure the model is).
+
+{% stepper %}
+{% step %}
+### Point a camera at the floor
+
+An intake camera is usually low on the bumper, tilted down. A positive pitch tilts the camera down:
+
+```java
+.withRobotToCamera(
+    Inches.of(14), Inches.zero(), Inches.of(8),
+    Degrees.zero(), Degrees.of(20), Degrees.zero())
+```
+
+**Check it:** the project builds.
+{% endstep %}
+
+{% step %}
+### Put a game piece in the simulated world
+
+Give it the same class ID your model uses (0 here is a placeholder):
+
+```java
+VisionSim.getDefault().addVisionTargets(
+    "gamePieces",
+    new VisionTargetSim(
+        new Pose3d(4, 2.3, 0.075, Rotation3d.ZERO), // on the floor
+        new TargetModel(0.15),                       // a 15 cm ball
+        GAME_PIECE_CLASS,
+        0.9f));                                      // how sure the model is
+```
+
+`VisionTargetSim` and `TargetModel` come from PhotonVision.
+
+**Check it:** the project builds.
+{% endstep %}
+
+{% step %}
+### Find the closest piece
+
+On a camera tilted down, the closest piece is the lowest one in the picture, so it has the smallest pitch:
+
+```java
+camera.getTargets().stream()
+    .filter(VisionTarget::isDetectedObject)
+    .filter(target -> target.classId() == GAME_PIECE_CLASS && target.confidence() > 0.6)
+    .min(Comparator.comparingDouble(VisionTarget::pitchDegrees))
+    .ifPresent(piece -> Telemetry.log("Vision/game piece yaw", Degrees.of(piece.yawDegrees())));
+```
+
+**Check it:** run the simulation. `Vision/game piece yaw` is about −11°: the ball is a little to the robot's left, so its yaw is negative.
+{% endstep %}
+{% endstepper %}
 
 {% hint style="info" %}
-Synapse's Java library reports AprilTag and color pipelines, not object detection. A Synapse color pipeline's targets come back with yaw and pitch but no class ID.
+**Why `Robot.java`?** YALL doesn't use the command framework, so it works the same with Commands v2 and Commands v3. Both robot classes, `TimedRobot` (Commands v2) and `OpModeRobot` (Commands v3), have `robotPeriodic()`, which runs every loop, and `simulationPeriodic()`, which runs every loop in simulation. Commands v3 mechanisms have no `simulationPeriodic()`, so `Robot.java` is the one place that works for both.
 {% endhint %}
 
-## Reading detections
+## If it did not work
+
+* **No pieces found:** check the class ID matches, and that the camera points at the piece (turn on the [simulated video stream](simulating-cameras.md#see-what-the-camera-sees) to look).
+* **Real robot, no pieces:** the pipeline isn't an object detection pipeline, or its confidence threshold is higher than the piece's confidence.
+
+## The complete file
+
+{% tabs %}
+{% tab title="Commands v2" %}
+`first/robot/Robot.java`:
 
 ```java
-camera.update();
+package first.robot;
 
-List<VisionTarget> objects = camera.getLatestResult()
-    .map(VisionResult::getDetectedObjects)
-    .orElse(List.of());
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Inches;
 
-for (VisionTarget object : objects) {
-  int classId = object.classId();         // index into your model's labels
-  double confidence = object.confidence(); // 0 to 1
-  double yaw = object.yawDegrees();       // positive right
-  double pitch = object.pitchDegrees();   // positive up
+import java.util.Comparator;
+import org.photonvision.PhotonCamera;
+import org.photonvision.estimation.TargetModel;
+import org.photonvision.simulation.VisionTargetSim;
+import org.wpilib.framework.TimedRobot;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.telemetry.Telemetry;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.cameras.PhotonVisionWrapper;
+import yall.results.VisionTarget;
+import yall.sim.CameraModel;
+import yall.sim.VisionSim;
+
+public class Robot extends TimedRobot {
+  // The class ID of the game piece in your object detection model (a placeholder: use yours).
+  private static final int GAME_PIECE_CLASS = 0;
+
+  private static final Pose2d SIMULATED_ROBOT_POSE = new Pose2d(2, 2, Rotation2d.ZERO);
+
+  private final VisionCamera camera =
+      new PhotonVisionWrapper(
+          new PhotonCamera("intake"),
+          new VisionCameraConfig()
+              .withCameraModel(CameraModel.ARDUCAM_OV9281)
+              // On the front bumper, 8" up, tilted 20° down to see the floor.
+              .withRobotToCamera(
+                  Inches.of(14), Inches.zero(), Inches.of(8),
+                  Degrees.zero(), Degrees.of(20), Degrees.zero()));
+
+  public Robot() {
+    // A 15 cm ball on the floor, 2 m ahead of the simulated robot and a little to its left.
+    VisionSim.getDefault()
+        .addVisionTargets(
+            "gamePieces",
+            new VisionTargetSim(
+                new Pose3d(4, 2.3, 0.075, Rotation3d.ZERO),
+                new TargetModel(0.15),
+                GAME_PIECE_CLASS,
+                0.9f));
+  }
+
+  @Override
+  public void robotPeriodic() {
+    camera.update();
+    camera.getTargets().stream()
+        .filter(VisionTarget::isDetectedObject)
+        .filter(target -> target.classId() == GAME_PIECE_CLASS && target.confidence() > 0.6)
+        // On a camera tilted down, the closest piece is the lowest one in the image.
+        .min(Comparator.comparingDouble(VisionTarget::pitchDegrees))
+        .ifPresent(piece -> Telemetry.log("Vision/game piece yaw", Degrees.of(piece.yawDegrees())));
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    VisionSim.getDefault().update(SIMULATED_ROBOT_POSE);
+  }
 }
 ```
+{% endtab %}
 
-`isDetectedObject()` is true for targets with a class ID. Class IDs are the order of labels in your model; keep a list of names next to it in your code.
-
-## Driving to the closest game piece
-
-On a downward-tilted camera, the closest game piece is the one lowest in the image:
+{% tab title="Commands v3" %}
+`first/robot/Robot.java`:
 
 ```java
-Optional<VisionTarget> closest = objects.stream()
-    .filter(o -> o.classId() == GAME_PIECE_CLASS && o.confidence() > 0.6)
-    .min(Comparator.comparingDouble(VisionTarget::pitchDegrees));
+package first.robot;
 
-closest.ifPresent(piece -> {
-  double turn = -kP * piece.yawDegrees();
-  drive.arcadeDrive(0.5, turn);
-});
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Inches;
+
+import java.util.Comparator;
+import org.photonvision.PhotonCamera;
+import org.photonvision.estimation.TargetModel;
+import org.photonvision.simulation.VisionTargetSim;
+import org.wpilib.framework.OpModeRobot;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.telemetry.Telemetry;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.cameras.PhotonVisionWrapper;
+import yall.results.VisionTarget;
+import yall.sim.CameraModel;
+import yall.sim.VisionSim;
+
+public class Robot extends OpModeRobot {
+  // The class ID of the game piece in your object detection model (a placeholder: use yours).
+  private static final int GAME_PIECE_CLASS = 0;
+
+  private static final Pose2d SIMULATED_ROBOT_POSE = new Pose2d(2, 2, Rotation2d.ZERO);
+
+  private final VisionCamera camera =
+      new PhotonVisionWrapper(
+          new PhotonCamera("intake"),
+          new VisionCameraConfig()
+              .withCameraModel(CameraModel.ARDUCAM_OV9281)
+              // On the front bumper, 8" up, tilted 20° down to see the floor.
+              .withRobotToCamera(
+                  Inches.of(14), Inches.zero(), Inches.of(8),
+                  Degrees.zero(), Degrees.of(20), Degrees.zero()));
+
+  public Robot() {
+    // A 15 cm ball on the floor, 2 m ahead of the simulated robot and a little to its left.
+    VisionSim.getDefault()
+        .addVisionTargets(
+            "gamePieces",
+            new VisionTargetSim(
+                new Pose3d(4, 2.3, 0.075, Rotation3d.ZERO),
+                new TargetModel(0.15),
+                GAME_PIECE_CLASS,
+                0.9f));
+  }
+
+  @Override
+  public void robotPeriodic() {
+    camera.update();
+    camera.getTargets().stream()
+        .filter(VisionTarget::isDetectedObject)
+        .filter(target -> target.classId() == GAME_PIECE_CLASS && target.confidence() > 0.6)
+        // On a camera tilted down, the closest piece is the lowest one in the image.
+        .min(Comparator.comparingDouble(VisionTarget::pitchDegrees))
+        .ifPresent(piece -> Telemetry.log("Vision/game piece yaw", Degrees.of(piece.yawDegrees())));
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    VisionSim.getDefault().update(SIMULATED_ROBOT_POSE);
+  }
+}
 ```
+{% endtab %}
+{% endtabs %}
 
-Apply a confidence threshold in code when you want it stricter than the pipeline's, for example only in autonomous.
-
-## Simulating game pieces
-
-Add game pieces to the simulated world with a class ID. Every simulated camera, whatever its vendor, then reports them as detected objects:
-
-```java
-VisionTargetSim piece = new VisionTargetSim(
-    new Pose3d(5, 4, 0.1, Rotation3d.ZERO),
-    new TargetModel(0.15), // a 15 cm sphere
-    GAME_PIECE_CLASS,
-    0.9f);
-VisionSim.getDefault().addVisionTargets("gamePieces", piece);
-```
-
-`VisionTargetSim` and `TargetModel` are PhotonVision's (`org.photonvision.simulation`, `org.photonvision.estimation`). Remove the group with `removeVisionTargets("gamePieces")`.
-
-## See Also
-
-* [Tuning a Neural Network Pipeline](../tuning/neural-network-pipeline-tuning.md)
-* [Simulating Cameras](simulating-cameras.md)
-* [Results Model](../understanding/results-model.md)
+To drive to the piece, turn by its yaw, as in [PID Tuning for Aiming & Ranging](../tuning/pid-tuning-for-aiming-and-ranging.md).

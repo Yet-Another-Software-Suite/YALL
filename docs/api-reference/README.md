@@ -1,8 +1,12 @@
+---
+icon: book-open
+---
+
 # Overview
 
 Yet Another Limelight Library (YALL) gives PhotonVision, Limelight and Synapse cameras one Java API for FRC robots. A camera object returns real results on the robot and simulated results in simulation, so the same code runs in both. Every camera is simulated with PhotonVision's camera simulation, whatever its vendor.
 
-YALL builds against WPILib 2027 (alpha 8). This reference covers every public class. For tutorials, how-to guides and explanations, see the main YALL documentation space (YALL-Gitbook).
+YALL builds against WPILib 2027 (alpha 8). This reference covers every public class. For tutorials, how-to guides and explanations, see the Documentation section of this site.
 
 ## Features
 

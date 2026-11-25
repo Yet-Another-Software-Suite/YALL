@@ -1,4 +1,10 @@
+---
+icon: python
+---
+
 # Overview
+
+In short: the older, Limelight-only Python library, not the camera API on this site.
 
 **Package:** `yall`
 
@@ -33,11 +39,11 @@ The Python port is a direct translation of an earlier revision of the Java libra
 
 * `createPoseEstimator(megatag2: bool)` takes a `bool` instead of Java's `EstimationMode` enum.
 * `LimelightSettings.withCameraToRobot(pose)` is the Python equivalent of Java's `withCameraOffset(Pose3d)`.
-* `withArilTagIdFilter(...)` — note the typo carried over from an earlier API revision; this is the equivalent of Java's `withAprilTagIdFilter`.
+* `withArilTagIdFilter(...)`: the spelling mistake comes from an earlier version of the API. It matches Java's `withAprilTagIdFilter`.
 * No Python equivalents yet for `IMUResults`, `HardwareReport`, `HailoStats`, `RewindStats`, or rewind-capture / USB port-forwarding helpers.
 
 For the exact signatures, see `yall/python/yall/` in the YALL repository. The Java reference covers the 2027 camera API, which the Python port doesn't have.
 
-## See Also
+## Read more
 
 * [Java API](../java-reference/README.md) (the 2027 camera API)

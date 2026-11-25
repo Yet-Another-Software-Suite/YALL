@@ -1,4 +1,10 @@
+---
+icon: microchip
+---
+
 # SynapseWrapper
+
+In short: makes a Synapse camera into a YALL `VisionCamera`.
 
 **Package:** `yall.cameras`
 
@@ -55,7 +61,7 @@ Every other method comes from [`VisionCamera`](../yall/vision-camera.md).
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCamera](../yall/vision-camera.md)
 * [CameraModel](../sim/camera-model.md)

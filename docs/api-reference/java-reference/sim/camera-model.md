@@ -1,4 +1,10 @@
+---
+icon: camera-retro
+---
+
 # CameraModel
+
+In short: real cameras' published specs, so the simulation sees what your camera would.
 
 **Package:** `yall.sim`
 
@@ -75,7 +81,7 @@ Without a model or camera properties in the config, each wrapper simulates:
 
 ***
 
-## See Also
+## Read more
 
 * [VisionSim](vision-sim.md)
 * [VisionCameraConfig](../yall/vision-camera-config.md)

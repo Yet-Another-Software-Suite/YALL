@@ -1,4 +1,10 @@
+---
+icon: location-dot
+---
+
 # VisionPoseEstimate
+
+In short: a camera's guess at where the robot is, with when the picture was taken and how much to trust it.
 
 **Package:** `yall.results`
 
@@ -50,7 +56,7 @@ camera.getEstimatedPose().ifPresent(estimate ->
 
 ***
 
-## See Also
+## Read more
 
 * [VisionPoseFilter](../filter/vision-pose-filter.md)
 * [VisionSystem](../yall/vision-system.md)

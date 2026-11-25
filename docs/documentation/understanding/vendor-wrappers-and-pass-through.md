@@ -1,4 +1,10 @@
+---
+icon: plug
+---
+
 # Vendor Wrappers & Pass-Through
+
+A **wrapper** is a class that sits around another one and gives it a new, common shape, like a universal phone case. YALL's wrappers sit around each camera maker's own camera class so they all work the same way. **Pass-through** means you can still reach the maker's own class inside.
 
 ## One base class, three wrappers
 
@@ -43,7 +49,7 @@ YALL doesn't try to cover every vendor feature. `getCamera()` and `withVendorCon
 
 `close()` removes the camera from simulation and closes its telemetry. `VisionSystem.close()` closes every camera in it. Tests that create cameras should close them.
 
-## See Also
+## Read more
 
 * [Results Model](results-model.md)
 * [Simulating Cameras](../tutorials/simulating-cameras.md)

@@ -1,4 +1,10 @@
+---
+icon: compass
+---
+
 # PoseEstimationMode
+
+In short: whether a camera solves the robot's position from tags alone, or also uses the gyro's heading.
 
 **Package:** `yall`
 
@@ -32,7 +38,7 @@ Heading-assisted estimates have [`VisionPoseEstimate.headingAssisted()`](../resu
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCameraConfig](vision-camera-config.md)
 * [VisionPoseEstimate](../results/vision-pose-estimate.md)

@@ -1,4 +1,10 @@
+---
+icon: computer
+---
+
 # VisionSim
+
+In short: the pretend field every simulated camera sees.
 
 **Package:** `yall.sim`
 
@@ -11,6 +17,7 @@ The simulated world every simulated [`VisionCamera`](../yall/vision-camera.md) s
 Cameras join `getDefault()` unless their config names another world with [`withSimulation(VisionSim)`](../yall/vision-camera-config.md#camera-properties-and-simulation). Update the world once per loop with the robot's true pose:
 
 ```java
+// In Robot.simulationPeriodic(): TimedRobot (Commands v2) and OpModeRobot (Commands v3) both have it.
 public void simulationPeriodic() {
   VisionSim.getDefault().update(drivetrainSim.getPose());
 }
@@ -72,7 +79,7 @@ Each simulated `VisionCamera` gets a PhotonVision `PhotonCameraSim`:
 
 ***
 
-## See Also
+## Read more
 
 * [CameraModel](camera-model.md)
 * [VisionCamera](../yall/vision-camera.md)

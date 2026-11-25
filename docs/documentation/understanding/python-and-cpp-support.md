@@ -1,3 +1,7 @@
+---
+icon: code
+---
+
 # Python & C++ Support
 
 ## Java only
@@ -17,6 +21,6 @@ The Python port of the earlier library was written by FRC Team 9738, who transla
 
 For Limelight in C++, use LimelightLib 2's own C++ library. For PhotonVision, use PhotonLib's C++ library.
 
-## See Also
+## Read more
 
 * [Why YALL?](../why-yall.md)

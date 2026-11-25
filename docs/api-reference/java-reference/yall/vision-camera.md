@@ -1,4 +1,10 @@
+---
+icon: camera
+---
+
 # VisionCamera
+
+In short: one camera, from any maker. Call `update()` every loop, then read targets and pose guesses.
 
 **Package:** `yall`
 
@@ -13,7 +19,8 @@ Create one with the wrapper for the camera's vendor: [`PhotonVisionWrapper`](../
 ```java
 VisionCamera front = new PhotonVisionWrapper(new PhotonCamera("front"), config);
 
-public void periodic() {
+// In Robot.robotPeriodic() (Commands v2 or v3):
+public void robotPeriodic() {
   front.setRobotOrientation(gyro.getRotation2d());
   front.update();
   front.addVisionMeasurements(poseEstimator);
@@ -160,7 +167,7 @@ One frame read from the camera, before the pose filter.
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCameraConfig](vision-camera-config.md)
 * [VisionSystem](vision-system.md)

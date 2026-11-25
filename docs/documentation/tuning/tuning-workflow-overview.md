@@ -1,27 +1,54 @@
 ---
-icon: sliders
+icon: list-check
 ---
 
 # Tuning Workflow Overview
 
-[Limelight's own documentation](https://docs.limelightvision.io/) has all of the tuning guidance in this section, but it's spread across a dozen unrelated pages: sensor settings live under "Getting Started," color thresholding lives under the retro pipeline, MegaTag2 IMU tuning lives under AprilTag localization, and PID starting points are buried in a tutorial. This section reorganizes the same guidance into the order you'd actually tune a robot, cross-linked to the YALL API where a step is configured from robot code instead of the web UI. The steps are written for Limelight; camera offset, crosshair-relative angles, pose filtering and PID tuning apply to every camera.
+**Tuning** means adjusting the camera so it finds targets reliably, then adjusting your code so the robot uses them well. Most camera tuning happens in the camera maker's own web page (PhotonVision's or Limelight's), not in robot code. YALL reads the results of that tuning.
 
-## The order that works
+Tune in this order. Each step makes the next one easier.
 
-1. **[Camera sensor settings](camera-sensor-settings.md)**: exposure, black level, gain. Do this first, regardless of pipeline type. Every later step (thresholding, detection, pose accuracy) is easier against a clean image.
-2. **[Crosshair calibration](crosshair-calibration.md)**: only if you're driving off a target's yaw and pitch directly (visual servoing) rather than a full 3D pose.
-3. **[ChArUco camera calibration](charuco-camera-calibration.md)**: only if you need accurate 3D measurements: AprilTag 3D tracking, robot localization, or `VisionTarget.cameraToTarget()` in general.
-4. Pipeline-specific tuning: pick the one matching your active pipeline:
-   * **[Retroreflective pipeline tuning](retroreflective-pipeline-tuning.md)**: HSV thresholding, then contour filtering/sorting.
-   * **[AprilTag & MegaTag2 localization tuning](apriltag-and-megatag2-tuning.md)**: robot-space offset, field map, IMU mode, assist alpha.
-   * **[Neural network pipeline tuning](neural-network-pipeline-tuning.md)**: confidence threshold, crop window.
-5. **[PID tuning for aiming & ranging](pid-tuning-for-aiming-and-ranging.md)**: once target tracking itself is stable, tune the control loop that drives on it.
+{% stepper %}
+{% step %}
+### Make the picture clean
 
-{% hint style="info" %}
-Steps 1–4 are almost entirely web UI configuration (the Limelight's pipeline JSON), not YALL API calls. YALL reads the *results* of that tuning; it doesn't perform it. Each page below calls out the few settings set from robot code: the camera offset and robot orientation through YALL, and the IMU mode through LimelightLib (`getCamera()`).
-{% endhint %}
+Set exposure, brightness and gain so the picture is mostly dark and the targets stand out: [Camera Sensor Settings](camera-sensor-settings.md).
 
-## See Also
+**Check it:** in the camera's web page, targets are sharp and the background is dark.
+{% endstep %}
 
-* [Vendor Wrappers & Pass-Through](../understanding/vendor-wrappers-and-pass-through.md)
-* [Pose Estimation & Filtering](../understanding/pose-estimation-and-filtering.md)
+{% step %}
+### Calibrate the camera
+
+Teach the camera its exact lens, so distances and positions come out right: [ChArUco Camera Calibration](charuco-camera-calibration.md). Needed for robot positions; you can skip it if you only aim with yaw and pitch.
+
+**Check it:** the calibration's error is under 1 pixel.
+{% endstep %}
+
+{% step %}
+### Tune the pipeline you use
+
+A **pipeline** is the set of steps a camera runs on each picture.
+
+* AprilTags and robot position: [AprilTag Localization Tuning](apriltag-and-megatag2-tuning.md).
+* Game pieces: [Tuning an Object Detection Pipeline](neural-network-pipeline-tuning.md).
+* Reflective tape (Limelight): [Tuning a Retroreflective Pipeline](retroreflective-pipeline-tuning.md).
+
+**Check it:** the camera finds the targets you care about, and nothing else.
+{% endstep %}
+
+{% step %}
+### Tune your code
+
+* Aiming with yaw and pitch: [Crosshair Calibration](crosshair-calibration.md) (Limelight), then [PID Tuning for Aiming & Ranging](pid-tuning-for-aiming-and-ranging.md).
+* Robot position: [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
+
+**Check it:** the robot aims or drives where you expect, without wobbling.
+{% endstep %}
+{% endstepper %}
+
+## Each maker's own guides
+
+* Tuning a PhotonVision camera: [Camera Tuning / Input](https://docs.photonvision.org/en/latest/docs/pipelines/input.html), [Calibrating Your Camera](https://docs.photonvision.org/en/latest/docs/calibration/calibration.html), [2D AprilTag Tuning](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/2D-tracking-tuning.html), [3D Tracking](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/3D-tracking.html), [MultiTag Localization](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/multitag.html), [Best Practices For Competition](https://docs.photonvision.org/en/latest/docs/additional-resources/best-practices.html).
+* Tuning a Limelight: [Pipeline Setup](https://docs.limelightvision.io/docs/docs-limelight/getting-started/pipelines), [ChArUco Camera Calibration](https://docs.limelightvision.io/docs/docs-limelight/getting-started/performing-charuco-camera-calibration), [Tracking AprilTags](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltags), [Robot Localization with MegaTag2](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization-megatag2), [Example Projects](https://docs.limelightvision.io/docs/docs-limelight/tutorials/example-projects).
+* Tuning a Synapse camera: [the Synapse docs](https://danpeled.gitbook.io/synapse/).

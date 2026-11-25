@@ -1,4 +1,10 @@
+---
+icon: layer-group
+---
+
 # VisionSystem
+
+In short: several cameras working together, feeding one pose estimator.
 
 **Package:** `yall`
 
@@ -11,12 +17,14 @@ Several [`VisionCamera`](vision-camera.md)s working together, from any mix of ve
 ```java
 VisionSystem vision = new VisionSystem(frontLimelight, backPhoton, sideSynapse);
 
-public void periodic() {
+// In Robot.robotPeriodic() (Commands v2 or v3):
+public void robotPeriodic() {
   vision.setRobotOrientation(gyro.getRotation3d(), gyroYawRate);
   vision.update();
   vision.addVisionMeasurements(poseEstimator);
 }
 
+// In Robot.simulationPeriodic() (Commands v2 or v3):
 public void simulationPeriodic() {
   vision.updateSimulation(drivetrainSim.getPose());
 }
@@ -78,7 +86,7 @@ Each `update()` publishes the fused pose to `YALL/fusedPose` (`Pose3d`) when the
 
 ***
 
-## See Also
+## Read more
 
 * [VisionCamera](vision-camera.md)
 * [VisionPoseEstimate](../results/vision-pose-estimate.md)

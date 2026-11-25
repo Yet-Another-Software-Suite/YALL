@@ -1,4 +1,10 @@
+---
+icon: bullseye
+---
+
 # PID Tuning for Aiming & Ranging
+
+**Aiming** turns the robot until the target is at the crosshair. **Ranging** drives forward or back until the target is the right distance away. Both use a **PID controller**: code that turns an error (how far off you are) into a motor command. These gains start from Limelight's [Aiming and Ranging](https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-aiming-and-ranging) example; WPILib's PID docs explain the rest.
 
 Once tracking itself is stable (pipeline tuned, [crosshair calibrated](crosshair-calibration.md)), this is the last step: closing the loop between `tx`/`ty` and drivetrain output. This only applies to direct visual servoing off a target's angles and area (`VisionTarget.yawDegrees()` / `pitchDegrees()` / `areaPercent()`, as in [Basic Setup](../tutorials/basic-setup.md)); if you're driving off a pose estimate instead, this doesn't apply, so tune the [pose filter](../how-to-guides/how-do-i-tune-the-pose-filter.md) instead.
 
@@ -30,12 +36,33 @@ if (target.isPresent() && Math.abs(target.get().yawDegrees()) > 1.0) {
 
 ## Tuning order
 
-1. **Aim (yaw) alone first**, with ranging disabled. Confirm the robot settles on heading without oscillating before adding range control.
-2. **Range (pitch/area) alone next**, with aim disabled, same idea: isolate one loop before combining them.
-3. **Combine both** once each is independently stable. Combined aim+range is more sensitive to gain that's slightly too high, since heading and distance errors can compound.
-4. **Increase `kP` gradually** from the starting values above until the robot responds promptly without overshoot/oscillation at your target distance; back off ~20% from the point oscillation starts.
+{% stepper %}
+{% step %}
+### Tune aiming alone
 
-## See Also
+Turn ranging off. Raise the aim gain until the robot turns to the target promptly.
+
+**Check it:** the robot settles facing the target without wobbling.
+{% endstep %}
+
+{% step %}
+### Tune ranging alone
+
+Turn aiming off and do the same for ranging.
+
+**Check it:** the robot settles at the right distance without rocking back and forth.
+{% endstep %}
+
+{% step %}
+### Combine them
+
+Turn both on. Together they're touchier, so you may need to lower each gain a little.
+
+**Check it:** the robot settles on both. If it starts to wobble, lower the gains about 20% from where wobbling starts.
+{% endstep %}
+{% endstepper %}
+
+## Read more
 
 * [Tuning Workflow Overview](tuning-workflow-overview.md)
 * [Crosshair Calibration](crosshair-calibration.md)

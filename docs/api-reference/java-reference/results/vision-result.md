@@ -1,4 +1,10 @@
+---
+icon: image
+---
+
 # VisionResult
+
+In short: one picture the camera processed, with the targets in it.
 
 **Package:** `yall.results`
 
@@ -41,7 +47,7 @@ camera.getLatestResult().ifPresent(result -> {
 
 ***
 
-## See Also
+## Read more
 
 * [VisionTarget](vision-target.md)
 * [VisionCamera](../yall/vision-camera.md)

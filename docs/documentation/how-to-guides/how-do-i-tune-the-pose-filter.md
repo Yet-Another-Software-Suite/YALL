@@ -1,4 +1,12 @@
+---
+icon: filter
+---
+
 # How do I tune the pose filter?
+
+The **pose filter** looks at every robot position a camera guesses and throws out the ones that can't be right. It also decides how much to trust the ones it keeps. The defaults work for most robots; tune it when good guesses get thrown out or bad ones get through.
+
+![A field with six position guesses: one accepted, and five thrown out for being off the field, floating in the air, from tags too far away, too ambiguous, or taken while the robot spun too fast.](../.gitbook/assets/pose-filter-checks.png)
 
 Each camera's config holds a `VisionPoseFilter`. Build one, change the checks you want, and pass it in:
 
@@ -47,6 +55,8 @@ Optional<Distance> singleTagLimit = filter.getMaxSingleTagDistance();
 
 ## How much to trust accepted estimates
 
+A **standard deviation** says how far off a guess might be: small means "trust it a lot". The pose estimator uses it to decide how much each guess moves the robot's position.
+
 Accepted estimates get standard deviations for x, y and heading:
 
 ```
@@ -62,19 +72,41 @@ filter.withStdDevs(
     20);                            // smaller divisor: distant tags count for less
 ```
 
-Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from the gyro, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(...)`.
+Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from the gyro, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(Radians.of(...))`.
 
 ## Finding the right values
 
-1. Watch `YALL/<camera name>/acceptedPoses`, `rejectedPoses` and `rejectionReason` on a field view in AdvantageScope or Elastic.
-2. Drive around the field. If good estimates are rejected, loosen the check named in `rejectionReason`. If bad estimates are accepted, tighten the one that should have caught them.
-3. If the pose estimate jumps when a camera sees a tag, raise the standard deviations. If it is slow to correct drift, lower them.
+{% stepper %}
+{% step %}
+### Watch what it keeps and throws out
+
+Show `YALL/<camera name>/acceptedPoses` and `rejectedPoses` on a field view in AdvantageScope or Elastic, with `rejectionReason` next to it.
+
+**Check it:** accepted poses (kept guesses) sit on the robot.
+{% endstep %}
+
+{% step %}
+### Drive around and adjust the checks
+
+If good guesses are thrown out, loosen the check named in `rejectionReason`. If bad guesses get through, tighten the check that should have caught them.
+
+**Check it:** rejected poses are the ones far from the robot.
+{% endstep %}
+
+{% step %}
+### Adjust the trust
+
+If the pose estimate jumps when a camera sees a tag, raise the standard deviations. If it's slow to fix drift, lower them.
+
+**Check it:** the estimate stays smooth and on the robot while you drive.
+{% endstep %}
+{% endstepper %}
 
 ## Using Limelight's own filter instead
 
 A Limelight can use LimelightLib's `PoseEstimateConfig` in place of YALL's filter. See [How do I use vendor-specific settings?](how-do-i-use-vendor-specific-settings.md#pose-estimate-config)
 
-## See Also
+## Read more
 
 * [Pose Estimation & Filtering](../understanding/pose-estimation-and-filtering.md)
 * [Telemetry](../understanding/telemetry.md)
