@@ -1,5 +1,6 @@
 /**
  * Yet Another Limelight Library: one camera API for PhotonVision, Limelight and Synapse, with
- * PhotonVision simulation for all three, pose filtering and multi-camera fusion.
+ * PhotonVision simulation for all three, pose filtering, and every camera's estimates ready for a
+ * WPILib pose estimator.
  */
 package yall;

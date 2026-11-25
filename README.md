@@ -15,8 +15,8 @@ YALL builds against WPILib 2027 (alpha 8).
 - **Pose filtering.** Every estimate goes through a `VisionPoseFilter`. Each check in it can be
   turned on, tuned or turned off, and accepted estimates get standard deviations scaled by tag
   distance and tag count.
-- **Multi-camera fusion.** `VisionSystem` feeds every camera's estimates to a WPILib pose
-  estimator, or combines them into one fused pose.
+- **Several cameras.** `VisionSystem` updates every camera and hands each accepted estimate to
+  your pose estimator, with its own timestamp and standard deviations.
 - **Vendor pass-through.** `getCamera()` returns the vendor's own camera object, and
   `withVendorConfig(...)` passes vendor config objects through, as YAMS does for motor
   controllers.
@@ -142,15 +142,25 @@ for (VisionTarget object : front.getLatestResult().map(VisionResult::getDetected
 
 ### Estimating the robot pose
 
-`getEstimatedPose()` returns the newest estimate that passed the pose filter, with its timestamp
-and standard deviations:
+Pass every estimate that passed the pose filter to your drivetrain's pose estimator with
+`addVisionMeasurement`, once per loop after `update()`:
 
 ```java
 front.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
 front.update();
-front.getEstimatedPose().ifPresent(estimate ->
+front.forEachEstimatedPose(estimate ->
     poseEstimator.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
+
+`front.addVisionMeasurements(poseEstimator)` does the same for a WPILib pose estimator. Use the
+estimate's own values:
+
+- **`timestampSeconds()`, never the current time.** The pose estimator keeps a short history of
+  odometry and applies the estimate where the robot was when the image was taken.
+- **`stdDevs()`.** They grow with tag distance and shrink with tag count, so a close, multi-tag
+  estimate pulls hard and a far, single-tag one barely moves the pose.
+- **Every estimate, not just the newest.** A fast camera can produce more than one frame per loop.
+  `getEstimatedPose()` returns only the newest, for checks like "do we see the robot's position?".
 
 `PoseEstimationMode.TAGS_ONLY` (the default) solves the pose from the tags alone: Limelight
 MegaTag1, PhotonVision's multi-tag result, Synapse's field pose. `HEADING_ASSISTED` uses the gyro
@@ -173,11 +183,16 @@ public void robotPeriodic() {
 }
 ```
 
-`addVisionMeasurements` is the most accurate way to use several cameras: the pose estimator weighs
-each estimate at the moment its image was taken. `vision.withPoseEstimator(poseEstimator)` makes
-`update()` do it for you. For one combined answer, `getFusedPose()` combines the cameras' newest
-estimates with the same math as WPILib's pose estimators (or returns the pose estimator's pose, if
-you gave it one). For drivetrains with their own vision method, use `forEachEstimatedPose(...)`.
+Give the pose estimator every camera's estimates one at a time; don't combine them first. Each goes
+in with its own timestamp and standard deviations, so the pose estimator applies it against the
+odometry from the moment its image was taken and trusts each camera as much as it should. The pose
+estimator's pose is the robot's pose. For drivetrains with their own vision method, such as a YAMS
+`SwerveDrive`, use `forEachEstimatedPose(...)`:
+
+```java
+vision.forEachEstimatedPose(estimate ->
+    swerveDrive.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
+```
 
 ### Pose filtering
 
@@ -277,7 +292,7 @@ verbosity, set with `withTelemetry(new VisionTelemetryConfig().withVerbosity(...
 | `HIGH` | also the pose filter stats under `stats/` and every target's ID, yaw, pitch and area under `targets/` |
 
 `withField(...)` turns single fields on or off, `withTablePath(...)` moves the table, and
-`withTelemetry(false)` turns it off. `VisionSystem` publishes `YALL/fusedPose`.
+`withTelemetry(false)` turns it off.
 
 ### Pose filter stats
 

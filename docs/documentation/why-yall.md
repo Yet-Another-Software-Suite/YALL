@@ -34,7 +34,7 @@ Every pose estimate (a camera's guess at where the robot is) goes through a [`Vi
 
 ## Several cameras, one pose
 
-[`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) updates every camera and feeds each accepted estimate to your pose estimator, oldest first. `getFusedPose()` combines the cameras' newest estimates into one pose with the same math as WPILib's pose estimators, so the cameras it trusts more count for more. See [How do I use multiple cameras?](how-to-guides/how-do-i-use-multiple-cameras.md)
+[`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system) updates every camera and feeds each accepted estimate to your pose estimator's `addVisionMeasurement`, oldest first, each with its own timestamp and standard deviations, so the cameras it trusts more count for more. See [How do I use multiple cameras?](how-to-guides/how-do-i-use-multiple-cameras.md)
 
 ## The vendor library is still there
 

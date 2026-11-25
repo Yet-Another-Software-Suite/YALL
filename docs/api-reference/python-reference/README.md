@@ -9,7 +9,7 @@ In short: the older, Limelight-only Python library, not the camera API on this s
 **Package:** `yall`
 
 {% hint style="warning" %}
-The Python port is the older, Limelight-only YALL. It hasn't changed for the 2027 library: the camera API in the [Java reference](../java-reference/README.md) ([`VisionCamera`](../java-reference/yall/vision-camera.md), the PhotonVision, Limelight and Synapse wrappers, pose filtering, fusion and simulation) is Java-only. The Python port still reads a Limelight's NetworkTables directly, as the old Java `limelight` package did.
+The Python port is the older, Limelight-only YALL. It hasn't changed for the 2027 library: the camera API in the [Java reference](../java-reference/README.md) ([`VisionCamera`](../java-reference/yall/vision-camera.md), the PhotonVision, Limelight and Synapse wrappers, pose filtering, several cameras and simulation) is Java-only. The Python port still reads a Limelight's NetworkTables directly, as the old Java `limelight` package did.
 {% endhint %}
 
 YALL ships a Python port of its older, Limelight-only Java library (the `limelight` package), with the same class names and most of the same method names, built on `ntcore` directly (no WPILib Python `Limelight`-specific dependency beyond networktables/geometry).

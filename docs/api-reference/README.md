@@ -13,7 +13,7 @@ YALL builds against WPILib 2027 (alpha 8). This reference covers every public cl
 * **[`VisionCamera`](java-reference/yall/vision-camera.md)**: one camera API for every vendor, through [`PhotonVisionWrapper`](java-reference/cameras/photonvision-wrapper.md), [`LimelightWrapper`](java-reference/cameras/limelight-wrapper.md) and [`SynapseWrapper`](java-reference/cameras/synapse-wrapper.md)
 * **[`VisionCameraConfig`](java-reference/yall/vision-camera-config.md)**: camera position, pose estimation mode, pose filter, camera model, simulation, vendor configs and telemetry
 * **[`VisionPoseFilter`](java-reference/filter/vision-pose-filter.md)**: pose estimate checks you can each tune or turn off, and standard deviations scaled by tag distance and count
-* **[`VisionSystem`](java-reference/yall/vision-system.md)**: several cameras feeding a WPILib pose estimator, or fused into one pose
+* **[`VisionSystem`](java-reference/yall/vision-system.md)**: several cameras, each estimate going to your pose estimator
 * **[`VisionSim`](java-reference/sim/vision-sim.md) and [`CameraModel`](java-reference/sim/camera-model.md)**: PhotonVision simulation for every camera, with presets from each camera's published specs
 * **Results**: [`VisionResult`](java-reference/results/vision-result.md), [`VisionTarget`](java-reference/results/vision-target.md) and [`VisionPoseEstimate`](java-reference/results/vision-pose-estimate.md), the same for every vendor
 

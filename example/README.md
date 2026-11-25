@@ -15,7 +15,6 @@ Drive with a gamepad on port 0 in teleop. The Field widget (`Field` in NetworkTa
 - `Robot`: odometry plus vision
 - `Odometry`: odometry alone
 - `Truth`: the simulated robot's real pose
-- `Fused vision`: the cameras' newest estimates combined
 
 `./gradlew test` drives an 8-second arc and checks that vision keeps the estimate closer to the
 truth than odometry alone.
