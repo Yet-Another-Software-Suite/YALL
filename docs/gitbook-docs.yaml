@@ -1,0 +1,44 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: YALL
+  structure:
+    - type: section
+      key: section-1
+      title: Home
+      path: home
+      icon: house
+      default: true
+      children:
+        - type: space
+          key: space-1
+          title: Home
+          path: home
+          default: true
+          content:
+            directory: ./home
+    - type: section
+      key: section-2
+      title: Documentation
+      path: documentation
+      icon: book-blank
+      children:
+        - type: space
+          key: space-2
+          title: Documentation
+          path: documentation
+          default: true
+          content:
+            directory: ./documentation
+    - type: section
+      key: section-3
+      title: API Reference
+      path: api-reference
+      icon: terminal
+      children:
+        - type: space
+          key: space-3
+          title: API Reference
+          path: api-reference
+          default: true
+          content:
+            directory: ./api-reference
