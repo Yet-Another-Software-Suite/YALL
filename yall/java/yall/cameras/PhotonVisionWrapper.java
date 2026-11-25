@@ -2,10 +2,14 @@ package yall.cameras;
 
 import java.util.List;
 import org.photonvision.PhotonCamera;
-import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.PhotonPoseEstimator;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
+import yall.VisionFrame;
 import yall.sim.CameraModel;
+import yall.sim.SimulatedCamera;
 
 /**
  * A PhotonVision camera.
@@ -18,11 +22,14 @@ import yall.sim.CameraModel;
  * multi-tag result, falling back to the lowest-ambiguity single tag. With {@link
  * yall.PoseEstimationMode#HEADING_ASSISTED} it tries the PnP distance trig solve first.
  *
+ * <p>Without a camera model in the config, it is simulated as a {@link CameraModel#ARDUCAM_OV9281}.
+ *
  * <p>No vendor configs are accepted; use {@link #getCamera()} for PhotonVision settings.
  */
 public class PhotonVisionWrapper extends VisionCamera {
 
   private final PhotonCamera camera;
+  private final PhotonPoseEstimator poseEstimator;
 
   /**
    * Wraps a PhotonVision camera.
@@ -31,8 +38,12 @@ public class PhotonVisionWrapper extends VisionCamera {
    * @param config The camera's config.
    */
   public PhotonVisionWrapper(PhotonCamera camera, VisionCameraConfig config) {
-    super(camera.getName(), config, camera);
+    super(
+        camera.getName(),
+        config,
+        SimulatedCamera.create(camera.getName(), config, CameraModel.ARDUCAM_OV9281, camera));
     this.camera = camera;
+    poseEstimator = new PhotonPoseEstimator(config.getField(), getRobotToCamera());
     config
         .getVendorConfig()
         .ifPresent(
@@ -46,8 +57,19 @@ public class PhotonVisionWrapper extends VisionCamera {
   }
 
   @Override
-  protected List<Frame> readFrames() {
-    return readPhotonFrames(camera);
+  protected List<VisionFrame> readFrames() {
+    return PhotonVisionFrames.read(name, camera, poseEstimator, config.getPoseEstimationMode());
+  }
+
+  @Override
+  protected void applyRobotOrientation(
+      double timestampSeconds, Rotation3d orientation, double yawRateDegreesPerSecond) {
+    poseEstimator.addHeadingData(timestampSeconds, orientation);
+  }
+
+  @Override
+  protected void applyRobotToCamera(Transform3d robotToCamera) {
+    poseEstimator.setRobotToCameraTransform(robotToCamera);
   }
 
   @Override
@@ -66,13 +88,13 @@ public class PhotonVisionWrapper extends VisionCamera {
   }
 
   /**
-   * An Arducam OV9281 USB camera, the common PhotonVision camera.
+   * PhotonVision's pose estimator for this camera's real results, for settings YALL doesn't cover.
+   * In simulation, the simulation has its own: see {@link SimulatedCamera#getPhotonPoseEstimator()}.
    *
-   * @return Camera properties.
+   * @return The pose estimator.
    */
-  @Override
-  protected SimCameraProperties defaultCameraProperties() {
-    return CameraModel.ARDUCAM_OV9281.getSimCameraProperties();
+  public PhotonPoseEstimator getPhotonPoseEstimator() {
+    return poseEstimator;
   }
 
   @Override

@@ -19,10 +19,12 @@ import synapse.pipelines.color.ColorDetection;
 import synapse.pipelines.color.ColorResult;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
+import yall.VisionFrame;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
 import yall.sim.CameraModel;
+import yall.sim.SimulatedCamera;
 
 /**
  * A Synapse camera.
@@ -35,6 +37,9 @@ import yall.sim.CameraModel;
  * <p>Pose estimates come from Synapse's field-space camera pose and the config's robot-to-camera
  * transform. Synapse has no heading-assisted mode, so {@link
  * yall.PoseEstimationMode#HEADING_ASSISTED} works like {@link yall.PoseEstimationMode#TAGS_ONLY}.
+ *
+ * <p>Without camera properties in the config, it is simulated, and turns pixels into angles, as a
+ * {@link CameraModel#ARDUCAM_OV9281}.
  *
  * <p>No vendor configs are accepted; use {@link #getCamera()} for Synapse settings.
  */
@@ -52,7 +57,10 @@ public class SynapseWrapper extends VisionCamera {
    * @param config The camera's config.
    */
   public SynapseWrapper(SynapseCamera camera, VisionCameraConfig config) {
-    super(camera.getCameraName(), config, null);
+    super(
+        camera.getCameraName(),
+        config,
+        SimulatedCamera.create(camera.getCameraName(), config, CameraModel.ARDUCAM_OV9281, null));
     this.camera = camera;
     config
         .getVendorConfig()
@@ -77,8 +85,8 @@ public class SynapseWrapper extends VisionCamera {
   }
 
   @Override
-  protected List<Frame> readFrames() {
-    var frames = new ArrayList<Frame>();
+  protected List<VisionFrame> readFrames() {
+    var frames = new ArrayList<VisionFrame>();
     boolean apriltag = SynapsePipelineType.kApriltag.typestring.equals(camera.getPipelineType());
     boolean color = SynapsePipelineType.kColor.typestring.equals(camera.getPipelineType());
     double latencySeconds = camera.getCaptureLatency() + camera.getProcessLatency();
@@ -101,10 +109,12 @@ public class SynapseWrapper extends VisionCamera {
   }
 
   private SimCameraProperties cameraProperties() {
-    return config.getCameraProperties().orElseGet(this::defaultCameraProperties);
+    return config
+        .getCameraProperties()
+        .orElseGet(CameraModel.ARDUCAM_OV9281::getSimCameraProperties);
   }
 
-  private Frame toFrame(ApriltagResult result, double timestamp, double latencySeconds) {
+  private VisionFrame toFrame(ApriltagResult result, double timestamp, double latencySeconds) {
     var properties = cameraProperties();
     var tags = result.tags == null ? new ApriltagDetection[0] : result.tags;
     var targets = new ArrayList<VisionTarget>(tags.length);
@@ -123,7 +133,7 @@ public class SynapseWrapper extends VisionCamera {
     var visionResult = new VisionResult(name, timestamp, latencySeconds * 1000, targets);
     Pose3d cameraPose = result.cameraEstimate_fieldSpace3d();
     if (cameraPose == null || tags.length == 0) {
-      return new Frame(visionResult, Optional.empty());
+      return new VisionFrame(visionResult, Optional.empty());
     }
     var field = config.getField();
     var tagIds = Arrays.stream(tags).map(t -> t.tagID).toList();
@@ -143,10 +153,10 @@ public class SynapseWrapper extends VisionCamera {
             distance,
             tagIds.size() == 1 ? Double.NaN : 0,
             false);
-    return new Frame(visionResult, Optional.of(estimate));
+    return new VisionFrame(visionResult, Optional.of(estimate));
   }
 
-  private Frame toFrame(ColorResult result, double timestamp, double latencySeconds) {
+  private VisionFrame toFrame(ColorResult result, double timestamp, double latencySeconds) {
     var properties = cameraProperties();
     var detections = result.detections == null ? new ColorDetection[0] : result.detections;
     var targets = new ArrayList<VisionTarget>(detections.length);
@@ -165,7 +175,7 @@ public class SynapseWrapper extends VisionCamera {
               Double.NaN,
               Optional.empty()));
     }
-    return new Frame(
+    return new VisionFrame(
         new VisionResult(name, timestamp, latencySeconds * 1000, targets), Optional.empty());
   }
 
@@ -187,18 +197,6 @@ public class SynapseWrapper extends VisionCamera {
   @Override
   protected void applyRobotToCamera(Transform3d robotToCamera) {
     camera.setRobotToCameraOffset(robotToCamera);
-  }
-
-  /**
-   * An Arducam OV9281 USB camera. Set the real camera with {@link
-   * VisionCameraConfig#withCameraModel} or {@link VisionCameraConfig#withCameraProperties}: Synapse
-   * needs it to turn pixels into angles.
-   *
-   * @return Camera properties.
-   */
-  @Override
-  protected SimCameraProperties defaultCameraProperties() {
-    return CameraModel.ARDUCAM_OV9281.getSimCameraProperties();
   }
 
   @Override

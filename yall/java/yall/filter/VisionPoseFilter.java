@@ -6,7 +6,11 @@ import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.Radians;
 import static org.wpilib.units.Units.Seconds;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.wpilib.fields.Field;
 import org.wpilib.math.geometry.Pose2d;
@@ -58,6 +62,9 @@ import yall.results.VisionPoseEstimate;
  *       <td>the estimate is too far from the robot's current pose</td></tr>
  * </table>
  *
+ * <p>Add your own checks with {@link #withCustomCheck(String, Predicate)}. Each has a name, which is
+ * the rejection reason and the name its rejections are counted under in {@link PoseFilterStats}.
+ *
  * <p>Estimates that used no tags are always rejected.
  *
  * <p>Accepted estimates get standard deviations that grow with the square of the tag distance:
@@ -77,6 +84,7 @@ public class VisionPoseFilter {
   private Optional<Time> maxAge = Optional.of(Seconds.of(0.5));
   private Optional<Supplier<Pose2d>> currentPose = Optional.empty();
   private Optional<Distance> maxDistanceFromPose = Optional.empty();
+  private final Map<String, Predicate<VisionPoseEstimate>> customChecks = new LinkedHashMap<>();
 
   private Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(4, 4, 8);
   private Matrix<N3, N1> multiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
@@ -217,6 +225,50 @@ public class VisionPoseFilter {
     this.currentPose = on ? Optional.of(currentPose) : Optional.empty();
     maxDistanceFromPose = on ? Optional.of(maxDistance) : Optional.empty();
     return this;
+  }
+
+  /**
+   * Adds a check of your own, run after the built-in ones. Its name is the rejection reason, and
+   * {@link PoseFilterStats} counts its rejections under that name.
+   *
+   * <pre>{@code
+   * filter.withCustomCheck("not in our half", e -> e.pose().getX() < 8.27);
+   * }</pre>
+   *
+   * @param name Name of the check, shown as the rejection reason. Must not be empty. A check with
+   *     the same name is replaced.
+   * @param accepts Returns true to accept an estimate. null removes the check.
+   * @return This filter, for chaining.
+   * @throws IllegalArgumentException if the name is null or blank.
+   */
+  public VisionPoseFilter withCustomCheck(String name, Predicate<VisionPoseEstimate> accepts) {
+    if (name == null || name.isBlank()) {
+      throw new IllegalArgumentException("A custom check needs a name, for its rejection stats");
+    }
+    if (accepts == null) {
+      customChecks.remove(name);
+    } else {
+      customChecks.put(name, accepts);
+    }
+    return this;
+  }
+
+  /**
+   * The custom checks, by name.
+   *
+   * @return The checks, in the order they were added.
+   */
+  public Map<String, Predicate<VisionPoseEstimate>> getCustomChecks() {
+    return Collections.unmodifiableMap(customChecks);
+  }
+
+  /**
+   * The divisor for the squared tag distance in the standard deviation formula.
+   *
+   * @return The divisor.
+   */
+  public double getDistanceDivisor() {
+    return distanceDivisor;
   }
 
   /**
@@ -409,6 +461,11 @@ public class VisionPoseFilter {
           && current.getTranslation().getDistance(pose.toPose2d().getTranslation())
               > maxDistanceFromPose.get().in(Meters)) {
         return Optional.of("too far from the current pose");
+      }
+    }
+    for (var check : customChecks.entrySet()) {
+      if (!check.getValue().test(estimate)) {
+        return Optional.of(check.getKey());
       }
     }
     return Optional.empty();

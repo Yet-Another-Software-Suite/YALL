@@ -172,9 +172,10 @@ public void robotPeriodic() {
 ```
 
 `addVisionMeasurements` is the most accurate way to use several cameras: the pose estimator weighs
-each estimate at the moment its image was taken. For one combined answer, `getFusedPose()`
-averages the cameras' newest estimates, weighting each by its standard deviations. For
-drivetrains with their own vision method, use `forEachEstimatedPose(...)`.
+each estimate at the moment its image was taken. `vision.withPoseEstimator(poseEstimator)` makes
+`update()` do it for you. For one combined answer, `getFusedPose()` combines the cameras' newest
+estimates with the same math as WPILib's pose estimators (or returns the pose estimator's pose, if
+you gave it one). For drivetrains with their own vision method, use `forEachEstimatedPose(...)`.
 
 ### Pose filtering
 
@@ -264,9 +265,34 @@ through `withVendorConfig(...)`.
 
 ### Telemetry
 
-Each camera publishes its accepted and rejected poses, the last rejection reason, its target count,
-latency and connection state under `YALL/<camera name>` in NetworkTables. `VisionSystem` publishes
-`YALL/fusedPose`.
+Each camera publishes under `YALL/<camera name>` in NetworkTables. What it publishes depends on the
+verbosity, set with `withTelemetry(new VisionTelemetryConfig().withVerbosity(...))`:
+
+| Verbosity | Publishes |
+| --- | --- |
+| `LOW` | `connected`, `hasTargets`, `targetCount`, `acceptedPoses` |
+| `MID` (default) | also `rejectedPoses`, `rejectionReason`, `latencyMillis` and the pose filter stats under `stats/` |
+| `HIGH` | also every target's ID, yaw, pitch and area under `targets/` |
+
+`withField(...)` turns single fields on or off, `withTablePath(...)` moves the table, and
+`withTelemetry(false)` turns it off. `VisionSystem` publishes `YALL/fusedPose`.
+
+### Pose filter stats
+
+Each camera counts what its pose filter accepts and rejects (by check), and measures how spread
+out the accepted poses are: `camera.getFilterStats()`, also published under `stats/`. Hold the
+robot still where it sees tags, set `stats/reset` to true, wait a few seconds, then read
+`stats/stdDevs`: that is the camera's real standard deviation at that distance.
+`stats/suggestedBaseStdDevs` turns it into the base for `VisionPoseFilter.withStdDevs(...)`.
+
+Add your own checks with `withCustomCheck(name, estimate -> ...)`. The name is the rejection
+reason, and the stats count its rejections under it.
+
+### Measuring a turret's angle
+
+A camera on a turret can measure the turret's angle from the tags it sees:
+`camera.getCameraYawOnRobot(gyroHeading)` is the camera's heading on the field (from the tags
+alone) minus the robot's heading. Use it to check or zero the turret's encoder.
 
 ## Example
 
