@@ -234,8 +234,10 @@ resolution, field of view and AprilTag frame rate:
 | `THRIFTYCAM` | 1600x1304 | 60.7° × 51° | 70 |
 | `THRIFTIEST_CAM` | 1280x800 | 82° × 56° | 120 |
 | `ARDUCAM_OV9281` | 1280x800 | 70° × 47.3° | 100 |
+| `ELP_FISHEYE` | 1280x960 | 115° × 99.4° | 20 |
 
-The specs come from Limelight's, Luma's, The Thrifty Bot's and Arducam's published pages:
+The specs come from Limelight's, Luma's, The Thrifty Bot's, Arducam's, AndyMark's and ELP's published
+pages:
 
 - **Frame rates:** Limelights and Lumas run at the AprilTag rate their vendor publishes. USB
   cameras (ThriftyCam, Thriftiest Cam, Arducam) run at their full-resolution capture rate; lower it
@@ -244,6 +246,9 @@ The specs come from Limelight's, Luma's, The Thrifty Bot's and Arducam's publish
   ThriftyCam's sensor, its 4.1 mm focal length gives 60.7° × 51°.
 - **Arducam OV9281 (B0332):** Arducam gives only the 70° horizontal field of view, so the vertical
   one follows from the 16:10 sensor. Arducam's manual says 120 fps and resellers say 100.
+- **ELP fisheye (AndyMark am-5170):** its 180° fisheye lens can't be simulated, because
+  PhotonVision simulates a pinhole lens. The model keeps the fisheye's magnification at the center
+  of the image (about 407 px focal length at 1280x960), which a pinhole lens sees as 115° × 99.4°.
 - **Latency:** no vendor publishes one, so these are estimates.
 
 Without a model, a Limelight is simulated as a Limelight 4 and the others as an Arducam OV9281. For

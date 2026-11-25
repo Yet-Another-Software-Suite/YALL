@@ -21,7 +21,8 @@ import org.wpilib.math.util.Nat;
  * https://docs.limelightvision.io/docs/docs-limelight/getting-started/, the Luma P1 docs at
  * https://docs.luma.vision/p1/ and Luma P2 page at https://luma.vision/products/luma-p2, The Thrifty
  * Bot's docs at https://docs.thethriftybot.com/thriftycam and
- * https://docs.thethriftybot.com/thriftiest-cam, and Arducam's B0332 quick start guide.
+ * https://docs.thethriftybot.com/thriftiest-cam, Arducam's B0332 quick start guide, AndyMark's am-5170
+ * page and ELP's ELP-USB8MP02G-L180 listing.
  */
 public enum CameraModel {
   /** Limelight 2: OV5647, 62.5° by 48.9°, AprilTags at about 6 fps at 1280x960. */
@@ -60,7 +61,19 @@ public enum CameraModel {
    * horizontal field of view. Arducam's manual says 120 fps and resellers say 100, so this uses
    * 100. Arducam doesn't give the vertical field of view, so it comes from the 16:10 sensor: 47.3°.
    */
-  ARDUCAM_OV9281(1280, 800, 70, 47.3, 100, 30);
+  ARDUCAM_OV9281(1280, 800, 70, 47.3, 100, 30),
+  /**
+   * AndyMark ELP Fisheye Lens Camera (am-5170, ELP-USB8MP02G-L180): Sony IMX179 color rolling
+   * shutter with a 180° fisheye lens, simulated at 1280x960 and 20 fps (ELP's rate for that mode;
+   * 3264x2448 runs at 15 fps).
+   *
+   * <p>PhotonVision simulates a pinhole lens, which can't see 180°. This model keeps the real lens's
+   * magnification at the center of the image instead: a fisheye with 180° across 1280 pixels has a
+   * focal length of about 407 pixels, and a pinhole lens with that focal length sees 115° by 99.4°.
+   * Tags near the center look the size they would on the real camera; tags at the edges of the real
+   * camera's view aren't simulated. Calibrate the real camera before trusting its poses.
+   */
+  ELP_FISHEYE(1280, 960, 115.0, 99.4, 20, 40);
 
   private final int widthPixels;
   private final int heightPixels;

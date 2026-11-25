@@ -60,6 +60,7 @@ config.withCameraModel(CameraModel.LIMELIGHT_3G);
 | `THRIFTYCAM` | ThriftyCam | 1600x1304 | 60.7° × 51° | 70 |
 | `THRIFTIEST_CAM` | Thriftiest Cam | 1280x800 | 82° × 56° | 120 |
 | `ARDUCAM_OV9281` | Arducam OV9281 (B0332) | 1280x800 | 70° × 47.3° | 100 |
+| `ELP_FISHEYE` | [AndyMark ELP Fisheye Lens Camera](https://andymark.com/products/elp-fisheye-lens-camera) | 1280x960 | 115° × 99.4° | 20 |
 
 ![How wide six cameras see, from above: the ThriftyCam and Limelight 3 see the narrowest, the Limelight 4, 3G and Thriftiest Cam the widest.](../.gitbook/assets/camera-fields-of-view.png)
 
@@ -69,6 +70,7 @@ Where these numbers come from:
 * **Limelight 3G:** Limelight lists its AprilTag rate at 1280x960, which its 1280x800 sensor can't make, so it's simulated at 1280x800.
 * **ThriftyCam:** its lens is rated 71° × 48° on a different sensor size. On the ThriftyCam's own sensor, its 4.1 mm lens sees 60.7° × 51°.
 * **Arducam OV9281:** Arducam gives only how wide it sees (70°), so how tall comes from its 16:10 sensor. Arducam's manual says 120 frames per second and sellers say 100.
+* **ELP fisheye:** its lens sees 180°, but the simulator can only make a normal (not fisheye) lens, which can't see that wide. So the model copies how big things look in the middle of the fisheye picture: that gives 115° × 99.4°. Tags in the middle look the right size; tags at the far edges of the real camera's view aren't simulated.
 * **Latency:** no maker publishes one, so each model uses an estimate. Limelights report their real latency on the robot.
 
 Without a model, a Limelight is simulated as a Limelight 4, and PhotonVision and Synapse cameras as an Arducam OV9281.
