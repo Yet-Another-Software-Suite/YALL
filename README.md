@@ -209,9 +209,11 @@ Every check is turned on and tuned with its `withX(...)` method. Pass `null` to 
 | `withMaxHeightError(height)` | On, 0.5 m | the robot would float above or sink below the floor |
 | `withMaxTilt(angle)` | Off | the robot would be rolled or pitched past the limit |
 | `withMaxAmbiguity(ambiguity)` | On, 0.2 | a single-tag estimate is too ambiguous |
+| `withMinSingleTagArea(percent)` | Off | a single-tag estimate's tag is too small in the image |
 | `withMinTagCount(count)` | On, 1 | too few tags were used |
 | `withMaxTagDistance(single, multi)` | On, 4 m / 8 m | the tags are too far away |
 | `withMaxYawRate(rate)` | On, 720 °/s | the robot spun too fast (needs `setRobotOrientation`) |
+| `withYawRateWindow(halfWindow)` | Off | the robot spun too fast at any point around the picture's time |
 | `withMaxAge(age)` | On, 0.5 s | the image is too old, or timestamped in the future |
 | `withMaxDistanceFromPose(pose, distance)` | Off | the estimate jumps too far from the current pose |
 
@@ -225,7 +227,11 @@ new VisionCameraConfig()
 ```
 
 Accepted estimates get standard deviations of `base * (1 + distance² / 30)`, with a smaller base
-for multi-tag estimates. `VisionPoseFilter.acceptAll()` starts with every check off.
+for multi-tag estimates. `withStdDevScale(...)` and `withHighTagCountBoost(minTags, scale)` multiply
+the x and y standard deviations, to trust vision more while lining up or when a guess used many
+tags. `withPreEnableAlignment(RobotState::isEnabled, 2, Degrees.of(2))` lets the cameras snap the
+pose, heading included, to the field while the robot is disabled: it skips the pose jump check and
+needs at least 2 tags. `VisionPoseFilter.acceptAll()` starts with every check off.
 
 ### Simulation
 
@@ -277,6 +283,17 @@ pages:
 Without a model, a Limelight is simulated as a Limelight 4 and the others as an Arducam OV9281. For
 other cameras, pass PhotonVision camera properties to `withCameraProperties(...)`. Add game pieces for object detection
 with `VisionSim.getDefault().addVisionTargets(...)`.
+
+To test how the robot copes with bad cameras, inject faults into the simulated world. They affect
+every camera in it, and the seeds make them repeat exactly in unit tests:
+
+```java
+VisionSim sim = VisionSim.getDefault();
+sim.injectBlackout(Timer.getMonotonicTimestamp(), Seconds.of(2)); // no frames for 2 seconds
+sim.withDropoutProbability(0.1, 2027);                            // drop 10% of frames
+sim.withFieldTagJitter(Millimeters.of(13), 2027);                 // tags up to about 1 cm off
+sim.clearFaults();                                                // back to normal
+```
 
 ### Vendor settings
 

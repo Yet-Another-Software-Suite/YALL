@@ -55,13 +55,14 @@ Every estimate goes through the camera's [`VisionPoseFilter`](https://yall.yassr
 | Height | 0.5 m | `|z|` is above the limit |
 | Tilt | off | roll or pitch is above the limit |
 | Ambiguity | 0.2 | a single-tag estimate's known ambiguity is above the limit |
+| Tag area | off | a single-tag estimate's tag covers less of the image than the limit |
 | Tag distance | 4 m single, 8 m multi | the average tag distance is above the limit for its tag count |
-| Yaw rate | 720 °/s | the last yaw rate from `setRobotOrientation` is above the limit |
+| Yaw rate | 720 °/s | the last yaw rate from `setRobotOrientation`, or with a yaw rate window the fastest around the picture's time, is above the limit |
 | Pose jump | off | the estimate is further than the limit from the current pose |
 
 Field bounds use the field from the camera's config (`withField`), which defaults to WPILib's `Fields.DEFAULT_FIELD`.
 
-Every check except "no tags" turns off with `null`. See [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
+Every check except "no tags" turns off with `null`. While the robot is disabled, [pre-enable alignment](../how-to-guides/how-do-i-tune-the-pose-filter.md#line-up-before-the-match), if it's on, skips the pose jump check, requires its own tag count and trusts the heading, so the cameras can line the robot up before the match. See [How do I tune the pose filter?](../how-to-guides/how-do-i-tune-the-pose-filter.md)
 
 ### Your own checks
 
@@ -89,7 +90,7 @@ stdDev = base * (1 + d² / 30)
 * `d` is the average tag distance in meters. A tag 3 m away scales the base by 1.3; one 6 m away by 2.2.
 * Heading-assisted estimates get a heading standard deviation of 1,000,000 rad, so the pose estimator ignores their heading, which is the gyro's anyway.
 
-Change all of these with `withStdDevs(...)` and `withHeadingAssistedThetaStdDev(Radians.of(...))`.
+Change all of these with `withStdDevs(...)` and `withHeadingAssistedThetaStdDev(Radians.of(...))`. `withStdDevScale(...)` and `withHighTagCountBoost(...)` then multiply the x and y standard deviations, for example to trust vision more while lining up or when a guess used many tags.
 
 ## Limelight's own filter
 

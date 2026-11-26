@@ -29,9 +29,11 @@ Every check is set with its `withX(...)` method and turned off by passing `null`
 | `withMaxHeightError(height)` | 0.5 m | the robot would float above or sink below the floor by more than the limit |
 | `withMaxTilt(angle)` | off | the robot would be rolled or pitched past the limit |
 | `withMaxAmbiguity(ambiguity)` | 0.2 | a single-tag estimate's ambiguity is above the limit |
+| `withMinSingleTagArea(percent)` | off | a single-tag estimate's tag covers less of the image than the limit (0 to 100) |
 | `withMinTagCount(count)` | 1 | fewer tags were used |
 | `withMaxTagDistance(single, multi)` | 4 m / 8 m | the tags are, on average, further than the limit for its tag count |
 | `withMaxYawRate(rate)` | 720 °/s | the robot spun faster than the limit (needs a yaw rate from `setRobotOrientation`) |
+| `withYawRateWindow(halfWindow)` | off | with the yaw rate check on: the robot spun faster than the limit at any point from `halfWindow` before to `halfWindow` after the picture |
 | `withMaxAge(age)` | 0.5 s | the image is older than the limit, or timestamped more than 50 ms in the future |
 | `withMaxDistanceFromPose(pose, distance)` | off | the estimate is further than the limit from the robot's current pose |
 
@@ -40,11 +42,15 @@ Notes:
 * **Ambiguity** applies only to single-tag estimates, and only when the camera reports ambiguity. Synapse doesn't, so its estimates skip this check.
 * **Tag distance**: the two limits turn off separately. `withMaxTagDistance(null, Meters.of(8))` lets single-tag estimates through at any distance.
 * **Tilt**: leave it off if the robot drives over ramps or bumps.
+* **Tag area**: a tag that looks tiny in the picture is far away or seen edge-on, so its corners are only a few pixels and the guess is shaky. Like ambiguity, it checks only single-tag estimates, and skips cameras that don't report target area.
+* **Yaw rate window**: the yaw rate check normally compares the last yaw rate you sent. A quick spin can end before the blurry picture taken during it arrives. `withYawRateWindow(Seconds.of(0.1))` checks the fastest yaw rate within 0.1 s either side of the picture instead. `setRobotOrientation` records the yaw rates it needs.
 * **Pose jump**: turn it on only once the robot knows where it is, or vision can never correct a bad starting pose:
 
   ```java
   filter.withMaxDistanceFromPose(poseEstimator::getEstimatedPosition, Meters.of(1));
   ```
+
+  [Pre-enable alignment](#line-up-before-the-match) turns it off for you while the robot is disabled.
 
 Read a check's setting back with its getter, which returns an `Optional` that is empty when the check is off:
 
@@ -72,9 +78,35 @@ filter.withStdDevs(
     20);                            // smaller divisor: distant tags count for less
 ```
 
+To trust vision more or less depending on what the robot is doing, scale the x and y standard deviations:
+
+```java
+filter
+    .withStdDevScale(() -> aligning ? 0.5 : 1.0) // trust vision twice as much while lining up
+    .withHighTagCountBoost(3, 0.35);             // and a 3+ tag guess about three times as much
+```
+
+`withStdDevScale` takes a number, or a supplier read every time so the scale can change. `withHighTagCountBoost(minTags, scale)` multiplies again when a guess used at least `minTags` tags. Neither changes the heading's standard deviation.
+
 Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from `setRobotOrientation`, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(Radians.of(...))`.
 
 Measure your camera's real values instead of guessing: [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md).
+
+## Line up before the match
+
+A robot can be placed on the field facing a different way than its code expects. While it is disabled, pre-enable alignment lets the cameras snap the pose estimate to where the robot really is, heading included:
+
+```java
+filter.withPreEnableAlignment(RobotState::isEnabled, 2, Degrees.of(2));
+```
+
+While the robot is disabled, the filter:
+
+* skips the pose jump check, so a guess far from the current pose is still accepted,
+* requires at least the given number of tags (2 here, in place of `withMinTagCount`), so one shaky tag can't move the robot,
+* gives accepted guesses a heading standard deviation of the given angle, so the pose estimator takes their heading.
+
+Once the robot is enabled, every check is back to normal. Pass `null` for the first argument to turn it off; `null` for the others means 2 tags and 2°.
 
 ## Adding your own check
 
