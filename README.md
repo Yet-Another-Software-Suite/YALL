@@ -146,7 +146,7 @@ Pass every estimate that passed the pose filter to your drivetrain's pose estima
 `addVisionMeasurement`, once per loop after `update()`:
 
 ```java
-front.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
+front.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyro.getYawRate());
 front.update();
 front.forEachEstimatedPose(estimate ->
     poseEstimator.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
@@ -163,9 +163,14 @@ estimate's own values:
   `getEstimatedPose()` returns only the newest, for checks like "do we see the robot's position?".
 
 `PoseEstimationMode.TAGS_ONLY` (the default) solves the pose from the tags alone: Limelight
-MegaTag1, PhotonVision's multi-tag result, Synapse's field pose. `HEADING_ASSISTED` uses the gyro
+MegaTag1, PhotonVision's multi-tag result, Synapse's field pose. `HEADING_ASSISTED` uses the robot
 heading from `setRobotOrientation`: Limelight MegaTag2 and PhotonVision's trig solve. Synapse
 doesn't support it.
+
+Give `setRobotOrientation` the robot's heading on the field, your pose estimator's rotation, not
+the gyro's own reading: resetting the pose estimator (for an auto's starting pose, say) turns its
+heading without turning the gyro. `setRobotOrientation(Rotation3d, AngularVelocity)` takes the
+gyro's roll and pitch too.
 
 ### Several cameras
 
@@ -177,7 +182,7 @@ VisionSystem vision = new VisionSystem(front, back, side);
 // In Robot.java, for Commands v2 or v3
 @Override
 public void robotPeriodic() {
-  vision.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
+  vision.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyro.getYawRate());
   vision.update();
   vision.addVisionMeasurements(poseEstimator); // every accepted estimate, oldest first
 }
@@ -309,7 +314,7 @@ reason, and the stats count its rejections under it.
 ### Measuring a turret's angle
 
 A camera on a turret can measure the turret's angle from the tags it sees:
-`camera.getCameraYawOnRobot(gyroHeading)` is the camera's heading on the field (from the tags
+`camera.getCameraYawOnRobot(robotHeading)` is the camera's heading on the field (from the tags
 alone) minus the robot's heading. Use it to check or zero the turret's encoder.
 
 ## Example

@@ -10,7 +10,7 @@ A camera on a turret can tell you which way the turret points, from the AprilTag
 
 * The camera is on the turret, and it turns with it.
 * It needs to see at least one AprilTag, and solve it in 3D. PhotonVision cameras do this. A Limelight gives a camera-to-tag transform too, but it hasn't been tested on real hardware yet (see [issue #24](https://github.com/Yet-Another-Software-Suite/YALL/issues/24)). A Synapse camera can't: Synapse doesn't report where each tag is from the camera.
-* You know the robot's heading from the gyro.
+* You know the robot's heading on the field, from your pose estimator.
 
 ## How it works
 
@@ -33,7 +33,7 @@ Every loop, in `robotPeriodic()`:
 ```java
 turretCamera.update();
 turretCamera
-    .getCameraYawOnRobot(gyro.getRotation2d())
+    .getCameraYawOnRobot(poseEstimator.getEstimatedPosition().getRotation())
     .ifPresent(cameraYaw -> {
       Rotation2d turretAngle = cameraYaw.minus(CAMERA_YAW_ON_TURRET);
       Telemetry.log("Turret/angle from camera", turretAngle.getMeasure());
@@ -130,7 +130,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    Rotation2d robotHeading = SIMULATED_ROBOT_POSE.getRotation(); // on a real robot: the gyro
+    Rotation2d robotHeading = SIMULATED_ROBOT_POSE.getRotation(); // on a real robot: your pose estimator's heading
     turretCamera.update();
     turretCamera
         .getCameraYawOnRobot(robotHeading)
@@ -203,7 +203,7 @@ public class Robot extends OpModeRobot {
 
   @Override
   public void robotPeriodic() {
-    Rotation2d robotHeading = SIMULATED_ROBOT_POSE.getRotation(); // on a real robot: the gyro
+    Rotation2d robotHeading = SIMULATED_ROBOT_POSE.getRotation(); // on a real robot: your pose estimator's heading
     turretCamera.update();
     turretCamera
         .getCameraYawOnRobot(robotHeading)

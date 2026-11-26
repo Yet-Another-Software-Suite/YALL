@@ -40,7 +40,7 @@ camera.getEstimatedPose().ifPresent(estimate ->
 | `tagIds` | `List<Integer>` | IDs of the AprilTags used. The constructor copies the list. |
 | `averageTagDistanceMeters` | `double` | Average distance from the camera to the tags used. |
 | `ambiguity` | `double` | Pose ambiguity of a single-tag estimate, 0 to 1. 0 for multi-tag estimates, and `NaN` if the camera doesn't report it. |
-| `headingAssisted` | `boolean` | Whether the estimate used the robot heading from `setRobotOrientation`, so its rotation is the gyro's rather than the camera's. |
+| `headingAssisted` | `boolean` | Whether the estimate used the robot heading from `setRobotOrientation`, so its rotation is that heading rather than the camera's. |
 | `stdDevs` | `Matrix<N3, N1>` | Standard deviations of x (meters), y (meters) and heading (radians) for `PoseEstimator.addVisionMeasurement`. |
 
 ***

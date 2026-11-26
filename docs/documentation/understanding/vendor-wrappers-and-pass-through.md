@@ -30,7 +30,7 @@ The camera's name is the vendor object's name: the PhotonVision camera name, the
 
 If you leave out `withRobotToCamera`, a Limelight keeps the camera pose from its web interface, and the other cameras (and every simulated camera) assume the camera is at the robot's center.
 
-`setRobotOrientation` sends the gyro to a Limelight for MegaTag2. Every camera also gives it to PhotonVision's pose estimator, which the PhotonVision camera and every simulated camera use.
+`setRobotOrientation` sends the robot's orientation on the field to a Limelight for MegaTag2. Every camera also gives it to PhotonVision's pose estimator, which the PhotonVision camera and every simulated camera use.
 
 ## Real or simulated
 

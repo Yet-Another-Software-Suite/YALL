@@ -20,7 +20,7 @@ import org.wpilib.math.numbers.N3;
  * @param ambiguity Pose ambiguity of a single-tag estimate, 0 to 1. 0 for multi-tag estimates, and
  *     {@link Double#NaN} if the camera doesn't report it.
  * @param headingAssisted Whether the estimate used the robot heading from {@link
- *     yall.VisionCamera#setRobotOrientation}, so its rotation is the gyro's rather than the camera's.
+ *     yall.VisionCamera#setRobotOrientation}, so its rotation is that heading rather than the camera's.
  * @param stdDevs Standard deviations of x (meters), y (meters) and heading (radians) for {@link
  *     org.wpilib.math.estimator.PoseEstimator#addVisionMeasurement(Pose2d, double, Matrix)}. Filled
  *     in by the {@link yall.filter.VisionPoseFilter}.

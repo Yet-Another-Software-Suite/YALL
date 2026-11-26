@@ -72,7 +72,7 @@ filter.withStdDevs(
     20);                            // smaller divisor: distant tags count for less
 ```
 
-Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from the gyro, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(Radians.of(...))`.
+Heading-assisted estimates (MegaTag2, PhotonVision's trig solve) take their heading from `setRobotOrientation`, so their heading standard deviation is fixed at 1,000,000 rad. Change it with `withHeadingAssistedThetaStdDev(Radians.of(...))`.
 
 Measure your camera's real values instead of guessing: [Measuring Standard Deviations](../tutorials/measuring-standard-deviations.md).
 

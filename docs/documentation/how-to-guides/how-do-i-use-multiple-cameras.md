@@ -29,7 +29,9 @@ In `Robot.java` (Commands v2 or v3):
 public void robotPeriodic() {
   poseEstimator.update(gyro.getRotation2d(), getModulePositions());
 
-  vision.setRobotOrientation(gyro.getRotation3d(), DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
+  vision.setRobotOrientation(
+      poseEstimator.getEstimatedPosition().getRotation(),
+      DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
   vision.update();
   vision.addVisionMeasurements(poseEstimator);
 }

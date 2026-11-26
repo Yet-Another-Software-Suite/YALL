@@ -31,7 +31,7 @@ Every estimate is in WPILib's blue-origin field coordinates, whatever the allian
 | `tagIds()` / `tagCount()` | The AprilTags used |
 | `averageTagDistanceMeters()` | Average camera-to-tag distance |
 | `ambiguity()` | Single-tag pose ambiguity, 0 to 1. 0 for multi-tag estimates, NaN when the camera doesn't report it (Synapse) |
-| `headingAssisted()` | Whether the heading came from the gyro |
+| `headingAssisted()` | Whether the heading came from `setRobotOrientation` |
 | `stdDevs()` | x and y (meters) and heading (radians) standard deviations, for `addVisionMeasurement` |
 
 Always pass `timestampSeconds()` to `addVisionMeasurement`, never the current time. The pose estimator uses it to apply the measurement where the robot was when the image was taken.

@@ -212,9 +212,13 @@ public abstract class VisionCamera implements AutoCloseable {
   }
 
   /**
-   * Gives the camera the robot's orientation from the gyro. {@link
+   * Gives the camera the robot's orientation on the field. {@link
    * PoseEstimationMode#HEADING_ASSISTED} needs it every loop, and the pose filter's yaw rate check
    * uses the yaw rate.
+   *
+   * <p>The yaw must be the robot's heading on the field, your pose estimator's rotation, not the
+   * gyro's own reading: resetting the pose estimator turns its heading without turning the gyro.
+   * The roll and pitch come from the gyro.
    *
    * @param orientation Robot orientation on the field (blue-origin, counterclockwise positive yaw).
    * @param yawRate Robot yaw rate.
@@ -224,10 +228,21 @@ public abstract class VisionCamera implements AutoCloseable {
   }
 
   /**
-   * Gives the camera the robot's heading from the gyro, without a yaw rate. The pose filter's yaw
+   * Gives the camera the robot's heading on the field and its yaw rate, with no roll or pitch.
+   *
+   * @param heading Robot heading on the field, your pose estimator's rotation.
+   * @param yawRate Robot yaw rate.
+   * @see #setRobotOrientation(Rotation3d, AngularVelocity)
+   */
+  public void setRobotOrientation(Rotation2d heading, AngularVelocity yawRate) {
+    setRobotOrientation(new Rotation3d(heading), yawRate.in(DegreesPerSecond));
+  }
+
+  /**
+   * Gives the camera the robot's heading on the field, without a yaw rate. The pose filter's yaw
    * rate check is skipped.
    *
-   * @param heading Robot heading on the field.
+   * @param heading Robot heading on the field, your pose estimator's rotation.
    */
   public void setRobotOrientation(Rotation2d heading) {
     setRobotOrientation(new Rotation3d(heading), Double.NaN);
@@ -324,7 +339,7 @@ public abstract class VisionCamera implements AutoCloseable {
    * this is the turret's angle (plus any angle the camera is mounted at on the turret), so it can
    * check or zero the turret's encoder.
    *
-   * @param robotHeading The robot's heading on the field, from the gyro.
+   * @param robotHeading The robot's heading on the field, your pose estimator's rotation.
    * @return The camera's yaw on the robot, counterclockwise positive, or empty if the newest frame
    *     has no solved AprilTag on the field.
    */

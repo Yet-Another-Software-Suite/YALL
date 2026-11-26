@@ -43,7 +43,7 @@ Everything moved from the `limelight` package to `yall`, and the Limelight itsel
 | `new Limelight("limelight")` | `new LimelightWrapper(new Limelight("limelight"), config)` ([`LimelightWrapper`](https://yall.yassrobotics.com/api-reference/java-reference/cameras/limelight-wrapper)); `Limelight` is LimelightLib 2's |
 | `limelight.getSettings()...save()` | A [`VisionCameraConfig`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-camera-config), passed to the wrapper. Settings YALL doesn't cover go to `camera.getCamera()` (LimelightLib 2's `Limelight`) |
 | `withCameraOffset(Pose3d)` | `config.withRobotToCamera(forward, left, up, roll, pitch, yaw)`, or `camera.setRobotToCamera(...)` while running |
-| `withRobotOrientation(Orientation3d)` every loop | `camera.setRobotOrientation(gyroRotation3d, yawRate)` every loop |
+| `withRobotOrientation(Orientation3d)` every loop | `camera.setRobotOrientation(heading, yawRate)` every loop, with your pose estimator's heading |
 | `withPipelineIndex(index)` | `config.withPipelineIndex(index)`, or `camera.setPipelineIndex(index)` |
 | `withLimelightLEDMode(LEDMode)` | `camera.getCamera().setLEDMode(LEDMode.FORCE_OFF)` (LimelightLib 2's `LEDMode`) |
 | `withImuMode(ImuMode)`, `withImuAssistAlpha(alpha)` | `camera.getCamera().setIMUMode(...)`, `setIMUAssistAlpha(...)` |
@@ -103,7 +103,7 @@ VisionCamera camera =
 camera.getCamera().setLEDMode(LEDMode.PIPELINE_CONTROL);
 
 // In Robot.robotPeriodic()
-camera.setRobotOrientation(gyro.getRotation3d(), gyroYawRate);
+camera.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyroYawRate);
 camera.update();
 camera.addVisionMeasurements(poseEstimator); // filtered, with standard deviations
 ```

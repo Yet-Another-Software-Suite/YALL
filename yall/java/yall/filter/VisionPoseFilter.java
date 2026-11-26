@@ -291,7 +291,8 @@ public class VisionPoseFilter {
 
   /**
    * Sets the heading standard deviation for heading-assisted estimates (Limelight MegaTag2,
-   * PhotonVision's trig solve). Their heading is the gyro's, so it should carry almost no weight.
+   * PhotonVision's trig solve). Their heading is the one given to {@code setRobotOrientation}, so it
+   * should carry almost no weight.
    *
    * @param thetaStdDev Heading standard deviation.
    * @return This filter, for chaining.

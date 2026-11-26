@@ -21,7 +21,7 @@ VisionCamera front = new PhotonVisionWrapper(new PhotonCamera("front"), config);
 
 // In Robot.robotPeriodic() (Commands v2 or v3):
 public void robotPeriodic() {
-  front.setRobotOrientation(gyro.getRotation2d());
+  front.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation());
   front.update();
   front.addVisionMeasurements(poseEstimator);
 }
@@ -34,8 +34,9 @@ public void robotPeriodic() {
 | Method | Returns | Description |
 | --- | --- | --- |
 | `update()` | `void` | Reads new frames from the camera (or its simulation), filters their pose estimates with the config's [`VisionPoseFilter`](../filter/vision-pose-filter.md), counts the filter's decisions in the [`PoseFilterStats`](../filter/pose-filter-stats.md) and publishes telemetry. Call once per loop, before the getters. |
-| `setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate)` | `void` | Gives the camera the robot's orientation from the gyro (blue-origin, counterclockwise positive yaw). [`PoseEstimationMode.HEADING_ASSISTED`](pose-estimation-mode.md) needs it every loop, and the pose filter's yaw rate check uses the yaw rate. |
-| `setRobotOrientation(Rotation2d heading)` | `void` | Gives the camera the robot's heading without a yaw rate. The yaw rate check is skipped. |
+| `setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate)` | `void` | Gives the camera the robot's orientation on the field (blue-origin, counterclockwise positive yaw): the yaw from your pose estimator, not the gyro's own reading, and the roll and pitch from the gyro. [`PoseEstimationMode.HEADING_ASSISTED`](pose-estimation-mode.md) needs it every loop, and the pose filter's yaw rate check uses the yaw rate. |
+| `setRobotOrientation(Rotation2d heading, AngularVelocity yawRate)` | `void` | Gives the camera the robot's heading on the field, your pose estimator's rotation, and its yaw rate, with no roll or pitch. |
+| `setRobotOrientation(Rotation2d heading)` | `void` | Gives the camera the robot's heading on the field without a yaw rate. The yaw rate check is skipped. |
 
 On a Limelight, the orientation is also sent to the camera for MegaTag2. In simulation and on PhotonVision cameras, it is added to PhotonVision's pose estimator as heading data.
 
