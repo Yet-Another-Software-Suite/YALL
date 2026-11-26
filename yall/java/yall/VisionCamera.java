@@ -176,15 +176,31 @@ public abstract class VisionCamera implements AutoCloseable {
     var accepted = new ArrayList<VisionPoseEstimate>();
     var rejected = new ArrayList<VisionPoseEstimate>();
     for (VisionFrame frame : frames) {
+      if (cameraSim != null && visionSim != null && visionSim.shouldDropFrame(now)) {
+        continue;
+      }
       newResults.add(frame.result());
       if (frame.estimate().isEmpty()) {
         continue;
       }
-      var estimate = frame.estimate().get();
+      var rawEstimate = frame.estimate().get();
+      var estimate =
+          (cameraSim != null && visionSim != null)
+              ? new VisionPoseEstimate(
+                  rawEstimate.cameraName(),
+                  visionSim.applyFieldTagJitter(rawEstimate.pose()),
+                  rawEstimate.timestampSeconds(),
+                  rawEstimate.tagIds(),
+                  rawEstimate.averageTagDistanceMeters(),
+                  rawEstimate.ambiguity(),
+                  rawEstimate.headingAssisted(),
+                  rawEstimate.stdDevs())
+              : rawEstimate;
+      double avgTagArea = averageAprilTagAreaPercent(frame.result());
       var reason =
           frame
               .vendorRejection()
-              .or(() -> filter.check(estimate, field, now, yawRateDegreesPerSecond));
+              .or(() -> filter.check(estimate, field, now, yawRateDegreesPerSecond, avgTagArea));
       if (reason.isPresent()) {
         rejected.add(estimate);
         lastRejectionReason = reason.get();
@@ -251,6 +267,7 @@ public abstract class VisionCamera implements AutoCloseable {
   private void setRobotOrientation(Rotation3d orientation, double yawRateDegreesPerSecond) {
     this.yawRateDegreesPerSecond = yawRateDegreesPerSecond;
     double now = Timer.getMonotonicTimestamp();
+    config.getPoseFilter().recordYawRate(now, yawRateDegreesPerSecond);
     if (cameraSim != null) {
       simPoseEstimator.addHeadingData(now, orientation);
     } else {
@@ -722,5 +739,19 @@ public abstract class VisionCamera implements AutoCloseable {
         }
       }
     }
+  }
+
+  private static double averageAprilTagAreaPercent(VisionResult result) {
+    var targets = result.targets();
+    double sum = 0.0;
+    int count = 0;
+    for (int i = 0; i < targets.size(); i++) {
+      var t = targets.get(i);
+      if (t.isAprilTag() && Double.isFinite(t.areaPercent())) {
+        sum += t.areaPercent();
+        count++;
+      }
+    }
+    return count > 0 ? sum / count : Double.NaN;
   }
 }

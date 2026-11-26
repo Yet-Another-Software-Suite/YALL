@@ -1,6 +1,10 @@
 package yall.sim;
 
+import static org.wpilib.units.Units.Meters;
+import static org.wpilib.units.Units.Seconds;
+
 import java.util.Optional;
+import java.util.SplittableRandom;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
@@ -12,7 +16,10 @@ import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.Time;
 import yall.VisionCameraConfig;
 
 /**
@@ -35,6 +42,10 @@ public class VisionSim {
 
   private final VisionSystemSim visionSystemSim;
   private final Field field;
+  private double blackoutUntilSeconds = Double.NEGATIVE_INFINITY;
+  private double dropoutProbability = 0.0;
+  private double fieldTagJitterStdDevMeters = 0.0;
+  private SplittableRandom faultRng = new SplittableRandom(2027L);
 
   /**
    * Creates a simulated world.
@@ -224,5 +235,109 @@ public class VisionSim {
    */
   public Optional<PhotonCameraSim> getCameraSim(String name) {
     return visionSystemSim.getCameraSim(name);
+  }
+
+  /**
+   * Injects a deterministic camera blackout lasting {@code duration} starting at {@code
+   * currentTimeSeconds}. Useful for testing vision-loss fallback and recovery in simulation.
+   *
+   * @param currentTimeSeconds Current monotonic simulation timestamp in seconds.
+   * @param duration Blackout duration (must be non-negative).
+   * @return This simulated world, for chaining.
+   */
+  public VisionSim injectBlackout(double currentTimeSeconds, Time duration) {
+    double durationSec = duration.in(Seconds);
+    if (!Double.isFinite(currentTimeSeconds)
+        || !Double.isFinite(durationSec)
+        || durationSec < 0.0) {
+      throw new IllegalArgumentException(
+          "Blackout timestamp and duration must be finite and non-negative");
+    }
+    if (durationSec > 0.0) {
+      blackoutUntilSeconds = Math.max(blackoutUntilSeconds, currentTimeSeconds + durationSec);
+    }
+    return this;
+  }
+
+  /**
+   * Whether this simulated world is currently in an injected blackout window at {@code nowSeconds}.
+   *
+   * @param nowSeconds Current monotonic timestamp in seconds.
+   * @return true if frames should be suppressed at {@code nowSeconds}.
+   */
+  public boolean isBlackedOut(double nowSeconds) {
+    return nowSeconds < blackoutUntilSeconds;
+  }
+
+  /**
+   * Configures deterministic per-frame stochastic dropout probability for simulated cameras.
+   *
+   * @param probability Per-frame drop probability in {@code [0.0, 1.0]}.
+   * @param seed Deterministic RNG seed for reproducible CI runs.
+   * @return This simulated world, for chaining.
+   */
+  public VisionSim withDropoutProbability(double probability, long seed) {
+    if (!Double.isFinite(probability) || probability < 0.0 || probability > 1.0) {
+      throw new IllegalArgumentException("probability must be finite and in [0.0, 1.0]");
+    }
+    this.dropoutProbability = probability;
+    this.faultRng = new SplittableRandom(seed);
+    return this;
+  }
+
+  /**
+   * Configures Gaussian X/Y field-tag placement jitter (for example, {@code Millimeters.of(13)} to
+   * model Welded vs. AndyMark AprilTag field tolerances) applied to simulated pose estimates.
+   *
+   * @param stdDev Standard deviation of X and Y pose jitter (zero disables jitter).
+   * @param seed Deterministic RNG seed for reproducible CI runs.
+   * @return This simulated world, for chaining.
+   */
+  public VisionSim withFieldTagJitter(Distance stdDev, long seed) {
+    double meters = stdDev.in(Meters);
+    if (!Double.isFinite(meters) || meters < 0.0) {
+      throw new IllegalArgumentException("stdDev must be finite and non-negative");
+    }
+    this.fieldTagJitterStdDevMeters = meters;
+    this.faultRng = new SplittableRandom(seed ^ 0x9e3779b97f4a7c15L);
+    return this;
+  }
+
+  /** Clears any active blackout, stochastic dropout probability, and field-tag jitter. */
+  public void clearFaults() {
+    blackoutUntilSeconds = Double.NEGATIVE_INFINITY;
+    dropoutProbability = 0.0;
+    fieldTagJitterStdDevMeters = 0.0;
+  }
+
+  /**
+   * Evaluates whether a simulated frame arriving at {@code nowSeconds} should be dropped due to an
+   * active blackout or stochastic dropout probability.
+   *
+   * @param nowSeconds Current monotonic timestamp in seconds.
+   * @return true if the simulated frame should be dropped.
+   */
+  public boolean shouldDropFrame(double nowSeconds) {
+    if (isBlackedOut(nowSeconds)) {
+      return true;
+    }
+    return dropoutProbability > 0.0 && faultRng.nextDouble() < dropoutProbability;
+  }
+
+  /**
+   * Applies configured Gaussian X/Y field-tag placement jitter to a simulated robot pose. Returns
+   * {@code pose} unchanged when jitter is disabled.
+   *
+   * @param pose Simulated robot pose estimate.
+   * @return Pose with optional deterministic X/Y jitter applied.
+   */
+  public Pose3d applyFieldTagJitter(Pose3d pose) {
+    if (fieldTagJitterStdDevMeters <= 0.0 || pose == null) {
+      return pose;
+    }
+    double dx = faultRng.nextGaussian() * fieldTagJitterStdDevMeters;
+    double dy = faultRng.nextGaussian() * fieldTagJitterStdDevMeters;
+    return new Pose3d(
+        new Translation3d(pose.getX() + dx, pose.getY() + dy, pose.getZ()), pose.getRotation());
   }
 }

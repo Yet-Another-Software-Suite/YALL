@@ -9,7 +9,10 @@ import static org.wpilib.units.Units.Seconds;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.wpilib.fields.Field;
@@ -84,12 +87,27 @@ public class VisionPoseFilter {
   private Optional<Time> maxAge = Optional.of(Seconds.of(0.5));
   private Optional<Supplier<Pose2d>> currentPose = Optional.empty();
   private Optional<Distance> maxDistanceFromPose = Optional.empty();
+  private static final int YAW_RATE_RING_CAPACITY = 64;
+
+  private Optional<Double> minSingleTagAreaPercent = Optional.empty();
+  private Optional<Time> yawRateWindowHalf = Optional.empty();
   private final Map<String, Predicate<VisionPoseEstimate>> customChecks = new LinkedHashMap<>();
 
   private Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(4, 4, 8);
   private Matrix<N3, N1> multiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
   private double distanceDivisor = 30;
   private double headingAssistedThetaStdDev = 1e6;
+  private DoubleSupplier xyStdDevScaleSupplier = () -> 1.0;
+  private Optional<Integer> highTagBoostMinTags = Optional.empty();
+  private double highTagBoostXyScale = 1.0;
+  private Optional<BooleanSupplier> robotEnabledSupplier = Optional.empty();
+  private int preEnableMinTagCount = 2;
+  private double preEnableThetaStdDevRad = Math.toRadians(2.0);
+
+  private final double[] yawTimestamps = new double[YAW_RATE_RING_CAPACITY];
+  private final double[] yawAbsRatesDegPerSec = new double[YAW_RATE_RING_CAPACITY];
+  private int yawRingHead = 0;
+  private int yawRingSize = 0;
 
   /** Creates a filter with the default checks described in the class documentation. */
   public VisionPoseFilter() {}
@@ -110,7 +128,10 @@ public class VisionPoseFilter {
         .withMaxTagDistance(null, null)
         .withMaxYawRate(null)
         .withMaxAge(null)
-        .withMaxDistanceFromPose(null, null);
+        .withMaxDistanceFromPose(null, null)
+        .withMinSingleTagArea(null)
+        .withYawRateWindow(null)
+        .withPreEnableAlignment(null, null, null);
   }
 
   /**
@@ -283,6 +304,11 @@ public class VisionPoseFilter {
    */
   public VisionPoseFilter withStdDevs(
       Matrix<N3, N1> singleTagBase, Matrix<N3, N1> multiTagBase, double distanceDivisor) {
+    Objects.requireNonNull(singleTagBase, "singleTagBase must not be null");
+    Objects.requireNonNull(multiTagBase, "multiTagBase must not be null");
+    if (!Double.isFinite(distanceDivisor) || distanceDivisor <= 0.0) {
+      throw new IllegalArgumentException("distanceDivisor must be finite and positive");
+    }
     singleTagStdDevs = singleTagBase;
     multiTagStdDevs = multiTagBase;
     this.distanceDivisor = distanceDivisor;
@@ -392,6 +418,187 @@ public class VisionPoseFilter {
     return maxDistanceFromPose;
   }
 
+
+  /**
+   * Rejects single-tag estimates whose tag covers less than the given percentage of the image.
+   * Multi-tag estimates and cameras that don't report target area aren't checked.
+   *
+   * @param minAreaPercent Smallest accepted image area percentage (0 to 100). null turns the check
+   *     off.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withMinSingleTagArea(Double minAreaPercent) {
+    if (minAreaPercent != null
+        && (!Double.isFinite(minAreaPercent) || minAreaPercent < 0.0 || minAreaPercent > 100.0)) {
+      throw new IllegalArgumentException("minAreaPercent must be finite and in [0, 100]");
+    }
+    this.minSingleTagAreaPercent = Optional.ofNullable(minAreaPercent);
+    return this;
+  }
+
+  /**
+   * Checks the peak yaw rate over a symmetric window ({@code timestamp +/- halfWindow}) rather than
+   * only the instantaneous yaw rate when the frame arrived.
+   *
+   * @param halfWindow Half-width of the yaw-rate window around each image timestamp. null turns
+   *     windowed checking off.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withYawRateWindow(Time halfWindow) {
+    if (halfWindow != null) {
+      double sec = halfWindow.in(Seconds);
+      if (!Double.isFinite(sec) || sec <= 0.0) {
+        throw new IllegalArgumentException("halfWindow must be finite and positive");
+      }
+    }
+    this.yawRateWindowHalf = Optional.ofNullable(halfWindow);
+    return this;
+  }
+
+  /**
+   * Records a timestamped robot yaw-rate sample for {@link #withYawRateWindow(Time)}. Called
+   * automatically by {@link yall.VisionCamera#setRobotOrientation}.
+   *
+   * @param timestampSeconds Monotonic timestamp in seconds.
+   * @param yawRateDegreesPerSecond Robot yaw rate in degrees per second.
+   */
+  public void recordYawRate(double timestampSeconds, double yawRateDegreesPerSecond) {
+    if (!Double.isFinite(timestampSeconds) || !Double.isFinite(yawRateDegreesPerSecond)) {
+      return;
+    }
+    yawTimestamps[yawRingHead] = timestampSeconds;
+    yawAbsRatesDegPerSec[yawRingHead] = Math.abs(yawRateDegreesPerSecond);
+    yawRingHead = (yawRingHead + 1) % YAW_RATE_RING_CAPACITY;
+    if (yawRingSize < YAW_RATE_RING_CAPACITY) {
+      yawRingSize++;
+    }
+  }
+
+  /**
+   * Applies a constant multiplier to accepted X/Y standard deviations (for example, tightening
+   * trust during alignment or right after traversing a bump).
+   *
+   * @param xyScale Positive multiplier applied to X and Y standard deviations.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withStdDevScale(double xyScale) {
+    if (!Double.isFinite(xyScale) || xyScale <= 0.0) {
+      throw new IllegalArgumentException("xyScale must be finite and positive");
+    }
+    this.xyStdDevScaleSupplier = () -> xyScale;
+    return this;
+  }
+
+  /**
+   * Applies a dynamic multiplier to accepted X/Y standard deviations (for example, switching
+   * between normal driving, close-in alignment, and post-bump relocalization snap modes).
+   *
+   * @param xyScaleSupplier Supplies a positive multiplier each time standard deviations are
+   *     computed. null resets the scale to 1.0.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withStdDevScale(DoubleSupplier xyScaleSupplier) {
+    this.xyStdDevScaleSupplier = xyScaleSupplier != null ? xyScaleSupplier : () -> 1.0;
+    return this;
+  }
+
+  /**
+   * Applies an extra X/Y standard deviation multiplier when an estimate sees at least {@code
+   * minTags} AprilTags (for example, trusting a 3+ tag shooter-camera solve more tightly).
+   *
+   * @param minTags Fewest tags required for the boost (must be {@code >= 2}). null turns the boost
+   *     off.
+   * @param xyScale Positive multiplier applied to X and Y standard deviations (e.g. {@code 0.35}).
+   *     null turns the boost off.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withHighTagCountBoost(Integer minTags, Double xyScale) {
+    if (minTags == null || xyScale == null) {
+      this.highTagBoostMinTags = Optional.empty();
+      this.highTagBoostXyScale = 1.0;
+      return this;
+    }
+    if (minTags < 2) {
+      throw new IllegalArgumentException("minTags must be >= 2");
+    }
+    if (!Double.isFinite(xyScale) || xyScale <= 0.0) {
+      throw new IllegalArgumentException("xyScale must be finite and positive");
+    }
+    this.highTagBoostMinTags = Optional.of(minTags);
+    this.highTagBoostXyScale = xyScale;
+    return this;
+  }
+
+  /**
+   * Enables pre-enable (disabled) field alignment: while {@code isEnabled} returns {@code false},
+   * the pose-jump gate is bypassed so vision can snap to the field from an unknown starting pose,
+   * at least {@code minPreEnableTags} tags are required, and heading uses {@code
+   * preEnableThetaStdDev} so multi-tag solves can align the gyro before the match starts.
+   *
+   * @param isEnabled Supplies whether the robot is currently enabled (e.g. {@code
+   *     DriverStation::isEnabled}). null turns pre-enable alignment off.
+   * @param minPreEnableTags Fewest tags required while disabled (must be {@code >= 1}). null
+   *     defaults to 2.
+   * @param preEnableThetaStdDev Heading standard deviation while disabled. null defaults to 2 deg.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withPreEnableAlignment(
+      BooleanSupplier isEnabled, Integer minPreEnableTags, Angle preEnableThetaStdDev) {
+    if (isEnabled == null) {
+      this.robotEnabledSupplier = Optional.empty();
+      return this;
+    }
+    int tags = minPreEnableTags != null ? minPreEnableTags : 2;
+    if (tags < 1) {
+      throw new IllegalArgumentException("minPreEnableTags must be >= 1");
+    }
+    double thetaRad =
+        preEnableThetaStdDev != null ? preEnableThetaStdDev.in(Radians) : Math.toRadians(2.0);
+    if (!Double.isFinite(thetaRad) || thetaRad <= 0.0) {
+      throw new IllegalArgumentException("preEnableThetaStdDev must be finite and positive");
+    }
+    this.robotEnabledSupplier = Optional.of(isEnabled);
+    this.preEnableMinTagCount = tags;
+    this.preEnableThetaStdDevRad = thetaRad;
+    return this;
+  }
+
+  /**
+   * The smallest accepted single-tag image area percentage.
+   *
+   * @return The limit, or empty if the check is off.
+   */
+  public Optional<Double> getMinSingleTagArea() {
+    return minSingleTagAreaPercent;
+  }
+
+  /**
+   * The yaw-rate window half-width.
+   *
+   * @return The window half-width, or empty if windowed checking is off.
+   */
+  public Optional<Time> getYawRateWindow() {
+    return yawRateWindowHalf;
+  }
+
+  /**
+   * The minimum tag count required to trigger the high-tag-count trust boost.
+   *
+   * @return The minimum tag count, or empty if the boost is off.
+   */
+  public Optional<Integer> getHighTagCountBoostMinTags() {
+    return highTagBoostMinTags;
+  }
+
+  /**
+   * Whether pre-enable alignment mode is currently active (configured and robot disabled).
+   *
+   * @return true if pre-enable alignment is active right now.
+   */
+  public boolean isPreEnableAlignmentActive() {
+    return robotEnabledSupplier.isPresent() && !robotEnabledSupplier.get().getAsBoolean();
+  }
+
   /**
    * Checks an estimate.
    *
@@ -404,12 +611,38 @@ public class VisionPoseFilter {
    */
   public Optional<String> check(
       VisionPoseEstimate estimate, Field field, double nowSeconds, double yawRateDegreesPerSecond) {
+    return check(estimate, field, nowSeconds, yawRateDegreesPerSecond, Double.NaN);
+  }
+
+  /**
+   * Checks an estimate with optional average AprilTag image area.
+   *
+   * @param estimate Estimate to check.
+   * @param field Field the robot is on, for the bounds check. null skips that check.
+   * @param nowSeconds Current {@link org.wpilib.system.Timer#getMonotonicTimestamp()}.
+   * @param yawRateDegreesPerSecond Robot yaw rate when the image was taken, or {@link Double#NaN}
+   *     if unknown.
+   * @param averageTagAreaPercent Average image area percentage of the AprilTags in the frame, or
+   *     {@link Double#NaN} if unknown.
+   * @return Why the estimate was rejected, or empty if it passes every enabled check.
+   */
+  public Optional<String> check(
+      VisionPoseEstimate estimate,
+      Field field,
+      double nowSeconds,
+      double yawRateDegreesPerSecond,
+      double averageTagAreaPercent) {
     var pose = estimate.pose();
     int tags = estimate.tagCount();
+    boolean preEnable = isPreEnableAlignmentActive();
     if (tags == 0) {
       return Optional.of("no tags");
     }
-    if (minTagCount.isPresent() && tags < minTagCount.get()) {
+    if (preEnable) {
+      if (tags < preEnableMinTagCount) {
+        return Optional.of("too few tags");
+      }
+    } else if (minTagCount.isPresent() && tags < minTagCount.get()) {
       return Optional.of("too few tags");
     }
     if (maxAge.isPresent()) {
@@ -446,17 +679,26 @@ public class VisionPoseFilter {
         && estimate.ambiguity() > maxAmbiguity.get()) {
       return Optional.of("ambiguous");
     }
+    if (minSingleTagAreaPercent.isPresent()
+        && tags == 1
+        && !Double.isNaN(averageTagAreaPercent)
+        && averageTagAreaPercent < minSingleTagAreaPercent.get()) {
+      return Optional.of("tags too small");
+    }
     var maxDistance = tags == 1 ? maxSingleTagDistance : maxMultiTagDistance;
     if (maxDistance.isPresent()
         && estimate.averageTagDistanceMeters() > maxDistance.get().in(Meters)) {
       return Optional.of("tags too far");
     }
-    if (maxYawRate.isPresent()
-        && !Double.isNaN(yawRateDegreesPerSecond)
-        && Math.abs(yawRateDegreesPerSecond) > maxYawRate.get().in(DegreesPerSecond)) {
-      return Optional.of("spinning too fast");
+    if (maxYawRate.isPresent()) {
+      double effectiveYawRate =
+          effectiveAbsYawRate(estimate.timestampSeconds(), yawRateDegreesPerSecond);
+      if (!Double.isNaN(effectiveYawRate)
+          && effectiveYawRate > maxYawRate.get().in(DegreesPerSecond)) {
+        return Optional.of("spinning too fast");
+      }
     }
-    if (currentPose.isPresent()) {
+    if (!preEnable && currentPose.isPresent()) {
       Pose2d current = currentPose.get().get();
       if (current != null
           && current.getTranslation().getDistance(pose.toPose2d().getTranslation())
@@ -472,6 +714,25 @@ public class VisionPoseFilter {
     return Optional.empty();
   }
 
+  private double effectiveAbsYawRate(double captureTimestampSec, double instantYawRateDegPerSec) {
+    double peak =
+        Double.isNaN(instantYawRateDegPerSec) ? Double.NaN : Math.abs(instantYawRateDegPerSec);
+    if (yawRateWindowHalf.isEmpty() || yawRingSize == 0) {
+      return peak;
+    }
+    double halfSec = yawRateWindowHalf.get().in(Seconds);
+    double minT = captureTimestampSec - halfSec;
+    double maxT = captureTimestampSec + halfSec;
+    for (int i = 0; i < yawRingSize; i++) {
+      double t = yawTimestamps[i];
+      if (t >= minT && t <= maxT) {
+        double r = yawAbsRatesDegPerSec[i];
+        peak = Double.isNaN(peak) ? r : Math.max(peak, r);
+      }
+    }
+    return peak;
+  }
+
   /**
    * Computes the standard deviations for an estimate.
    *
@@ -482,8 +743,25 @@ public class VisionPoseFilter {
     var base = estimate.tagCount() > 1 ? multiTagStdDevs : singleTagStdDevs;
     double distance = estimate.averageTagDistanceMeters();
     double scale = 1 + (Double.isFinite(distance) ? distance * distance / distanceDivisor : 0);
-    double theta = estimate.headingAssisted() ? headingAssistedThetaStdDev : base.get(2, 0) * scale;
+
+    double dynamicXyScale = xyStdDevScaleSupplier.getAsDouble();
+    if (!Double.isFinite(dynamicXyScale) || dynamicXyScale <= 0.0) {
+      dynamicXyScale = 1.0;
+    }
+    if (highTagBoostMinTags.isPresent() && estimate.tagCount() >= highTagBoostMinTags.get()) {
+      dynamicXyScale *= highTagBoostXyScale;
+    }
+
+    double xyScale = scale * dynamicXyScale;
+    double theta;
+    if (isPreEnableAlignmentActive()) {
+      theta = preEnableThetaStdDevRad;
+    } else if (estimate.headingAssisted()) {
+      theta = headingAssistedThetaStdDev;
+    } else {
+      theta = base.get(2, 0) * scale;
+    }
     return estimate.withStdDevs(
-        VecBuilder.fill(base.get(0, 0) * scale, base.get(1, 0) * scale, theta));
+        VecBuilder.fill(base.get(0, 0) * xyScale, base.get(1, 0) * xyScale, theta));
   }
 }
