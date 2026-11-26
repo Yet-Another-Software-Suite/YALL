@@ -68,7 +68,9 @@ import yall.results.VisionPoseEstimate;
  * <p>Add your own checks with {@link #withCustomCheck(String, Predicate)}. Each has a name, which is
  * the rejection reason and the name its rejections are counted under in {@link PoseFilterStats}.
  *
- * <p>Estimates that used no tags are always rejected.
+ * <p>Estimates that used no tags are always rejected by {@link #check}. Pose sources that don't use
+ * tags, such as a QuestNav headset, are checked with {@link #checkWithoutTags} instead, which runs
+ * only the checks that don't need tags.
  *
  * <p>Accepted estimates get standard deviations that grow with the square of the tag distance:
  * {@code base * (1 + distance² / distanceDivisor)}, with a smaller base for multi-tag estimates. See
@@ -632,7 +634,6 @@ public class VisionPoseFilter {
       double nowSeconds,
       double yawRateDegreesPerSecond,
       double averageTagAreaPercent) {
-    var pose = estimate.pose();
     int tags = estimate.tagCount();
     boolean preEnable = isPreEnableAlignmentActive();
     if (tags == 0) {
@@ -645,6 +646,62 @@ public class VisionPoseFilter {
     } else if (minTagCount.isPresent() && tags < minTagCount.get()) {
       return Optional.of("too few tags");
     }
+    var placement = checkAgeAndPlacement(estimate, field, nowSeconds);
+    if (placement.isPresent()) {
+      return placement;
+    }
+    if (maxAmbiguity.isPresent()
+        && tags == 1
+        && !Double.isNaN(estimate.ambiguity())
+        && estimate.ambiguity() > maxAmbiguity.get()) {
+      return Optional.of("ambiguous");
+    }
+    if (minSingleTagAreaPercent.isPresent()
+        && tags == 1
+        && !Double.isNaN(averageTagAreaPercent)
+        && averageTagAreaPercent < minSingleTagAreaPercent.get()) {
+      return Optional.of("tags too small");
+    }
+    var maxDistance = tags == 1 ? maxSingleTagDistance : maxMultiTagDistance;
+    if (maxDistance.isPresent()
+        && estimate.averageTagDistanceMeters() > maxDistance.get().in(Meters)) {
+      return Optional.of("tags too far");
+    }
+    if (maxYawRate.isPresent()) {
+      double effectiveYawRate =
+          effectiveAbsYawRate(estimate.timestampSeconds(), yawRateDegreesPerSecond);
+      if (!Double.isNaN(effectiveYawRate)
+          && effectiveYawRate > maxYawRate.get().in(DegreesPerSecond)) {
+        return Optional.of("spinning too fast");
+      }
+    }
+    return checkPoseJumpAndCustom(estimate, preEnable);
+  }
+
+  /**
+   * Checks an estimate that doesn't come from AprilTags, such as a QuestNav headset's tracked pose.
+   * Only the checks that don't need tags run: age, field bounds, height, tilt, pose jump and the
+   * custom checks. The tag count, ambiguity, tag area, tag distance and yaw rate checks are skipped,
+   * and an estimate with no tags isn't rejected for it.
+   *
+   * @param estimate Estimate to check.
+   * @param field Field the robot is on, for the bounds check. null skips that check.
+   * @param nowSeconds Current {@link org.wpilib.system.Timer#getMonotonicTimestamp()}.
+   * @return Why the estimate was rejected, or empty if it passes every enabled check.
+   */
+  public Optional<String> checkWithoutTags(
+      VisionPoseEstimate estimate, Field field, double nowSeconds) {
+    var placement = checkAgeAndPlacement(estimate, field, nowSeconds);
+    if (placement.isPresent()) {
+      return placement;
+    }
+    return checkPoseJumpAndCustom(estimate, isPreEnableAlignmentActive());
+  }
+
+  /** The age, field bounds, height and tilt checks, which every estimate gets. */
+  private Optional<String> checkAgeAndPlacement(
+      VisionPoseEstimate estimate, Field field, double nowSeconds) {
+    var pose = estimate.pose();
     if (maxAge.isPresent()) {
       double age = nowSeconds - estimate.timestampSeconds();
       if (age > maxAge.get().in(Seconds)) {
@@ -673,35 +730,15 @@ public class VisionPoseFilter {
         return Optional.of("tilted");
       }
     }
-    if (maxAmbiguity.isPresent()
-        && tags == 1
-        && !Double.isNaN(estimate.ambiguity())
-        && estimate.ambiguity() > maxAmbiguity.get()) {
-      return Optional.of("ambiguous");
-    }
-    if (minSingleTagAreaPercent.isPresent()
-        && tags == 1
-        && !Double.isNaN(averageTagAreaPercent)
-        && averageTagAreaPercent < minSingleTagAreaPercent.get()) {
-      return Optional.of("tags too small");
-    }
-    var maxDistance = tags == 1 ? maxSingleTagDistance : maxMultiTagDistance;
-    if (maxDistance.isPresent()
-        && estimate.averageTagDistanceMeters() > maxDistance.get().in(Meters)) {
-      return Optional.of("tags too far");
-    }
-    if (maxYawRate.isPresent()) {
-      double effectiveYawRate =
-          effectiveAbsYawRate(estimate.timestampSeconds(), yawRateDegreesPerSecond);
-      if (!Double.isNaN(effectiveYawRate)
-          && effectiveYawRate > maxYawRate.get().in(DegreesPerSecond)) {
-        return Optional.of("spinning too fast");
-      }
-    }
+    return Optional.empty();
+  }
+
+  /** The pose jump check (skipped during pre-enable alignment) and the custom checks. */
+  private Optional<String> checkPoseJumpAndCustom(VisionPoseEstimate estimate, boolean preEnable) {
     if (!preEnable && currentPose.isPresent()) {
       Pose2d current = currentPose.get().get();
       if (current != null
-          && current.getTranslation().getDistance(pose.toPose2d().getTranslation())
+          && current.getTranslation().getDistance(estimate.pose2d().getTranslation())
               > maxDistanceFromPose.get().in(Meters)) {
         return Optional.of("too far from the current pose");
       }

@@ -1,8 +1,9 @@
 # Yet Another Localization Library (YALL)
 
-YALL gives PhotonVision, Limelight and Synapse cameras one Java API for FRC robots. A camera
-object returns real results on the robot and simulated results in simulation, so the same code
-runs in both. Every camera is simulated with PhotonVision's camera simulation, whatever its vendor.
+YALL gives PhotonVision, Limelight and Synapse cameras, and QuestNav headsets, one Java API for FRC
+robots. A camera object returns real results on the robot and simulated results in simulation, so
+the same code runs in both. Every camera is simulated with PhotonVision's camera simulation,
+whatever its vendor.
 
 YALL builds against WPILib 2027 (alpha 8).
 
@@ -17,6 +18,9 @@ YALL builds against WPILib 2027 (alpha 8).
   distance and tag count.
 - **Several cameras.** `VisionSystem` updates every camera and hands each accepted estimate to
   your pose estimator, with its own timestamp and standard deviations.
+- **QuestNav.** A Meta Quest headset running QuestNav gives robot poses through the same API, so
+  it sits in a `VisionSystem` beside the cameras. Its poses are held back until the headset has
+  confirmed it knows where the robot is.
 - **Vendor pass-through.** `getCamera()` returns the vendor's own camera object, and
   `withVendorConfig(...)` passes vendor config objects through, as YAMS does for motor
   controllers.
@@ -34,6 +38,9 @@ Install these vendordeps:
 4. The library of each camera vendor you use:
    - Limelight: LimelightLib 2 (`https://limelightvision.github.io/limelightlib-public/LimelightLib-alpha7.json`)
    - Synapse: SynapseLib (`https://danpeled.github.io/Synapse/SynapseLib.json`)
+   - QuestNav: QuestNavLib. QuestNav hasn't released a 2027 version yet, so use its 2027 build
+     (`https://maven.questnav.gg/snapshots/gg/questnav/questnavlib-json/0c439a7-dev/questnavlib-json-0c439a7-dev.json`)
+     with the matching QuestNav app on the headset.
 
 You only need a vendor library for cameras you construct.
 
@@ -199,6 +206,59 @@ vision.forEachEstimatedPose(estimate ->
     swerveDrive.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
 
+### QuestNav
+
+A [QuestNav](https://questnav.gg) headset is a Meta Quest on the robot that tracks its own pose
+with its cameras and IMU. It sees no targets, but it gives robot pose estimates like a camera, so
+`QuestNavWrapper` is a `VisionCamera`: put it in a `VisionSystem` with the cameras and its estimates
+reach the pose estimator the same way.
+
+```java
+QuestNavWrapper quest =
+    new QuestNavWrapper(
+        new QuestNav(),
+        new VisionCameraConfig()
+            // Where the headset is on the robot: 10" behind center, 14" up, facing backward.
+            .withRobotToCamera(Inches.of(-10), Inches.zero(), Inches.of(14),
+                               Degrees.zero(), Degrees.zero(), Degrees.of(180)));
+
+VisionSystem vision = new VisionSystem(front, back, quest);
+
+@Override
+public void autonomousInit() {
+  // The cameras have lined the pose estimator up with the field while disabled; tell the headset.
+  quest.setRobotPose(poseEstimator.getEstimatedPosition());
+}
+```
+
+The headset tracks its pose from where its tracking started, not on the field, so its poses mean
+nothing until `setRobotPose(...)` tells it where the robot is. Call it once the robot's pose is
+known: at the start of autonomous, from a known starting position, or from the pose estimator once
+AprilTags have lined it up. Its estimates are rejected (`"pose not set"`) until then, and from each
+reset until the headset confirms it (`"pose reset pending"`), so frames from before a reset never
+pull the pose back. A reset sent with `QuestNav.setPose(...)` directly is followed too.
+
+- **Measure the headset's offset carefully.** The Quest reports its own pose, and the wrapper
+  moves it to the robot's center with the robot-to-camera transform. An error in the headset's yaw
+  turns every estimate.
+- **Standard deviations** default to QuestNav's recommended 2 cm and 2°, from
+  `quest.withStdDevs(Meters.of(0.02), Degrees.of(2))`. The pose filter's tag-based standard
+  deviations don't apply.
+- **The pose filter** runs only the checks that don't need tags: age, field bounds, height, tilt,
+  pose jump and custom checks. Estimates taken while the headset has lost tracking are rejected
+  (`"not tracking"`).
+- **If the QuestNav app restarts**, its tracking starts over, so its estimates are rejected until
+  the next `setRobotPose(...)`. **If the robot program restarts** (a brownout mid-match) while the
+  headset keeps tracking, `quest.trustCurrentPose()` accepts the pose the headset already has.
+- `update()` calls `QuestNav.commandPeriodic()` and reads `QuestNav.getAllUnreadPoseFrames()`, so
+  don't call them yourself. QuestNav's own callbacks (`onTrackingLost`, `onLowBattery` and the
+  rest) still fire; register them on `quest.getCamera()`.
+
+In simulation, the headset reports the robot's true pose from its `VisionSim` world, in a tracking
+frame that starts where the robot was on the first update, as a real headset's does. So a program
+that never calls `setRobotPose(...)` gets no QuestNav estimates in simulation either. The world's
+blackouts and dropouts drop the headset's frames too.
+
 ### Pose filtering
 
 Every check is turned on and tuned with its `withX(...)` method. Pass `null` to turn it off, and read its setting back with `getX()`, which returns an `Optional`:
@@ -232,6 +292,9 @@ the x and y standard deviations, to trust vision more while lining up or when a 
 tags. `withPreEnableAlignment(RobotState::isEnabled, 2, Degrees.of(2))` lets the cameras snap the
 pose, heading included, to the field while the robot is disabled: it skips the pose jump check and
 needs at least 2 tags. `VisionPoseFilter.acceptAll()` starts with every check off.
+
+QuestNav estimates use no tags, so they go through `checkWithoutTags(...)` instead: the tag count,
+ambiguity, tag area, tag distance and yaw rate checks are skipped, and the rest apply.
 
 ### Simulation
 
@@ -297,8 +360,8 @@ sim.clearFaults();                                                // back to nor
 
 ### Vendor settings
 
-`getCamera()` returns the vendor's camera object (`PhotonCamera`, `Limelight` or `SynapseCamera`)
-for settings YALL doesn't cover. `LimelightWrapper` also accepts Limelight's `PoseEstimateConfig`
+`getCamera()` returns the vendor's camera object (`PhotonCamera`, `Limelight`, `SynapseCamera` or
+`QuestNav`) for settings YALL doesn't cover. `LimelightWrapper` also accepts Limelight's `PoseEstimateConfig`
 (Limelight's own filter and standard deviations replace YALL's) and `PipelineConfiguration`
 through `withVendorConfig(...)`.
 
