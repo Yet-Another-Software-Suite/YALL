@@ -45,6 +45,30 @@ class VisionTelemetryConfigTest {
   }
 
   @Test
+  void dataLogIsOffByDefaultAndFollowsTheTablePath() {
+    var config = new VisionTelemetryConfig();
+    assertTrue(config.isNetworkTablesEnabled());
+    assertTrue(config.getDataLogPath("front").isEmpty());
+    assertEquals(
+        "YALL/front", new VisionTelemetryConfig().withDataLog().getDataLogPath("front").get());
+    assertEquals(
+        "Vision/front",
+        new VisionTelemetryConfig()
+            .withTablePath("Vision/front")
+            .withDataLog()
+            .getDataLogPath("x")
+            .get());
+    assertEquals(
+        "Log/front",
+        new VisionTelemetryConfig()
+            .withDataLog("Log/front")
+            .withNetworkTables(false)
+            .getDataLogPath("x")
+            .get());
+    assertFalse(new VisionTelemetryConfig().withNetworkTables(false).isNetworkTablesEnabled());
+  }
+
+  @Test
   void cameraConfigTurnsTelemetryOff() {
     assertTrue(new VisionCameraConfig().getTelemetryConfig().isPresent());
     assertFalse(new VisionCameraConfig().withTelemetry(false).getTelemetryConfig().isPresent());

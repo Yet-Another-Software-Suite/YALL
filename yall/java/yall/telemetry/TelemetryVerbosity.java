@@ -1,6 +1,6 @@
 package yall.telemetry;
 
-/** How much a camera publishes to NetworkTables. Each level includes the ones below it. */
+/** How much a camera publishes to NetworkTables and logs to a DataLog. Each level includes the ones below it. */
 public enum TelemetryVerbosity {
   /** Connection, targets in view and accepted poses: what a driver needs. */
   LOW,

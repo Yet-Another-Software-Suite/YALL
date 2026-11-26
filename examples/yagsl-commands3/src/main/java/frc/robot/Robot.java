@@ -12,6 +12,7 @@ import org.wpilib.command3.Scheduler;
 import org.wpilib.driverstation.internal.DriverStationBackend;
 import org.wpilib.framework.OpModeRobot;
 import org.wpilib.math.interpolation.InterpolatingDoubleTreeMap;
+import org.wpilib.system.DataLogManager;
 import yams.core.motorcontrollers.simulation.BatterySim;
 
 /**
@@ -25,7 +26,7 @@ public class Robot extends OpModeRobot
   /**
    * Swerve drive built by YAGSL from {@code deploy/swerve/base}.
    */
-  public final SwerveDriveMechanism  swerve     = new SwerveDriveMechanism();
+  public final SwerveDriveMechanism  swerve;
 
   private final Scheduler scheduler = Scheduler.getDefault();
 
@@ -36,6 +37,11 @@ public class Robot extends OpModeRobot
    */
   public Robot()
   {
+    // Log to a file on the robot (or in logs/ in simulation). The cameras and the swerve drive log their own values,
+    // so NetworkTables isn't logged as well.
+    DataLogManager.start();
+    DataLogManager.logNetworkTables(false);
+    swerve = new SwerveDriveMechanism();
     configureBatterySim();
 
     if (isSimulation())

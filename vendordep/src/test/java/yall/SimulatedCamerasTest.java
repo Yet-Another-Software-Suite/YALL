@@ -8,15 +8,18 @@ import static org.wpilib.units.Units.DegreesPerSecond;
 
 import com.limelightvision.Limelight;
 import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.photonvision.PhotonCamera;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.VisionTargetSim;
+import org.wpilib.datalog.DataLogReader;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 import org.wpilib.hardware.hal.HAL;
@@ -29,6 +32,7 @@ import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.simulation.SimHooks;
+import org.wpilib.system.DataLogManager;
 import synapse.SynapseCamera;
 import yall.cameras.LimelightWrapper;
 import yall.cameras.PhotonVisionWrapper;
@@ -227,6 +231,55 @@ class SimulatedCamerasTest {
       camera.update();
       assertTrue(camera.getFilterStats().getAcceptedCount() <= 2);
     }
+  }
+
+  @Test
+  void telemetryCanGoToADataLogInsteadOfNetworkTables(@TempDir Path dir) throws Exception {
+    var sim = new VisionSim("datalog", FIELD);
+    var robot = facingFirstTag();
+    // Start the log before logNetworkTables, which starts one with the defaults.
+    DataLogManager.start(dir.toString(), "yall.wpilog");
+    DataLogManager.logNetworkTables(false);
+    long accepted;
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("datalog"),
+            config(sim)
+                .withTelemetry(
+                    new yall.telemetry.VisionTelemetryConfig()
+                        .withVerbosity(yall.telemetry.TelemetryVerbosity.HIGH)
+                        .withNetworkTables(false)
+                        .withDataLog()))) {
+      for (int i = 0; i < 20; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.update();
+      }
+      accepted = camera.getFilterStats().getAcceptedCount();
+      assertTrue(accepted > 0);
+    } finally {
+      DataLogManager.stop();
+    }
+    assertFalse(
+        NetworkTableInstance.getDefault().getTopic("/YALL/datalog/acceptedPoses").exists(),
+        "published to NetworkTables");
+
+    var names = new java.util.HashMap<Integer, String>();
+    var lastInteger = new java.util.HashMap<String, Long>();
+    for (var record : new DataLogReader(dir.resolve("yall.wpilog").toString())) {
+      if (record.isStart()) {
+        names.put(record.getStartData().entry, record.getStartData().name);
+      } else if (!record.isControl()) {
+        var name = names.get(record.getEntry());
+        if (name != null && name.equals("YALL/datalog/stats/accepted")) {
+          lastInteger.put(name, record.getInteger());
+        }
+      }
+    }
+    assertTrue(names.containsValue("YALL/datalog/connected"), names.values().toString());
+    assertTrue(names.containsValue("YALL/datalog/acceptedPoses"), names.values().toString());
+    assertTrue(names.containsValue("YALL/datalog/targets/fiducialIds"), names.values().toString());
+    assertEquals(accepted, lastInteger.get("YALL/datalog/stats/accepted"));
   }
 
   @Test

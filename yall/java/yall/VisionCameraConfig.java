@@ -277,7 +277,7 @@ public class VisionCameraConfig {
   }
 
   /**
-   * Sets what the camera publishes to NetworkTables, and where.
+   * Sets what the camera publishes to NetworkTables and logs to a DataLog, and where.
    *
    * @param telemetryConfig What to publish, or null to publish nothing.
    * @return This config, for chaining.
