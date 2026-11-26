@@ -6,6 +6,7 @@ on:
     paths:
       - "yall/java/**"
       - "vendordep/**"
+      - "docs/javadocs/**"
       - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
@@ -13,6 +14,7 @@ on:
     paths:
       - "yall/java/**"
       - "vendordep/**"
+      - "docs/javadocs/**"
       - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
@@ -27,6 +29,9 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    # Lets the last step commit updated javadocs to main.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -38,6 +43,22 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Build
         run: chmod a+x ./gradlew && ./gradlew build
+        working-directory: vendordep
+      # docs/javadocs is committed, so check it matches the javadocs the build just made. The
+      # scripts, styles and licenses come with the JDK and change between its patch versions, so
+      # they aren't compared. On main, the last step commits the new javadocs; on a pull request,
+      # this only warns.
+      - name: Check docs/javadocs is up to date
+        id: javadocs
+        run: |
+          skip="-x script-files -x resource-files -x legal"
+          if diff -r $skip build/maven/javadocs ../docs/javadocs > /dev/null; then
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            diff -rq $skip build/maven/javadocs ../docs/javadocs || true
+            echo "::warning::docs/javadocs is out of date. CI updates it once this is on main, or run ./gradlew updateDocsJavadocs in vendordep and commit docs/javadocs."
+          fi
         working-directory: vendordep
       - name: Test
         run: ./gradlew test
@@ -81,3 +102,18 @@ jobs:
         with:
           name: Maven
           path: vendordep/build/allOutputs
+      # Runs last, so main only gets new javadocs once everything builds and passes. A push made
+      # with the workflow's token doesn't start another run.
+      - name: Commit the updated docs/javadocs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.javadocs.outputs.stale == 'true'
+        run: |
+          ./gradlew updateDocsJavadocs
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/javadocs
+          git commit -m "Update docs/javadocs"
+          # Another push may have landed on main since this run started.
+          git pull --rebase origin main
+          git push origin HEAD:main
+        working-directory: vendordep

@@ -264,17 +264,37 @@ class SimulatedCamerasTest {
         NetworkTableInstance.getDefault().getTopic("/YALL/datalog/acceptedPoses").exists(),
         "published to NetworkTables");
 
+    // stop() returns before the log's writer thread finishes the file, so read it until it's
+    // complete: until it parses and has the last accepted count, or 5 seconds pass.
+    var file = dir.resolve("yall.wpilog").toString();
     var names = new java.util.HashMap<Integer, String>();
     var lastInteger = new java.util.HashMap<String, Long>();
-    for (var record : new DataLogReader(dir.resolve("yall.wpilog").toString())) {
-      if (record.isStart()) {
-        names.put(record.getStartData().entry, record.getStartData().name);
-      } else if (!record.isControl()) {
-        var name = names.get(record.getEntry());
-        if (name != null && name.equals("YALL/datalog/stats/accepted")) {
-          lastInteger.put(name, record.getInteger());
+    long deadline = System.nanoTime() + 5_000_000_000L;
+    while (true) {
+      names.clear();
+      lastInteger.clear();
+      try {
+        for (var record : new DataLogReader(file)) {
+          if (record.isStart()) {
+            names.put(record.getStartData().entry, record.getStartData().name);
+          } else if (!record.isControl()) {
+            var name = names.get(record.getEntry());
+            if (name != null && name.equals("YALL/datalog/stats/accepted")) {
+              lastInteger.put(name, record.getInteger());
+            }
+          }
+        }
+      } catch (java.io.IOException | RuntimeException e) {
+        // Not written yet, or cut off partway through a record.
+        if (System.nanoTime() > deadline) {
+          throw e;
         }
       }
+      Long last = lastInteger.get("YALL/datalog/stats/accepted");
+      if ((last != null && last == accepted) || System.nanoTime() > deadline) {
+        break;
+      }
+      Thread.sleep(50);
     }
     assertTrue(names.containsValue("YALL/datalog/connected"), names.values().toString());
     assertTrue(names.containsValue("YALL/datalog/acceptedPoses"), names.values().toString());
