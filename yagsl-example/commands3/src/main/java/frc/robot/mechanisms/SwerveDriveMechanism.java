@@ -180,14 +180,14 @@ public class SwerveDriveMechanism implements Mechanism
   }
 
   /**
-   * Get the robot's heading on the field, as reported by odometry. Vision measurements correct it, and the cameras'
-   * MegaTag2 uses it.
+   * Get the robot's heading on the field, as reported by odometry. Vision measurements correct it, field relative
+   * driving uses it, and the cameras' MegaTag2 uses it.
    *
    * @return {@link Rotation2d} of the robot's heading.
    */
   public Rotation2d getHeading()
   {
-    return drive.getPose().getRotation();
+    return drive.getRotation();
   }
 
   /**
