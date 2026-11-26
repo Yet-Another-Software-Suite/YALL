@@ -37,7 +37,7 @@ vision.forEachEstimatedPose(
     estimate -> swerve.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
 
-- `getHeading()` is the robot's heading on the field from the drive's odometry, `drive.getPose().getRotation()`.
+- `getHeading()` is the robot's heading on the field from the drive's odometry, `drive.getRotation()`.
   MegaTag2 needs that heading, not the gyro's own reading: resetting odometry, for an auto's starting pose or with
   the zero gyro button, turns the odometry heading without turning the gyro.
 - `getYawRate()` lets YALL's pose filter throw out images taken while the robot spins too fast.
@@ -66,6 +66,7 @@ robot.
 ## Versions
 
 This project uses WPILib 2027.0.0-alpha-7 and the published YAGSL and YAMS vendordeps, like YAGSL's own example.
+YAMS is 2026.11.25, which has `SwerveDrive.getRotation()`.
 YALL builds from this repository's source.
 
 ## Project layout
