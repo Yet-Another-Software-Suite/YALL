@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.wpilib.units.Units.DegreesPerSecond;
 
 import com.limelightvision.Limelight;
 import java.util.ArrayList;
@@ -250,6 +251,37 @@ class SimulatedCamerasTest {
       // so each measurement moves the estimate about 2% of the way: well over half in 2 seconds.
       assertTrue(error < 0.25, "pose estimator is still " + error + " m off");
       assertTrue(vision.getCameras().get(0).getCameraSim().isPresent());
+    }
+  }
+
+  @Test
+  void aHeadingWithAYawRateFeedsTheYawRateCheck() {
+    var sim = new VisionSim("yaw-rate", FIELD);
+    var robot = facingFirstTag();
+    try (var camera =
+        new PhotonVisionWrapper(
+            new PhotonCamera("yaw-rate"), config(sim, PoseEstimationMode.HEADING_ASSISTED))) {
+      // Spinning faster than the filter's 720 deg/s limit: every estimate is rejected.
+      boolean anyAccepted = false;
+      for (int i = 0; i < 25; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.setRobotOrientation(robot.getRotation(), DegreesPerSecond.of(1000));
+        camera.update();
+        anyAccepted |= camera.getEstimatedPose().isPresent();
+      }
+      assertFalse(anyAccepted, "accepted an estimate while spinning at 1000 deg/s");
+      // Standing still: heading-assisted estimates are accepted.
+      var accepted = new ArrayList<VisionPoseEstimate>();
+      for (int i = 0; i < 25; i++) {
+        SimHooks.stepTiming(0.02);
+        sim.update(robot);
+        camera.setRobotOrientation(robot.getRotation(), DegreesPerSecond.of(0));
+        camera.update();
+        accepted.addAll(camera.getEstimatedPoses());
+      }
+      assertFalse(accepted.isEmpty(), "no estimate while standing still");
+      assertTrue(accepted.stream().allMatch(VisionPoseEstimate::headingAssisted));
     }
   }
 }

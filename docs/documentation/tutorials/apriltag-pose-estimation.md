@@ -50,7 +50,7 @@ Your drive already updates its odometry when your swerve code calls `swerveDrive
 
 {% tabs %}
 {% tab title="Kitbot (this tutorial)" %}
-Every loop: update odometry, give the camera the gyro heading, read the camera, then add its guesses.
+Every loop: update odometry, give the camera the pose estimator's heading, read the camera, then add its guesses.
 
 ```java
 @Override
@@ -60,11 +60,13 @@ public void robotPeriodic() {
       drivetrainSim.getLeftPosition() * WHEEL_SLIP,
       drivetrainSim.getRightPosition() * WHEEL_SLIP);
 
-  camera.setRobotOrientation(heading);
+  camera.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation());
   camera.update();
   camera.addVisionMeasurements(poseEstimator);
 }
 ```
+
+The camera gets the pose estimator's heading, not the gyro's: when the pose estimator is reset to a starting pose, its heading turns and the gyro doesn't.
 
 `addVisionMeasurements` adds every guess that passed the pose filter, oldest first, each with the time its picture was taken and its standard deviations.
 {% endtab %}
@@ -256,7 +258,7 @@ public class Robot extends TimedRobot {
     double right = drivetrainSim.getRightPosition() * WHEEL_SLIP;
     poseEstimator.update(heading, left, right);
 
-    camera.setRobotOrientation(heading);
+    camera.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation());
     camera.update();
     camera.addVisionMeasurements(poseEstimator);
 
@@ -341,7 +343,7 @@ public class Robot extends OpModeRobot {
     double right = drivetrainSim.getRightPosition() * WHEEL_SLIP;
     poseEstimator.update(heading, left, right);
 
-    camera.setRobotOrientation(heading);
+    camera.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation());
     camera.update();
     camera.addVisionMeasurements(poseEstimator);
 

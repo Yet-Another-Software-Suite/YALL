@@ -53,7 +53,7 @@ See [How do I tune the pose filter?](how-do-i-tune-the-pose-filter.md)
 * **Off by the same amount everywhere:** the camera's forward or left offset is wrong.
 * **Off more the farther the tag is:** the camera's tilt (pitch) is wrong, or the camera needs calibrating: [ChArUco Camera Calibration](../tuning/charuco-camera-calibration.md).
 * **Jumps when a tag comes into view:** the guesses are trusted too much. Raise the standard deviations in [How do I tune the pose filter?](how-do-i-tune-the-pose-filter.md)
-* **Heading-assisted estimates drift:** `setRobotOrientation` isn't called every loop, or the gyro's heading is wrong.
+* **Heading-assisted estimates drift:** `setRobotOrientation` isn't called every loop, or the heading isn't the robot's heading on the field. Send your pose estimator's rotation, not the gyro's own reading, which doesn't turn when the pose estimator is reset.
 
 ## Left and right are backward
 

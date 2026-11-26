@@ -67,7 +67,7 @@ private final VisionCamera camera =
 
 @Override
 public void robotPeriodic() {
-  camera.setRobotOrientation(gyro.getRotation2d());
+  camera.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation());
   camera.update();
   camera.addVisionMeasurements(poseEstimator);
 }

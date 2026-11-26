@@ -140,7 +140,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    camera.setRobotOrientation(SIMULATED_ROBOT_POSE.getRotation()); // on a real robot: the gyro
+    camera.setRobotOrientation(SIMULATED_ROBOT_POSE.getRotation()); // on a real robot: your pose estimator's heading
     camera.update();
 
     var stats = camera.getFilterStats();
@@ -198,7 +198,7 @@ public class Robot extends OpModeRobot {
 
   @Override
   public void robotPeriodic() {
-    camera.setRobotOrientation(SIMULATED_ROBOT_POSE.getRotation()); // on a real robot: the gyro
+    camera.setRobotOrientation(SIMULATED_ROBOT_POSE.getRotation()); // on a real robot: your pose estimator's heading
     camera.update();
 
     var stats = camera.getFilterStats();

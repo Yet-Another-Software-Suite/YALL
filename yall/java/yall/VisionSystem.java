@@ -20,7 +20,7 @@ import yall.sim.VisionSim;
  * VisionSystem vision = new VisionSystem(frontLimelight, backPhoton, sideSynapse);
  *
  * public void periodic() {
- *   vision.setRobotOrientation(gyro.getRotation3d(), gyro.getYawRate());
+ *   vision.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyro.getYawRate());
  *   vision.update();
  *   vision.addVisionMeasurements(poseEstimator);
  * }
@@ -75,7 +75,8 @@ public class VisionSystem implements AutoCloseable {
   }
 
   /**
-   * Gives every camera the robot's orientation from the gyro.
+   * Gives every camera the robot's orientation on the field: the yaw from your pose estimator, the
+   * roll and pitch from the gyro.
    *
    * @param orientation Robot orientation on the field.
    * @param yawRate Robot yaw rate.
@@ -86,9 +87,20 @@ public class VisionSystem implements AutoCloseable {
   }
 
   /**
-   * Gives every camera the robot's heading from the gyro.
+   * Gives every camera the robot's heading on the field and its yaw rate.
    *
-   * @param heading Robot heading on the field.
+   * @param heading Robot heading on the field, your pose estimator's rotation.
+   * @param yawRate Robot yaw rate.
+   * @see VisionCamera#setRobotOrientation(Rotation2d, AngularVelocity)
+   */
+  public void setRobotOrientation(Rotation2d heading, AngularVelocity yawRate) {
+    cameras.forEach(c -> c.setRobotOrientation(heading, yawRate));
+  }
+
+  /**
+   * Gives every camera the robot's heading on the field, without a yaw rate.
+   *
+   * @param heading Robot heading on the field, your pose estimator's rotation.
    * @see VisionCamera#setRobotOrientation(Rotation2d)
    */
   public void setRobotOrientation(Rotation2d heading) {

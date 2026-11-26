@@ -12,7 +12,6 @@ import org.wpilib.framework.TimedRobot;
 import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.util.MathUtil;
 import org.wpilib.simulation.DifferentialDrivetrainSim;
 import org.wpilib.simulation.DifferentialDrivetrainSim.KitbotGearing;
@@ -119,9 +118,11 @@ public class Robot extends TimedRobot {
     poseEstimator.update(heading, left, right);
     odometryOnly.update(heading, left, right);
 
-    // Heading-assisted cameras (the Limelight's MegaTag2) need the gyro every loop.
+    // Heading-assisted cameras (the Limelight's MegaTag2) need the robot's heading on the field,
+    // the pose estimator's, every loop.
     vision.setRobotOrientation(
-        new Rotation3d(heading), DegreesPerSecond.of(Math.toDegrees(gyroRateRadiansPerSecond())));
+        poseEstimator.getEstimatedPosition().getRotation(),
+        DegreesPerSecond.of(Math.toDegrees(gyroRateRadiansPerSecond())));
     vision.update();
     vision.addVisionMeasurements(poseEstimator);
 

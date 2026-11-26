@@ -19,7 +19,7 @@ VisionSystem vision = new VisionSystem(frontLimelight, backPhoton, sideSynapse);
 
 // In Robot.robotPeriodic() (Commands v2 or v3):
 public void robotPeriodic() {
-  vision.setRobotOrientation(gyro.getRotation3d(), gyroYawRate);
+  vision.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyroYawRate);
   vision.update();
   vision.addVisionMeasurements(poseEstimator);
 }
@@ -61,8 +61,9 @@ VisionSystem(VisionCamera... cameras)
 | --- | --- | --- |
 | `update()` | `void` | Updates every camera and gathers their accepted estimates, oldest first. Call once per loop. |
 | `updateSimulation(Pose2d robotPose)` | `void` | Updates each simulated world the cameras are in, once, with the robot's true pose. Call once per loop from `simulationPeriodic`. |
-| `setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate)` | `void` | Gives every camera the robot's orientation from the gyro. |
-| `setRobotOrientation(Rotation2d heading)` | `void` | Gives every camera the robot's heading from the gyro, without a yaw rate. |
+| `setRobotOrientation(Rotation3d orientation, AngularVelocity yawRate)` | `void` | Gives every camera the robot's orientation on the field: the yaw from your pose estimator, the roll and pitch from the gyro. |
+| `setRobotOrientation(Rotation2d heading, AngularVelocity yawRate)` | `void` | Gives every camera the robot's heading on the field, your pose estimator's rotation, and its yaw rate. |
+| `setRobotOrientation(Rotation2d heading)` | `void` | Gives every camera the robot's heading on the field, without a yaw rate. |
 | `getCameras()` | `List<VisionCamera>` | The cameras in this system. |
 | `getEstimatedPoses()` | `List<VisionPoseEstimate>` | Every accepted estimate from every camera in the last `update()`, oldest first. |
 | `forEachEstimatedPose(Consumer<VisionPoseEstimate> consumer)` | `void` | Passes every accepted estimate from the last `update()` to a consumer, oldest first. Use it for drivetrains with their own `addVisionMeasurement` method, passing each estimate's `pose2d()`, `timestampSeconds()` and `stdDevs()`. |

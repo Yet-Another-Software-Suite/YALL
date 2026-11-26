@@ -30,20 +30,24 @@ config.withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED);
 * **`TAGS_ONLY`** needs nothing but the camera offset. Single-tag estimates can flip between two nearly equal solutions (ambiguity), which the pose filter's ambiguity check catches.
 * **`HEADING_ASSISTED`** uses the robot's heading to pick the right solution, so it is steadier at range and at sharp angles. It is only as good as the heading you send. If you forget `setRobotOrientation` on some loops, estimates go stale without any error.
 
-Because a heading-assisted estimate's heading is just the gyro's, YALL gives it a heading standard deviation of 1,000,000 radians: the pose estimator takes its position and ignores its heading. Change it with [`VisionPoseFilter.withHeadingAssistedThetaStdDev(Radians.of(...))`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter).
+Because a heading-assisted estimate's heading is just the one you sent, YALL gives it a heading standard deviation of 1,000,000 radians: the pose estimator takes its position and ignores its heading. Change it with [`VisionPoseFilter.withHeadingAssistedThetaStdDev(Radians.of(...))`](https://yall.yassrobotics.com/api-reference/java-reference/filter/vision-pose-filter).
 
 [`VisionPoseEstimate.headingAssisted()`](https://yall.yassrobotics.com/api-reference/java-reference/results/vision-pose-estimate) says which method produced an estimate. A heading-assisted PhotonVision camera, or any camera in simulation, falls back to `TAGS_ONLY` when the trig solve has no answer, and those estimates have `headingAssisted() == false`.
 
-## Sending the gyro
+## Sending the heading
 
 In `Robot.robotPeriodic()` (Commands v2 or v3), every loop, before `update()`:
 
 ```java
-camera.setRobotOrientation(gyro.getRotation3d(), DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
+camera.setRobotOrientation(
+    poseEstimator.getEstimatedPosition().getRotation(),
+    DegreesPerSecond.of(gyroYawRateDegreesPerSecond));
 camera.update();
 ```
 
-The yaw rate also feeds the pose filter's yaw rate check. If you only have a heading, `camera.setRobotOrientation(gyro.getRotation2d())` works and skips that check.
+Send the robot's heading on the field, your pose estimator's rotation, not the gyro's own reading. Resetting the pose estimator, for an auto's starting pose or when the driver zeroes the heading, turns its heading without turning the gyro. A YAMS `SwerveDrive` gives it as `getRotation()`.
+
+The yaw rate also feeds the pose filter's yaw rate check. Without one, `camera.setRobotOrientation(heading)` works and skips that check. To send the gyro's roll and pitch too, pass a `Rotation3d` with your pose estimator's heading as its yaw.
 
 On a Limelight, `setRobotOrientation` passes the yaw, pitch, roll and yaw rate to the camera for MegaTag2. On PhotonVision and in simulation, it adds heading data to PhotonVision's pose estimator.
 

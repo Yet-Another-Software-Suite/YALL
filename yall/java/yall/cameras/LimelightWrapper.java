@@ -218,11 +218,12 @@ public class LimelightWrapper extends VisionCamera {
   }
 
   /**
-   * Updates both a moving/turret-mounted camera's robot-to-camera transform and the robot's gyro
+   * Updates both a moving/turret-mounted camera's robot-to-camera transform and the robot's
    * orientation in a single NetworkTables flush so MegaTag2 receives both values atomically.
    *
    * @param robotToCamera Current transform from the robot origin to the camera.
-   * @param orientation Current robot orientation on the field.
+   * @param orientation Current robot orientation on the field: the yaw from your pose estimator,
+   *     the roll and pitch from the gyro.
    * @param yawRate Current robot yaw rate.
    */
   public void setRobotToCameraAndOrientation(
