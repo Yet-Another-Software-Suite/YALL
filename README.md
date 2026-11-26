@@ -360,8 +360,9 @@ back. Every loop they give the cameras the drive's odometry heading and add each
 ## API documentation
 
 Javadocs are at [https://Yet-Another-Software-Suite.github.io/YALL/javadocs/](https://yet-another-software-suite.github.io/YALL/javadocs/).
-The repository keeps a copy in [`docs/javadocs`](docs/javadocs). After changing the API, run
-`./gradlew updateDocsJavadocs` in `vendordep` and commit it; CI fails when the copy is out of date.
+The repository keeps a copy in [`docs/javadocs`](docs/javadocs). CI updates it when a change to
+the API lands on `main`, and warns on pull requests that change it. To update it yourself, run
+`./gradlew updateDocsJavadocs` in `vendordep`.
 
 ## Contributing
 
