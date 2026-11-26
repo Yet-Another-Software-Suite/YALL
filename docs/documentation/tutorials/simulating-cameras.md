@@ -260,6 +260,21 @@ Give one camera its own world with `config.withSimulation(myVisionSim)`, or turn
 
 See [Object Detection](object-detection.md).
 
+### Camera faults
+
+Real cameras drop frames, lose power, and see tags that are mounted a little off. The simulated world can do the same, to test how your robot copes:
+
+```java
+VisionSim sim = VisionSim.getDefault();
+sim.injectBlackout(Timer.getMonotonicTimestamp(), Seconds.of(2)); // no frames for 2 seconds
+sim.withDropoutProbability(0.1, 2027);                            // drop 10% of frames
+sim.withFieldTagJitter(Millimeters.of(13), 2027);                 // tags up to about 1 cm off
+```
+
+Every camera in the world is affected. The last number is a seed: the same seed drops the same frames and adds the same jitter every run, so a unit test that uses them always gives the same result. `sim.clearFaults()` turns them all off. See [`VisionSim`](https://yall.yassrobotics.com/api-reference/java-reference/sim/vision-sim#fault-injection).
+
+**Check it:** during a blackout, `YALL/<camera name>/acceptedPoses` stays empty and the pose estimate drifts with odometry alone; afterward, the cameras pull it back. `hasTargets()` and `getLatestResult()` keep the last frame from before the blackout, and a simulated camera always counts as connected, so watch the accepted poses.
+
 ### Unit tests
 
 Simulation runs in JUnit tests too. Pause the clock and step it yourself:

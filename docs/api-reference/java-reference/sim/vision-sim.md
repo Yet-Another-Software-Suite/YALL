@@ -68,6 +68,30 @@ VisionSim.getDefault().addVisionTargets(
 
 ***
 
+## Fault injection
+
+Faults make the simulated cameras misbehave like real ones, to test how your robot copes. They apply to every camera in this world, and only in simulation. The random ones take a seed, so a test gives the same result every run.
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `injectBlackout(double currentTimeSeconds, Time duration)` | `VisionSim` | Drops every frame from `currentTimeSeconds` for `duration`, as if the cameras lost power or their network link. Times are `Timer.getMonotonicTimestamp()`. A longer overlapping blackout extends it. |
+| `isBlackedOut(double nowSeconds)` | `boolean` | Whether a blackout is in effect at `nowSeconds`. |
+| `withDropoutProbability(double probability, long seed)` | `VisionSim` | Drops each frame with this probability, from 0 to 1. |
+| `withFieldTagJitter(Distance stdDev, long seed)` | `VisionSim` | Moves each simulated pose estimate's x and y by random amounts with this standard deviation, like AprilTags mounted a little off their mapped spots (for example `Millimeters.of(13)`). 0 turns it off. |
+| `clearFaults()` | `void` | Ends any blackout and turns dropout and jitter off. |
+| `shouldDropFrame(double nowSeconds)` | `boolean` | Whether a frame arriving at `nowSeconds` is dropped. [`VisionCamera.update()`](../yall/vision-camera.md) calls it for each simulated frame. |
+| `applyFieldTagJitter(Pose3d pose)` | `Pose3d` | The pose with the jitter added. `VisionCamera.update()` calls it for each simulated pose estimate. |
+
+```java
+VisionSim sim = VisionSim.getDefault();
+// Lose the cameras for 2 seconds, starting now.
+sim.injectBlackout(Timer.getMonotonicTimestamp(), Seconds.of(2));
+// Drop 10% of frames, and mount every tag up to about a centimeter off.
+sim.withDropoutProbability(0.1, 2027).withFieldTagJitter(Millimeters.of(13), 2027);
+```
+
+***
+
 ## Simulated cameras
 
 Each simulated [`VisionCamera`](../yall/vision-camera.md) gets a PhotonVision `PhotonCameraSim`:
