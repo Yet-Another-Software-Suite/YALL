@@ -21,6 +21,7 @@ import org.wpilib.datalog.IntegerLogEntry;
 import org.wpilib.datalog.StringLogEntry;
 import org.wpilib.datalog.StructArrayLogEntry;
 import org.wpilib.datalog.StructLogEntry;
+import org.wpilib.fields.Field;
 import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
@@ -37,6 +38,7 @@ import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
 import yall.cameras.PhotonVisionFrames;
 import yall.filter.PoseFilterStats;
+import yall.filter.VisionPoseFilter;
 import yall.results.VisionPoseEstimate;
 import yall.results.VisionResult;
 import yall.results.VisionTarget;
@@ -55,7 +57,11 @@ import yall.telemetry.VisionTelemetryField;
  * VisionCamera front = new LimelightWrapper(new Limelight("limelight-front"), frontConfig);
  * VisionCamera back = new PhotonVisionWrapper(new PhotonCamera("back"), backConfig);
  * VisionCamera side = new SynapseWrapper(new SynapseCamera("side"), sideConfig);
+ * VisionCamera quest = new QuestNavWrapper(new QuestNav(), questConfig);
  * }</pre>
+ *
+ * <p>A QuestNav headset isn't a camera, but it gives robot poses the same way, so it is one here
+ * too. See {@link yall.cameras.QuestNavWrapper}.
  *
  * <p>Call {@link #update()} once per loop (or {@link VisionSystem#update()} for several cameras),
  * then read {@link #getLatestResult()}, {@link #getEstimatedPose()} and the other getters. They all
@@ -203,7 +209,7 @@ public abstract class VisionCamera implements AutoCloseable {
       var reason =
           frame
               .vendorRejection()
-              .or(() -> filter.check(estimate, field, now, yawRateDegreesPerSecond, avgTagArea));
+              .or(() -> checkEstimate(estimate, filter, field, now, avgTagArea));
       if (reason.isPresent()) {
         rejected.add(estimate);
         lastRejectionReason = reason.get();
@@ -228,6 +234,28 @@ public abstract class VisionCamera implements AutoCloseable {
     if (telemetry != null) {
       telemetry.publish(this);
     }
+  }
+
+  /**
+   * Runs the pose filter on an estimate. AprilTag cameras use {@link VisionPoseFilter#check}; a pose
+   * source that doesn't use tags overrides this, for example with {@link
+   * VisionPoseFilter#checkWithoutTags}.
+   *
+   * @param estimate The estimate.
+   * @param filter The config's pose filter.
+   * @param field The config's field.
+   * @param nowSeconds Current {@link Timer#getMonotonicTimestamp()}.
+   * @param averageTagAreaPercent Average image area of the frame's AprilTags, or NaN if unknown.
+   * @return Why the estimate was rejected, or empty to accept it.
+   */
+  protected Optional<String> checkEstimate(
+      VisionPoseEstimate estimate,
+      VisionPoseFilter filter,
+      Field field,
+      double nowSeconds,
+      double averageTagAreaPercent) {
+    return filter.check(
+        estimate, field, nowSeconds, yawRateDegreesPerSecond, averageTagAreaPercent);
   }
 
   /**

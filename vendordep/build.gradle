@@ -33,8 +33,8 @@ sourceSets {
 var javaVersion = "25"
 
 // PhotonLib (required: every camera simulates through it), WPILib's CameraServer and AprilTag
-// vendordeps (PhotonVision's simulation needs them), LimelightLib and SynapseLib come from the
-// vendordeps folder. Teams install YALL plus the vendordeps of the cameras they use; the wrapper for
+// vendordeps (PhotonVision's simulation needs them), LimelightLib, SynapseLib and QuestNavLib come
+// from the vendordeps folder. Teams install YALL plus the vendordeps of the cameras they use; the wrapper for
 // a camera vendor only loads when the program constructs it.
 dependencies {
     implementation wpi.java.deps.wpilib()
