@@ -324,6 +324,11 @@ odometry alone drifts; drive it with a gamepad and compare the `Truth`, `Odometr
 poses on the Field widget. Its test drives an arc and checks that vision keeps the estimate closer
 to the truth than odometry.
 
+[`yagsl-example/commands2`](yagsl-example/commands2) and [`yagsl-example/commands3`](yagsl-example/commands3) are
+YAGSL swerve robots, on Commands v2 and v3, with a PhotonVision camera on the front and a MegaTag2 Limelight on the
+back. Every loop they give the cameras the drive's odometry heading and add each accepted estimate to the drive with
+`addVisionMeasurement`. Both run in simulation.
+
 ## API documentation
 
 Javadocs are at [https://Yet-Another-Software-Suite.github.io/YALL/javadocs/](https://yet-another-software-suite.github.io/YALL/javadocs/).

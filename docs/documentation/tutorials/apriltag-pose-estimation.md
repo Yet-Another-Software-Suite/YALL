@@ -97,6 +97,8 @@ public void robotPeriodic() {
 * `forEachEstimatedPose` hands over every guess that passed the pose filter, oldest first. `SwerveDrive.addVisionMeasurement` puts it into the drive's own pose estimator, so `swerveDrive.getPose()` now includes the cameras.
 
 This needs `import static org.wpilib.units.Units.RadiansPerSecond;` and `import org.wpilib.math.geometry.Rotation3d;`.
+
+For a complete YAGSL swerve robot with a PhotonVision camera and a MegaTag2 Limelight, see YALL's [Commands v2](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands2) and [Commands v3](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands3) YAGSL examples.
 {% endtab %}
 {% endtabs %}
 
