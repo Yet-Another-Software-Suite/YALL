@@ -70,15 +70,16 @@ public void robotPeriodic() {
 {% endtab %}
 
 {% tab title="YAMS SwerveDrive" %}
-Every loop, after the scheduler runs (so your drive's odometry is up to date): give the camera the drive's gyro and how fast it's spinning, read the camera, then hand each guess to the drive.
+Every loop, after the scheduler runs (so your drive's odometry is up to date): give the camera the drive's heading and how fast it's spinning, read the camera, then hand each guess to the drive.
 
 ```java
 @Override
 public void robotPeriodic() {
   // Run the scheduler first, as your Robot.java already does.
 
+  Rotation3d gyro = swerveDrive.getGyroRotation3d();
   camera.setRobotOrientation(
-      swerveDrive.getGyroRotation3d(),
+      new Rotation3d(gyro.getX(), gyro.getY(), swerveDrive.getRotation().getRadians()),
       RadiansPerSecond.of(swerveDrive.getFieldRelativeSpeed().omega));
   camera.update();
   camera.forEachEstimatedPose(
@@ -88,11 +89,12 @@ public void robotPeriodic() {
 }
 ```
 
-* `getGyroRotation3d()` is the robot's tilt and heading from the gyro. In simulation, YAMS gives the simulated heading.
+* `getRotation()` is the robot's heading on the field, from the drive's odometry. MegaTag2 needs that heading, not the gyro's own reading: `resetOdometry` and `zeroOdometryHeading` turn the odometry heading but leave the gyro alone.
+* `getGyroRotation3d()` gives the robot's tilt (roll and pitch) from the gyro.
 * The spin rate lets the pose filter throw out blurry pictures taken while the robot spins fast.
 * `forEachEstimatedPose` hands over every guess that passed the pose filter, oldest first. `SwerveDrive.addVisionMeasurement` puts it into the drive's own pose estimator, so `swerveDrive.getPose()` now includes the cameras.
 
-This needs `import static org.wpilib.units.Units.RadiansPerSecond;`.
+This needs `import static org.wpilib.units.Units.RadiansPerSecond;` and `import org.wpilib.math.geometry.Rotation3d;`.
 {% endtab %}
 {% endtabs %}
 
