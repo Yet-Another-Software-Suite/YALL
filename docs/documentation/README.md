@@ -24,7 +24,7 @@ layout:
 
 # Welcome
 
-**YALL** (Yet Another Limelight Library) helps an FRC robot use cameras to know where it is and to find targets. It works with three kinds of cameras: **PhotonVision**, **Limelight** and **Synapse**. Your code reads every camera the same way, and when you run the robot program on your computer (in **simulation**), YALL pretends to be the camera, so you can test before you have a robot.
+**YALL** (Yet Another Localization Library) helps an FRC robot use cameras to know where it is and to find targets. It works with three kinds of cameras: **PhotonVision**, **Limelight** and **Synapse**. Your code reads every camera the same way, and when you run the robot program on your computer (in **simulation**), YALL pretends to be the camera, so you can test before you have a robot.
 
 ![A robot drives a figure of eight. The red wheels-only path drifts away from the black true path, while the blue path with cameras stays on it.](.gitbook/assets/vision-corrects-odometry.gif)
 

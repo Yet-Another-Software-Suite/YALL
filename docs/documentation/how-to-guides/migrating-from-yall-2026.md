@@ -4,7 +4,7 @@ icon: route
 
 # Migrating from YALL 2026
 
-YALL 2026 was a Limelight-only library: a `limelight` package that read a Limelight's NetworkTables directly, plus a `LimelightSim`. YALL for 2027 is one camera API for PhotonVision, Limelight and Synapse, built on each maker's own library. This page maps the old code to the new.
+YALL 2026, Yet Another Limelight Library, was a Limelight-only library: a `limelight` package that read a Limelight's NetworkTables directly, plus a `LimelightSim`. YALL for 2027, Yet Another Localization Library, is one camera API for PhotonVision, Limelight and Synapse, built on each maker's own library. The name changed with it; the letters, the vendordep and the package names stayed the same. This page maps the old code to the new.
 
 The old library is kept at the [`pre-rewrite` tag](https://github.com/Yet-Another-Software-Suite/YALL/tree/pre-rewrite) if you need to look something up.
 

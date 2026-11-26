@@ -1,6 +1,6 @@
 ---
 description: >-
-  Yet Another Limelight Library: one camera library for PhotonVision, Limelight
+  Yet Another Localization Library: one camera library for PhotonVision, Limelight
   and Synapse on FRC robots, with simulation for all three
 icon: house
 layout:
@@ -25,7 +25,7 @@ layout:
     visible: false
 ---
 
-# Yet Another Limelight Library
+# Yet Another Localization Library
 
 **YALL** helps an FRC robot use its cameras to know where it is on the field and to find targets. It works with **PhotonVision**, **Limelight** and **Synapse** cameras, and your code reads all of them the same way.
 

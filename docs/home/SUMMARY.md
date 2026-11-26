@@ -1,3 +1,3 @@
 # Table of contents
 
-* [Yet Another Limelight Library](README.md)
+* [Yet Another Localization Library](README.md)

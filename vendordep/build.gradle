@@ -95,7 +95,7 @@ tasks.withType(JavaCompile) {
 }
 
 javadoc {
-    title = "Yet Another Limelight Library API"
+    title = "Yet Another Localization Library API"
     destinationDir = file("$releasePath/javadocs")
     options {
         encoding = 'UTF-8'

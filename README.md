@@ -1,4 +1,4 @@
-# Yet Another Limelight Library (YALL)
+# Yet Another Localization Library (YALL)
 
 YALL gives PhotonVision, Limelight and Synapse cameras one Java API for FRC robots. A camera
 object returns real results on the robot and simulated results in simulation, so the same code
