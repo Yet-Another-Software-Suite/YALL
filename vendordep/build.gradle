@@ -111,6 +111,14 @@ javadoc {
 }
 
 build.dependsOn javadoc
+
+// Copies the javadocs into docs/javadocs, which is committed. CI fails when that copy is out of
+// date, so run this after changing the API: ./gradlew updateDocsJavadocs
+tasks.register('updateDocsJavadocs', Sync) {
+    dependsOn javadoc
+    from javadoc.destinationDir
+    into "$rootDir/../docs/javadocs"
+}
 apply from: 'publish.gradle'
 
 wrapper {

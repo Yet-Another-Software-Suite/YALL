@@ -6,6 +6,7 @@ on:
     paths:
       - "yall/java/**"
       - "vendordep/**"
+      - "docs/javadocs/**"
       - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
@@ -13,6 +14,7 @@ on:
     paths:
       - "yall/java/**"
       - "vendordep/**"
+      - "docs/javadocs/**"
       - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
@@ -38,6 +40,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Build
         run: chmod a+x ./gradlew && ./gradlew build
+        working-directory: vendordep
+      # docs/javadocs is committed, so check it matches the javadocs the build just made.
+      - name: Check docs/javadocs is up to date
+        run: |
+          if ! diff -r build/maven/javadocs ../docs/javadocs > /dev/null; then
+            diff -rq build/maven/javadocs ../docs/javadocs || true
+            echo "::error::docs/javadocs is out of date. Run ./gradlew updateDocsJavadocs in vendordep and commit docs/javadocs."
+            exit 1
+          fi
         working-directory: vendordep
       - name: Test
         run: ./gradlew test
