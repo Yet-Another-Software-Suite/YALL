@@ -101,7 +101,7 @@ config.withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
 | --- | --- |
 | `withVendorConfig(Object vendorConfig)` | Passes a vendor config object to the camera, as YAMS does for motor controllers. Each wrapper documents the types it accepts and throws `IllegalArgumentException` for others. Only [`LimelightWrapper`](../cameras/limelight-wrapper.md#vendor-configs) accepts any. |
 | `withTelemetry(boolean enabled)` | Sets whether the camera publishes telemetry, with the default [`VisionTelemetryConfig`](../telemetry/vision-telemetry-config.md): every `MID` field under `YALL/<camera name>`. Defaults to true. |
-| `withTelemetry(VisionTelemetryConfig telemetryConfig)` | Sets what the camera publishes to NetworkTables, and where. `null` publishes nothing. |
+| `withTelemetry(VisionTelemetryConfig telemetryConfig)` | Sets what the camera publishes to NetworkTables and logs to a DataLog, and where. `null` publishes nothing. |
 
 ***
 

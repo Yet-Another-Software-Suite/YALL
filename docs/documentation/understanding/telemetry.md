@@ -4,7 +4,7 @@ icon: chart-line
 
 # Telemetry
 
-**Telemetry** is data the robot program sends out while it runs, so you can watch it on a dashboard. YALL sends what each camera sees and what the pose filter decided.
+**Telemetry** is data the robot program sends out while it runs, so you can watch it on a dashboard. YALL sends what each camera sees and what the pose filter decided, and can log it to a file on the robot.
 
 ## What YALL publishes
 
@@ -35,6 +35,24 @@ new VisionCameraConfig()
 ```
 
 Turn a camera's telemetry off with `config.withTelemetry(false)`. Less telemetry means less NetworkTables traffic and log space; `LOW` is enough for a match, and `HIGH` helps while tuning.
+
+## Logging to a DataLog
+
+A **DataLog** is a `.wpilog` file the robot program writes while it runs, on the robot or in `logs/` in simulation. AdvantageScope opens it after the match. `withDataLog()` logs the same fields to WPILib's `DataLogManager`, under the same path (`YALL/<camera name>`):
+
+```java
+// In Robot's constructor
+DataLogManager.start();
+DataLogManager.logNetworkTables(false); // the cameras log their own values
+
+new VisionCameraConfig()
+    .withTelemetry(new VisionTelemetryConfig()
+        .withDataLog());                // also log to the DataLog
+```
+
+`DataLogManager` logs NetworkTables too unless `logNetworkTables(false)` turns it off, so without that line each value is logged twice: once under `YALL/` and once under `NT:/YALL/`. To log without publishing to NetworkTables, such as at competition, add `.withNetworkTables(false)`. The filter stats' `reset` switch needs NetworkTables, so it's only there with NetworkTables on. `withDataLog("Vision/front")` logs under a path of its own.
+
+Each value is logged when it changes, so a camera that sees nothing adds little to the log. The [example robots](../example-robots.md) all log their cameras this way.
 
 ## Seeing the filter work
 

@@ -8,6 +8,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.driverstation.internal.DriverStationBackend;
 import org.wpilib.framework.TimedRobot;
+import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Timer;
 
 /**
@@ -31,6 +32,10 @@ public class Robot extends TimedRobot
   public Robot()
   {
     instance = this;
+    // Log to a file on the robot (or in logs/ in simulation). The cameras and the swerve drive log their own values,
+    // so NetworkTables isn't logged as well.
+    DataLogManager.start();
+    DataLogManager.logNetworkTables(false);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();

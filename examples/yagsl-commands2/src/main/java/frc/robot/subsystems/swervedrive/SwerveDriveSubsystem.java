@@ -43,6 +43,7 @@ import yall.VisionSystem;
 import yall.cameras.LimelightWrapper;
 import yall.cameras.PhotonVisionWrapper;
 import yall.sim.CameraModel;
+import yall.telemetry.VisionTelemetryConfig;
 import swervelib.commands2.SwerveParser;
 import yams.commands2.config.SwerveDriveConfig;
 import yams.commands2.swerve.SwerveDrive;
@@ -91,7 +92,7 @@ public class SwerveDriveSubsystem extends SubsystemBase
         // rotation gain leaves heading control and driveToPoseYAMS short of their target. At kP = 3 that dead zone
         // is under 4.5 degrees.
         .withRotationController(new PIDController(3, 0, 0))
-        .withTelemetry("swerve", new SwerveDriveTelemetryConfig(TelemetryVerbosity.HIGH));
+        .withTelemetry("swerve", new SwerveDriveTelemetryConfig(TelemetryVerbosity.HIGH).withDataLogName("swerve"));
 
     SwerveParser.parse(new File(Filesystem.getDeployDirectory(), "swerve/base"));
     drive = SwerveParser.createSwerveDrive(cfg);
@@ -297,11 +298,16 @@ public class SwerveDriveSubsystem extends SubsystemBase
    */
   private VisionSystem createCameras()
   {
+    // Each camera publishes to NetworkTables for dashboards, and logs the same values to the DataLog under
+    // YALL/<camera name>.
+    VisionTelemetryConfig telemetry = new VisionTelemetryConfig().withDataLog();
+
     // A PhotonVision camera 12 in forward of the robot's center, 10 in up, tilted 15 degrees up.
     VisionCamera front = new PhotonVisionWrapper(
         new PhotonCamera("front"),
         new VisionCameraConfig()
             .withCameraModel(CameraModel.ARDUCAM_OV9281)
+            .withTelemetry(telemetry)
             .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
                                Degrees.zero(), Degrees.of(-15), Degrees.zero()));
 
@@ -311,6 +317,7 @@ public class SwerveDriveSubsystem extends SubsystemBase
         backLimelight,
         new VisionCameraConfig()
             .withCameraModel(CameraModel.LIMELIGHT_4)
+            .withTelemetry(telemetry)
             .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED)
             .withRobotToCamera(Inches.of(-12), Inches.zero(), Inches.of(10),
                                Degrees.zero(), Degrees.of(-15), Degrees.of(180)));
