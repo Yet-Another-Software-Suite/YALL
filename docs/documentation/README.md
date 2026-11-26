@@ -40,6 +40,8 @@ Follow the tutorials in order:
 4. [Running on the Real Robot](tutorials/running-on-the-real-robot.md): check everything safely on real hardware.
 5. [Object Detection](tutorials/object-detection.md): find game pieces.
 
+Want to see it all working first? The [Example Robots](example-robots.md) are complete projects you can run in simulation: a kitbot with a camera from each vendor, and YAGSL swerve drives on Commands v2 and v3.
+
 Stuck? See [Troubleshooting](how-to-guides/troubleshooting.md).
 
 <table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><h4><i class="fa-camera">:camera:</i></h4></td><td><strong>Basic Setup</strong></td><td>Add your first camera and see it work in simulation.</td><td><a href="tutorials/basic-setup.md">basic-setup.md</a></td></tr><tr><td><h4><i class="fa-location-crosshairs">:location-crosshairs:</i></h4></td><td><strong>AprilTag Pose Estimation</strong></td><td>Keep the robot's position right with cameras.</td><td><a href="tutorials/apriltag-pose-estimation.md">apriltag-pose-estimation.md</a></td></tr><tr><td><h4><i class="fa-computer">:computer:</i></h4></td><td><strong>Simulating Cameras</strong></td><td>See what the simulated camera sees.</td><td><a href="tutorials/simulating-cameras.md">simulating-cameras.md</a></td></tr><tr><td><h4><i class="fa-robot">:robot:</i></h4></td><td><strong>Running on the Real Robot</strong></td><td>Check every piece safely on real hardware.</td><td><a href="tutorials/running-on-the-real-robot.md">running-on-the-real-robot.md</a></td></tr></tbody></table>
