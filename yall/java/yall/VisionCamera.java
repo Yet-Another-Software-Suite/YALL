@@ -11,6 +11,16 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.simulation.PhotonCameraSim;
+import org.wpilib.datalog.BooleanLogEntry;
+import org.wpilib.datalog.DataLog;
+import org.wpilib.datalog.DataLogEntry;
+import org.wpilib.datalog.DoubleArrayLogEntry;
+import org.wpilib.datalog.DoubleLogEntry;
+import org.wpilib.datalog.IntegerArrayLogEntry;
+import org.wpilib.datalog.IntegerLogEntry;
+import org.wpilib.datalog.StringLogEntry;
+import org.wpilib.datalog.StructArrayLogEntry;
+import org.wpilib.datalog.StructLogEntry;
 import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
@@ -18,16 +28,9 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.networktables.BooleanEntry;
-import org.wpilib.networktables.BooleanPublisher;
-import org.wpilib.networktables.DoubleArrayPublisher;
-import org.wpilib.networktables.DoublePublisher;
-import org.wpilib.networktables.IntegerArrayPublisher;
-import org.wpilib.networktables.IntegerPublisher;
 import org.wpilib.networktables.NetworkTable;
 import org.wpilib.networktables.NetworkTableInstance;
-import org.wpilib.networktables.StringPublisher;
-import org.wpilib.networktables.StructArrayPublisher;
-import org.wpilib.networktables.StructPublisher;
+import org.wpilib.system.DataLogManager;
 import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
@@ -585,80 +588,226 @@ public abstract class VisionCamera implements AutoCloseable {
     }
   }
 
-  /** The camera's NetworkTables publishers, for the fields its telemetry config turns on. */
+  /**
+   * The camera's NetworkTables publishers and DataLog entries, for the fields its telemetry config
+   * turns on.
+   */
   private static final class Telemetry implements AutoCloseable {
+    /** Writes a boolean to NetworkTables, the DataLog or both. */
+    private interface BooleanOut {
+      void set(boolean value);
+    }
+
+    /** Writes an integer to NetworkTables, the DataLog or both. */
+    private interface IntegerOut {
+      void set(long value);
+    }
+
+    /** Writes a number to NetworkTables, the DataLog or both. */
+    private interface DoubleOut {
+      void set(double value);
+    }
+
+    /** Writes a value of another type to NetworkTables, the DataLog or both. */
+    private interface Out<T> {
+      void set(T value);
+    }
+
     private final NetworkTable table;
+    private final DataLog log;
+    private final String logPath;
     private final List<AutoCloseable> closeables = new ArrayList<>();
-    private BooleanPublisher connected;
-    private BooleanPublisher hasTargets;
-    private IntegerPublisher targetCount;
-    private StructArrayPublisher<Pose3d> acceptedPoses;
-    private StructArrayPublisher<Pose3d> rejectedPoses;
-    private StringPublisher rejectionReason;
-    private DoublePublisher latency;
-    private IntegerPublisher statsAccepted;
-    private IntegerPublisher statsRejected;
-    private DoublePublisher statsAcceptanceRate;
-    private IntegerPublisher statsSamples;
-    private StructPublisher<Pose2d> statsMeanPose;
-    private DoubleArrayPublisher statsStdDevs;
-    private DoubleArrayPublisher statsSuggestedBase;
-    private DoublePublisher statsDistance;
+    private BooleanOut connected;
+    private BooleanOut hasTargets;
+    private IntegerOut targetCount;
+    private Out<Pose3d[]> acceptedPoses;
+    private Out<Pose3d[]> rejectedPoses;
+    private Out<String> rejectionReason;
+    private DoubleOut latency;
+    private boolean stats;
+    private IntegerOut statsAccepted;
+    private IntegerOut statsRejected;
+    private DoubleOut statsAcceptanceRate;
+    private IntegerOut statsSamples;
+    private Out<Pose2d> statsMeanPose;
+    private Out<double[]> statsStdDevs;
+    private Out<double[]> statsSuggestedBase;
+    private DoubleOut statsDistance;
     private BooleanEntry statsReset;
-    private final Map<String, IntegerPublisher> statsByReason = new HashMap<>();
-    private IntegerArrayPublisher targetIds;
-    private DoubleArrayPublisher targetYaws;
-    private DoubleArrayPublisher targetPitches;
-    private DoubleArrayPublisher targetAreas;
+    private final Map<String, IntegerOut> statsByReason = new HashMap<>();
+    private Out<long[]> targetIds;
+    private Out<double[]> targetYaws;
+    private Out<double[]> targetPitches;
+    private Out<double[]> targetAreas;
 
     Telemetry(String cameraName, VisionTelemetryConfig config) {
-      table = NetworkTableInstance.getDefault().getTable(config.getTablePath(cameraName));
+      table =
+          config.isNetworkTablesEnabled()
+              ? NetworkTableInstance.getDefault().getTable(config.getTablePath(cameraName))
+              : null;
+      var path = config.getDataLogPath(cameraName);
+      log = path.isPresent() ? DataLogManager.getLog() : null;
+      logPath = path.map(p -> p.endsWith("/") ? p : p + "/").orElse(null);
       if (config.isEnabled(VisionTelemetryField.CONNECTED)) {
-        connected = keep(table.getBooleanTopic("connected").publish());
+        connected = booleanOut("connected");
       }
       if (config.isEnabled(VisionTelemetryField.HAS_TARGETS)) {
-        hasTargets = keep(table.getBooleanTopic("hasTargets").publish());
+        hasTargets = booleanOut("hasTargets");
       }
       if (config.isEnabled(VisionTelemetryField.TARGET_COUNT)) {
-        targetCount = keep(table.getIntegerTopic("targetCount").publish());
+        targetCount = integerOut("targetCount");
       }
       if (config.isEnabled(VisionTelemetryField.ACCEPTED_POSES)) {
-        acceptedPoses = keep(table.getStructArrayTopic("acceptedPoses", Pose3d.struct).publish());
+        acceptedPoses = poseArrayOut("acceptedPoses");
       }
       if (config.isEnabled(VisionTelemetryField.REJECTED_POSES)) {
-        rejectedPoses = keep(table.getStructArrayTopic("rejectedPoses", Pose3d.struct).publish());
+        rejectedPoses = poseArrayOut("rejectedPoses");
       }
       if (config.isEnabled(VisionTelemetryField.REJECTION_REASON)) {
-        rejectionReason = keep(table.getStringTopic("rejectionReason").publish());
+        rejectionReason = stringOut("rejectionReason");
       }
       if (config.isEnabled(VisionTelemetryField.LATENCY)) {
-        latency = keep(table.getDoubleTopic("latencyMillis").publish());
+        latency = doubleOut("latencyMillis");
       }
       if (config.isEnabled(VisionTelemetryField.FILTER_STATS)) {
-        var stats = table.getSubTable("stats");
-        statsAccepted = keep(stats.getIntegerTopic("accepted").publish());
-        statsRejected = keep(stats.getIntegerTopic("rejected").publish());
-        statsAcceptanceRate = keep(stats.getDoubleTopic("acceptanceRate").publish());
-        statsSamples = keep(stats.getIntegerTopic("sampleCount").publish());
-        statsMeanPose = keep(stats.getStructTopic("meanPose", Pose2d.struct).publish());
-        statsStdDevs = keep(stats.getDoubleArrayTopic("stdDevs").publish());
-        statsSuggestedBase = keep(stats.getDoubleArrayTopic("suggestedBaseStdDevs").publish());
-        statsDistance = keep(stats.getDoubleTopic("averageTagDistanceMeters").publish());
-        statsReset = keep(stats.getBooleanTopic("reset").getEntry(false));
-        statsReset.set(false);
+        stats = true;
+        statsAccepted = integerOut("stats/accepted");
+        statsRejected = integerOut("stats/rejected");
+        statsAcceptanceRate = doubleOut("stats/acceptanceRate");
+        statsSamples = integerOut("stats/sampleCount");
+        statsMeanPose = poseOut("stats/meanPose");
+        statsStdDevs = doubleArrayOut("stats/stdDevs");
+        statsSuggestedBase = doubleArrayOut("stats/suggestedBaseStdDevs");
+        statsDistance = doubleOut("stats/averageTagDistanceMeters");
+        if (table != null) {
+          statsReset = keep(table.getBooleanTopic("stats/reset").getEntry(false));
+          statsReset.set(false);
+        }
       }
       if (config.isEnabled(VisionTelemetryField.TARGETS)) {
-        var targets = table.getSubTable("targets");
-        targetIds = keep(targets.getIntegerArrayTopic("fiducialIds").publish());
-        targetYaws = keep(targets.getDoubleArrayTopic("yawDegrees").publish());
-        targetPitches = keep(targets.getDoubleArrayTopic("pitchDegrees").publish());
-        targetAreas = keep(targets.getDoubleArrayTopic("areaPercent").publish());
+        targetIds = integerArrayOut("targets/fiducialIds");
+        targetYaws = doubleArrayOut("targets/yawDegrees");
+        targetPitches = doubleArrayOut("targets/pitchDegrees");
+        targetAreas = doubleArrayOut("targets/areaPercent");
       }
     }
 
     private <T extends AutoCloseable> T keep(T closeable) {
       closeables.add(closeable);
       return closeable;
+    }
+
+    private <T extends DataLogEntry> T keepEntry(T entry) {
+      closeables.add(entry::finish);
+      return entry;
+    }
+
+    private BooleanOut booleanOut(String key) {
+      var nt = table != null ? keep(table.getBooleanTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new BooleanLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private IntegerOut integerOut(String key) {
+      var nt = table != null ? keep(table.getIntegerTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new IntegerLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private DoubleOut doubleOut(String key) {
+      var nt = table != null ? keep(table.getDoubleTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new DoubleLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private Out<String> stringOut(String key) {
+      var nt = table != null ? keep(table.getStringTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new StringLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private Out<double[]> doubleArrayOut(String key) {
+      var nt = table != null ? keep(table.getDoubleArrayTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new DoubleArrayLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private Out<long[]> integerArrayOut(String key) {
+      var nt = table != null ? keep(table.getIntegerArrayTopic(key).publish()) : null;
+      var entry = log != null ? keepEntry(new IntegerArrayLogEntry(log, logPath + key)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private Out<Pose2d> poseOut(String key) {
+      var nt = table != null ? keep(table.getStructTopic(key, Pose2d.struct).publish()) : null;
+      var entry =
+          log != null ? keepEntry(StructLogEntry.create(log, logPath + key, Pose2d.struct)) : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
+    }
+
+    private Out<Pose3d[]> poseArrayOut(String key) {
+      var nt = table != null ? keep(table.getStructArrayTopic(key, Pose3d.struct).publish()) : null;
+      var entry =
+          log != null
+              ? keepEntry(StructArrayLogEntry.create(log, logPath + key, Pose3d.struct))
+              : null;
+      return value -> {
+        if (nt != null) {
+          nt.set(value);
+        }
+        if (entry != null) {
+          entry.update(value);
+        }
+      };
     }
 
     void publish(VisionCamera camera) {
@@ -685,7 +834,7 @@ public abstract class VisionCamera implements AutoCloseable {
       if (latency != null) {
         camera.latestResult.ifPresent(r -> latency.set(r.latencyMillis()));
       }
-      if (statsReset != null) {
+      if (stats) {
         publishStats(camera);
       }
       if (targetIds != null) {
@@ -699,7 +848,7 @@ public abstract class VisionCamera implements AutoCloseable {
 
     private void publishStats(VisionCamera camera) {
       var stats = camera.filterStats;
-      if (statsReset.get()) {
+      if (statsReset != null && statsReset.get()) {
         stats.reset();
         statsReset.set(false);
       }
@@ -714,11 +863,9 @@ public abstract class VisionCamera implements AutoCloseable {
               .getSuggestedBaseStdDevs(camera.config.getPoseFilter().getDistanceDivisor())
               .getData());
       statsDistance.set(stats.getAverageTagDistanceMeters());
-      var rejectedBy = table.getSubTable("stats").getSubTable("rejectedBy");
       for (var reason : stats.getRejectionCounts().entrySet()) {
         statsByReason
-            .computeIfAbsent(
-                reason.getKey(), key -> keep(rejectedBy.getIntegerTopic(key).publish()))
+            .computeIfAbsent(reason.getKey(), key -> integerOut("stats/rejectedBy/" + key))
             .set(reason.getValue());
       }
       // A reset clears the counts, so zero the reasons that are no longer counted.
@@ -735,7 +882,7 @@ public abstract class VisionCamera implements AutoCloseable {
         try {
           closeable.close();
         } catch (Exception e) {
-          // Closing a NetworkTables handle doesn't throw.
+          // Closing a NetworkTables handle or finishing a log entry doesn't throw.
         }
       }
     }

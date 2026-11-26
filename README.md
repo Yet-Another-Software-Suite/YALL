@@ -316,6 +316,17 @@ verbosity, set with `withTelemetry(new VisionTelemetryConfig().withVerbosity(...
 `withField(...)` turns single fields on or off, `withTablePath(...)` moves the table, and
 `withTelemetry(false)` turns it off.
 
+`withDataLog()` also logs the same fields to WPILib's `DataLogManager` under `YALL/<camera name>`,
+and `withNetworkTables(false)` stops publishing to NetworkTables, such as at competition:
+
+```java
+DataLogManager.start();
+DataLogManager.logNetworkTables(false); // the cameras log their own values
+
+new VisionCameraConfig()
+    .withTelemetry(new VisionTelemetryConfig().withDataLog());
+```
+
 ### Pose filter stats
 
 Each camera counts what its pose filter accepts and rejects (by check), and measures how spread

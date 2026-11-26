@@ -21,6 +21,8 @@ The kitbot example, driving: black is where the robot really is, red is its whee
 * **`kitbot`**: one camera from each vendor in one [`VisionSystem`](https://yall.yassrobotics.com/api-reference/java-reference/yall/vision-system), feeding a WPILib pose estimator. The Field widget shows `Robot` (odometry plus cameras), `Odometry` (wheels alone) and `Truth` (where the simulated robot really is). Its test drives an arc and checks the cameras keep the estimate closer to the truth than odometry alone. The [AprilTag Pose Estimation](tutorials/apriltag-pose-estimation.md) tutorial builds a smaller version of it.
 * **`yagsl-commands2` and `yagsl-commands3`**: cameras on a YAGSL swerve drive, kept in the swerve drive itself. Every loop, right after the drive updates its odometry, it gives the cameras its odometry heading and yaw rate, then adds each accepted estimate with `addVisionMeasurement`. The Limelight 4 skips frames while the robot is disabled, following [Limelight's thermal management advice](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-4), so it stays cool. Their tests run the robot in simulation and check the cameras see tags and agree with the simulated robot. The YAMS SwerveDrive tabs of the [AprilTag Pose Estimation](tutorials/apriltag-pose-estimation.md) tutorial use the same code.
 
+Every example also logs its cameras to a [DataLog](understanding/telemetry.md#logging-to-a-datalog), under `YALL/<camera name>`, next to NetworkTables. The YAGSL examples log the swerve drive under `swerve/` too. In simulation the log is in the example's `logs/` folder; open it in AdvantageScope.
+
 ## Run one
 
 {% stepper %}

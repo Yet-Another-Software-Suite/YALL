@@ -18,6 +18,7 @@ import org.wpilib.simulation.DifferentialDrivetrainSim.KitbotGearing;
 import org.wpilib.simulation.DifferentialDrivetrainSim.KitbotMotor;
 import org.wpilib.simulation.DifferentialDrivetrainSim.KitbotWheelSize;
 import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.system.DataLogManager;
 import org.wpilib.telemetry.Telemetry;
 import synapse.SynapseCamera;
 import yall.PoseEstimationMode;
@@ -28,6 +29,7 @@ import yall.cameras.PhotonVisionWrapper;
 import yall.cameras.SynapseWrapper;
 import yall.filter.VisionPoseFilter;
 import yall.sim.CameraModel;
+import yall.telemetry.VisionTelemetryConfig;
 
 /**
  * Drives a simulated kitbot around the field with three cameras, one from each vendor, correcting
@@ -70,12 +72,22 @@ public class Robot extends TimedRobot {
   public Robot() {
     drivetrainSim.setPose(startPose);
 
+    // Log to a file on the robot (or in logs/ in simulation). The cameras log their own values, so
+    // NetworkTables isn't logged as well.
+    DataLogManager.start();
+    DataLogManager.logNetworkTables(false);
+
+    // Each camera publishes to NetworkTables for dashboards, and logs the same values to the
+    // DataLog under YALL/<camera name>.
+    var telemetry = new VisionTelemetryConfig().withDataLog();
+
     // Every camera shares the pose filter's defaults, with its own tweaks.
     var front =
         new PhotonVisionWrapper(
             new PhotonCamera("front"),
             new VisionCameraConfig()
                 .withCameraModel(CameraModel.LUMA_P1)
+                .withTelemetry(telemetry)
                 // 12" forward, centered, 12" up, tilted 10° up.
                 .withRobotToCamera(
                     Inches.of(12),
@@ -89,6 +101,7 @@ public class Robot extends TimedRobot {
             backLimelight,
             new VisionCameraConfig()
                 .withCameraModel(CameraModel.LIMELIGHT_4)
+                .withTelemetry(telemetry)
                 // 12" back, facing backward.
                 .withRobotToCamera(
                     Inches.of(-12),
@@ -103,6 +116,7 @@ public class Robot extends TimedRobot {
             new SynapseCamera("side"),
             new VisionCameraConfig()
                 .withCameraModel(CameraModel.ARDUCAM_OV9281)
+                .withTelemetry(telemetry)
                 // 12" left, facing left.
                 .withRobotToCamera(
                     Inches.zero(),

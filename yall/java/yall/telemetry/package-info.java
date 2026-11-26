@@ -1,2 +1,2 @@
-/** What cameras publish to NetworkTables. */
+/** What cameras publish to NetworkTables and log to a DataLog. */
 package yall.telemetry;
