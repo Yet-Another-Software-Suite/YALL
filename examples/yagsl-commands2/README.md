@@ -56,7 +56,7 @@ Its `simulationPeriodic()` steps the swerve simulation, then moves the simulated
 2. Open `build.gradle` and delete the `srcDirs '../../yall/java'` line. It builds YALL from this repository's source;
    your project uses the vendordep instead.
 3. Install YALL: **WPILib: Manage Vendor Libraries → Install new libraries (online)** with
-   `https://Yet-Another-Software-Suite.github.io/YALL/yall.json`. `photonlib.json`, `LimelightLib-alpha7.json` and
+   `https://cdn.yassrobotics.com/yall.json`. `photonlib.json`, `LimelightLib-alpha7.json` and
    `SynapseLib.json` are already in `vendordeps/`. Keep the vendor libraries for the cameras you use; PhotonLib stays,
    since YALL simulates with it.
 4. In `SwerveDriveSubsystem`, give each camera the name it has on the robot (the PhotonVision camera name in
