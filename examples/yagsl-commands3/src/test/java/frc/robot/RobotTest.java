@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,6 +17,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.wpilib.hardware.hal.HAL;
+import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.simulation.SimHooks;
 import yall.results.VisionPoseEstimate;
 
@@ -51,11 +53,13 @@ class RobotTest
       {
         robot.robotPeriodic();
         robot.simulationPeriodic();
-        estimates.addAll(robot.vision.getVisionSystem().getEstimatedPoses());
+        estimates.addAll(robot.swerve.getVisionSystem().getEstimatedPoses());
         SimHooks.stepTiming(0.02);
       }
     });
     assertFalse(estimates.isEmpty(), "no camera saw a tag from the starting pose");
+    // The robot is disabled here, so the Limelight 4 skips frames to stay cool.
+    assertEquals(150, NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("throttle_set").getDouble(-1));
     var truth = robot.swerve.getSimPose();
     for (VisionPoseEstimate estimate : estimates)
     {

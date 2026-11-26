@@ -65,8 +65,6 @@ public class Robot extends TimedRobot
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    // After the scheduler, so the swerve drive's odometry is up to date: read the cameras and correct the pose.
-    m_robotContainer.updateVision();
   }
 
   /**
@@ -168,6 +166,5 @@ public class Robot extends TimedRobot
   @Override
   public void simulationPeriodic()
   {
-    m_robotContainer.updateVisionSimulation();
   }
 }

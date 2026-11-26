@@ -56,6 +56,12 @@ public class Robot extends TimedRobot {
   private final DifferentialDrivePoseEstimator odometryOnly =
       new DifferentialDrivePoseEstimator(Rotation2d.ZERO, 0, 0, startPose);
 
+  /**
+   * The Limelight 4 on the back. Limelight recommends skipping 100 to 200 frames between processed frames while
+   * disabled, and none while enabled, to keep the Limelight 4 from heating up in the queue and before a match.
+   */
+  private final Limelight backLimelight = new Limelight("limelight-back");
+
   private final VisionSystem vision;
 
   private final Field2d field = new Field2d();
@@ -80,7 +86,7 @@ public class Robot extends TimedRobot {
                     Degrees.zero()));
     var back =
         new LimelightWrapper(
-            new Limelight("limelight-back"),
+            backLimelight,
             new VisionCameraConfig()
                 .withCameraModel(CameraModel.LIMELIGHT_4)
                 // 12" back, facing backward.
@@ -183,6 +189,17 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     drivetrainSim.setInputs(0, 0);
+    // Keep the Limelight 4 cool while disabled. It then processes a frame every few seconds, so allow older frames
+    // before it counts as disconnected.
+    backLimelight.setThrottle(150);
+    backLimelight.withStaleFrameThreshold(5);
+  }
+
+  @Override
+  public void disabledExit() {
+    // Process every frame while enabled.
+    backLimelight.setThrottle(0);
+    backLimelight.withStaleFrameThreshold(Limelight.STALE_FRAME_SECONDS);
   }
 
   @Override
