@@ -1,5 +1,6 @@
 package yall.results;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,20 @@ public record VisionResult(
    * @return Targets with a fiducial ID.
    */
   public List<VisionTarget> getAprilTags() {
-    return targets.stream().filter(VisionTarget::isAprilTag).toList();
+    if (targets.isEmpty()) {
+      return List.of();
+    }
+    List<VisionTarget> matched = null;
+    for (int i = 0; i < targets.size(); i++) {
+      VisionTarget t = targets.get(i);
+      if (t.isAprilTag()) {
+        if (matched == null) {
+          matched = new ArrayList<>(targets.size());
+        }
+        matched.add(t);
+      }
+    }
+    return matched == null ? List.of() : List.copyOf(matched);
   }
 
   /**
@@ -53,6 +67,19 @@ public record VisionResult(
    * @return Targets with an object detection class ID.
    */
   public List<VisionTarget> getDetectedObjects() {
-    return targets.stream().filter(VisionTarget::isDetectedObject).toList();
+    if (targets.isEmpty()) {
+      return List.of();
+    }
+    List<VisionTarget> matched = null;
+    for (int i = 0; i < targets.size(); i++) {
+      VisionTarget t = targets.get(i);
+      if (t.isDetectedObject()) {
+        if (matched == null) {
+          matched = new ArrayList<>(targets.size());
+        }
+        matched.add(t);
+      }
+    }
+    return matched == null ? List.of() : List.copyOf(matched);
   }
 }

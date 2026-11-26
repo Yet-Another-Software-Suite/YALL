@@ -10,12 +10,12 @@ import com.limelightvision.PoseEstimate;
 import com.limelightvision.PoseEstimateConfig;
 import com.limelightvision.PoseEstimateType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.units.measure.AngularVelocity;
 import yall.PoseEstimationMode;
 import yall.VisionCamera;
 import yall.VisionCameraConfig;
@@ -152,7 +152,10 @@ public class LimelightWrapper extends VisionCamera {
     if (poseEstimate.rawFiducials.length == 0 || pose == null) {
       return new VisionFrame(result, Optional.empty());
     }
-    var tagIds = Arrays.stream(poseEstimate.rawFiducials).map(t -> t.fiducialId).toList();
+    var tagIds = new ArrayList<Integer>(poseEstimate.rawFiducials.length);
+    for (int i = 0; i < poseEstimate.rawFiducials.length; i++) {
+      tagIds.add(poseEstimate.rawFiducials[i].fiducialId);
+    }
     double ambiguity = tagIds.size() == 1 ? poseEstimate.rawFiducials[0].ambiguity : 0;
     var estimate =
         VisionPoseEstimate.unfiltered(
@@ -212,5 +215,25 @@ public class LimelightWrapper extends VisionCamera {
   @Override
   public Limelight getCamera() {
     return limelight;
+  }
+
+  /**
+   * Updates both a moving/turret-mounted camera's robot-to-camera transform and the robot's gyro
+   * orientation in a single NetworkTables flush so MegaTag2 receives both values atomically.
+   *
+   * @param robotToCamera Current transform from the robot origin to the camera.
+   * @param orientation Current robot orientation on the field.
+   * @param yawRate Current robot yaw rate.
+   */
+  public void setRobotToCameraAndOrientation(
+      Transform3d robotToCamera, Rotation3d orientation, AngularVelocity yawRate) {
+    if (!isSimulated()) {
+      limelight.setCameraPose_RobotSpaceOverride(
+          new Pose3d(robotToCamera.getTranslation(), robotToCamera.getRotation()), false);
+      setRobotOrientation(orientation, yawRate);
+    } else {
+      setRobotToCamera(robotToCamera);
+      setRobotOrientation(orientation, yawRate);
+    }
   }
 }

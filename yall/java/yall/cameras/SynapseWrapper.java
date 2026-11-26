@@ -1,7 +1,6 @@
 package yall.cameras;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.photonvision.simulation.SimCameraProperties;
@@ -11,6 +10,7 @@ import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.networktables.PubSubOption;
 import org.wpilib.networktables.RawSubscriber;
 import org.wpilib.networktables.TimestampedRaw;
+import org.wpilib.system.Timer;
 import synapse.SynapseCamera;
 import synapse.SynapsePipelineType;
 import synapse.pipelines.apriltag.ApriltagDetection;
@@ -45,7 +45,8 @@ import yall.sim.VisionSim;
  */
 public class SynapseWrapper extends VisionCamera {
 
-  private static final double NT_TICKS_PER_SECOND = 1.0e9;
+  private static final double NT_NANOS_PER_SECOND = 1.0e9;
+  private static final double NT_MICROS_PER_SECOND = 1.0e6;
 
   private final SynapseCamera camera;
   private final RawSubscriber resultsSubscriber;
@@ -90,12 +91,13 @@ public class SynapseWrapper extends VisionCamera {
     var frames = new ArrayList<VisionFrame>();
     boolean apriltag = SynapsePipelineType.kApriltag.typestring.equals(camera.getPipelineType());
     boolean color = SynapsePipelineType.kColor.typestring.equals(camera.getPipelineType());
-    double latencySeconds = camera.getCaptureLatency() + camera.getProcessLatency();
+    double nowSeconds = Timer.getMonotonicTimestamp();
+    double latencySeconds = Math.max(0.0, camera.getCaptureLatency() + camera.getProcessLatency());
     for (TimestampedRaw raw : resultsSubscriber.readQueue()) {
       if (raw.value.length == 0) {
         continue;
       }
-      double timestamp = raw.timestamp / NT_TICKS_PER_SECOND - latencySeconds;
+      double timestamp = resolveTimestampSeconds(raw.timestamp, nowSeconds, latencySeconds);
       if (apriltag) {
         camera
             .deserializeResults(SynapsePipelineType.kApriltag.getTypeReference(), raw.value)
@@ -137,14 +139,19 @@ public class SynapseWrapper extends VisionCamera {
       return new VisionFrame(visionResult, Optional.empty());
     }
     var field = config.getField();
-    var tagIds = Arrays.stream(tags).map(t -> t.tagID).toList();
-    double distance =
-        tagIds.stream()
-            .map(field::getTagPose)
-            .flatMap(Optional::stream)
-            .mapToDouble(p -> p.getTranslation().getDistance(cameraPose.getTranslation()))
-            .average()
-            .orElse(Double.NaN);
+    var tagIds = new ArrayList<Integer>(tags.length);
+    double distSum = 0.0;
+    int distCount = 0;
+    for (int i = 0; i < tags.length; i++) {
+      int id = tags[i].tagID;
+      tagIds.add(id);
+      var tagPose = field.getTagPose(id);
+      if (tagPose.isPresent()) {
+        distSum += tagPose.get().getTranslation().getDistance(cameraPose.getTranslation());
+        distCount++;
+      }
+    }
+    double distance = distCount > 0 ? distSum / distCount : Double.NaN;
     var estimate =
         VisionPoseEstimate.unfiltered(
             name,
@@ -171,8 +178,8 @@ public class SynapseWrapper extends VisionCamera {
               -properties.getPixelPitch(detection.center[1]).getDegrees(),
               Double.NaN,
               -1,
-              -1,
               0,
+              1.0,
               Double.NaN,
               Optional.empty()));
     }
@@ -210,5 +217,24 @@ public class SynapseWrapper extends VisionCamera {
   public void close() {
     resultsSubscriber.close();
     super.close();
+  }
+
+  /**
+   * Converts a NetworkTables {@code TimestampedRaw.timestamp} tick value into monotonic capture
+   * seconds, automatically handling nanosecond ({@code 1e9}) vs. microsecond ({@code 1e6}) NT4
+   * tick scales relative to {@code nowSeconds}.
+   */
+  static double resolveTimestampSeconds(
+      long rawTimestampTicks, double nowSeconds, double latencySeconds) {
+    double safeLatency =
+        (Double.isFinite(latencySeconds) && latencySeconds > 0.0) ? latencySeconds : 0.0;
+    double asNanos = rawTimestampTicks / NT_NANOS_PER_SECOND;
+    double asMicros = rawTimestampTicks / NT_MICROS_PER_SECOND;
+    double arrivalSeconds =
+        (Double.isFinite(nowSeconds)
+                && Math.abs(asMicros - nowSeconds) < Math.abs(asNanos - nowSeconds))
+            ? asMicros
+            : asNanos;
+    return arrivalSeconds - safeLatency;
   }
 }
