@@ -333,6 +333,10 @@ the field (<a href="yall/VisionCamera.html#getCameraFieldPose()"><code>VisionCam
 <dd>
 <div class="block">The custom checks, by name.</div>
 </dd>
+<dt><a href="yall/telemetry/VisionTelemetryConfig.html#getDataLogPath(java.lang.String)" class="member-name-link">getDataLogPath(String)</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
+<dd>
+<div class="block">The path to log under, if logging to a DataLog.</div>
+</dd>
 <dt><a href="yall/sim/VisionSim.html#getDebugField()" class="member-name-link">getDebugField()</a> - Method in class yall.sim.<a href="yall/sim/VisionSim.html" title="class in yall.sim">VisionSim</a></dt>
 <dd>
 <div class="block">A field drawing of the simulated robot, cameras and the targets they see.</div>
@@ -641,6 +645,10 @@ currentTimeSeconds</code>.</div>
 <dt><a href="yall/telemetry/VisionTelemetryConfig.html#isEnabled(yall.telemetry.VisionTelemetryField)" class="member-name-link">isEnabled(VisionTelemetryField)</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
 <dd>
 <div class="block">Whether a field is published.</div>
+</dd>
+<dt><a href="yall/telemetry/VisionTelemetryConfig.html#isNetworkTablesEnabled()" class="member-name-link">isNetworkTablesEnabled()</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
+<dd>
+<div class="block">Whether to publish to NetworkTables.</div>
 </dd>
 <dt><a href="yall/filter/VisionPoseFilter.html#isPreEnableAlignmentActive()" class="member-name-link">isPreEnableAlignmentActive()</a> - Method in class yall.filter.<a href="yall/filter/VisionPoseFilter.html" title="class in yall.filter">VisionPoseFilter</a></dt>
 <dd>
@@ -958,7 +966,7 @@ with a lowest-ambiguity fallback, and Synapse's field-space camera pose.</div>
 </dd>
 <dt><a href="yall/telemetry/TelemetryVerbosity.html" class="type-name-link" title="enum class in yall.telemetry">TelemetryVerbosity</a> - Enum Class in <a href="yall/telemetry/package-summary.html">yall.telemetry</a></dt>
 <dd>
-<div class="block">How much a camera publishes to NetworkTables.</div>
+<div class="block">How much a camera publishes to NetworkTables and logs to a DataLog.</div>
 </dd>
 <dt><a href="yall/sim/CameraModel.html#THRIFTIEST_CAM" class="member-name-link">THRIFTIEST_CAM</a> - Enum constant in enum class yall.sim.<a href="yall/sim/CameraModel.html" title="enum class in yall.sim">CameraModel</a></dt>
 <dd>
@@ -1150,7 +1158,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="yall/telemetry/VisionTelemetryConfig.html" class="type-name-link" title="class in yall.telemetry">VisionTelemetryConfig</a> - Class in <a href="yall/telemetry/package-summary.html">yall.telemetry</a></dt>
 <dd>
-<div class="block">What a camera publishes to NetworkTables, and where.</div>
+<div class="block">What a camera publishes to NetworkTables and logs to a WPILib DataLog, and where.</div>
 </dd>
 <dt><a href="yall/telemetry/VisionTelemetryConfig.html#%3Cinit%3E()" class="member-name-link">VisionTelemetryConfig()</a> - Constructor for class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
 <dd>
@@ -1179,6 +1187,16 @@ properties.</div>
 <dt><a href="yall/filter/VisionPoseFilter.html#withCustomCheck(java.lang.String,java.util.function.Predicate)" class="member-name-link">withCustomCheck(String, Predicate)</a> - Method in class yall.filter.<a href="yall/filter/VisionPoseFilter.html" title="class in yall.filter">VisionPoseFilter</a></dt>
 <dd>
 <div class="block">Adds a check of your own, run after the built-in ones.</div>
+</dd>
+<dt><a href="yall/telemetry/VisionTelemetryConfig.html#withDataLog()" class="member-name-link">withDataLog()</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
+<dd>
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log, under the same path
+as NetworkTables (<code>YALL/&lt;camera name&gt;</code> unless <a href="yall/telemetry/VisionTelemetryConfig.html#withTablePath(java.lang.String)"><code>VisionTelemetryConfig.withTablePath(String)</code></a> changes it).</div>
+</dd>
+<dt><a href="yall/telemetry/VisionTelemetryConfig.html#withDataLog(java.lang.String)" class="member-name-link">withDataLog(String)</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
+<dd>
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log under a path of its
+own, such as <code>"Vision/front"</code>.</div>
 </dd>
 <dt><a href="yall/sim/VisionSim.html#withDropoutProbability(double,long)" class="member-name-link">withDropoutProbability(double, long)</a> - Method in class yall.sim.<a href="yall/sim/VisionSim.html" title="class in yall.sim">VisionSim</a></dt>
 <dd>
@@ -1246,6 +1264,10 @@ minTags</code> AprilTags (for example, trusting a 3+ tag shooter-camera solve mo
 <dt><a href="yall/filter/VisionPoseFilter.html#withMinTagCount(java.lang.Integer)" class="member-name-link">withMinTagCount(Integer)</a> - Method in class yall.filter.<a href="yall/filter/VisionPoseFilter.html" title="class in yall.filter">VisionPoseFilter</a></dt>
 <dd>
 <div class="block">Rejects estimates that used fewer tags than the limit.</div>
+</dd>
+<dt><a href="yall/telemetry/VisionTelemetryConfig.html#withNetworkTables(boolean)" class="member-name-link">withNetworkTables(boolean)</a> - Method in class yall.telemetry.<a href="yall/telemetry/VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></dt>
+<dd>
+<div class="block">Sets whether to publish to NetworkTables.</div>
 </dd>
 <dt><a href="yall/VisionCameraConfig.html#withPipelineIndex(int)" class="member-name-link">withPipelineIndex(int)</a> - Method in class yall.<a href="yall/VisionCameraConfig.html" title="class in yall">VisionCameraConfig</a></dt>
 <dd>
@@ -1322,7 +1344,7 @@ YALL/&lt;camera name&gt;</code>.</div>
 </dd>
 <dt><a href="yall/VisionCameraConfig.html#withTelemetry(yall.telemetry.VisionTelemetryConfig)" class="member-name-link">withTelemetry(VisionTelemetryConfig)</a> - Method in class yall.<a href="yall/VisionCameraConfig.html" title="class in yall">VisionCameraConfig</a></dt>
 <dd>
-<div class="block">Sets what the camera publishes to NetworkTables, and where.</div>
+<div class="block">Sets what the camera publishes to NetworkTables and logs to a DataLog, and where.</div>
 </dd>
 <dt><a href="yall/VisionCameraConfig.html#withVendorConfig(java.lang.Object)" class="member-name-link">withVendorConfig(Object)</a> - Method in class yall.<a href="yall/VisionCameraConfig.html" title="class in yall">VisionCameraConfig</a></dt>
 <dd>
@@ -1364,7 +1386,7 @@ WPILib pose estimator.</div>
 </dd>
 <dt><a href="yall/telemetry/package-summary.html">yall.telemetry</a> - package yall.telemetry</dt>
 <dd>
-<div class="block">What cameras publish to NetworkTables.</div>
+<div class="block">What cameras publish to NetworkTables and log to a DataLog.</div>
 </dd>
 <dt><a href="yall/results/VisionTarget.html#yawDegrees()" class="member-name-link">yawDegrees()</a> - Method in record class yall.results.<a href="yall/results/VisionTarget.html" title="class in yall.results">VisionTarget</a></dt>
 <dd>

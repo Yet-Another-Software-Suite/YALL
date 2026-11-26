@@ -65,6 +65,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#withVerbosity(yall.telemetry.TelemetryVerbosity)" tabindex="0">withVerbosity(TelemetryVerbosity)</a></li>
 <li><a href="#withField(yall.telemetry.VisionTelemetryField,boolean)" tabindex="0">withField(VisionTelemetryField, boolean)</a></li>
 <li><a href="#withTablePath(java.lang.String)" tabindex="0">withTablePath(String)</a></li>
+<li><a href="#withNetworkTables(boolean)" tabindex="0">withNetworkTables(boolean)</a></li>
+<li><a href="#withDataLog()" tabindex="0">withDataLog()</a></li>
+<li><a href="#withDataLog(java.lang.String)" tabindex="0">withDataLog(String)</a></li>
+<li><a href="#isNetworkTablesEnabled()" tabindex="0">isNetworkTablesEnabled()</a></li>
+<li><a href="#getDataLogPath(java.lang.String)" tabindex="0">getDataLogPath(String)</a></li>
 <li><a href="#getVerbosity()" tabindex="0">getVerbosity()</a></li>
 <li><a href="#isEnabled(yall.telemetry.VisionTelemetryField)" tabindex="0">isEnabled(VisionTelemetryField)</a></li>
 <li><a href="#getTablePath(java.lang.String)" tabindex="0">getTablePath(String)</a></li>
@@ -85,16 +90,18 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">VisionTelemetryConfig</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">What a camera publishes to NetworkTables, and where.
+<div class="block">What a camera publishes to NetworkTables and logs to a WPILib DataLog, and where.
 
 <pre><code>new VisionCameraConfig()
     .withTelemetry(new VisionTelemetryConfig()
         .withVerbosity(TelemetryVerbosity.LOW)
-        .withField(VisionTelemetryField.FILTER_STATS, true));
+        .withField(VisionTelemetryField.FILTER_STATS, true)
+        .withDataLog());
 </code></pre>
 
-<p>By default a camera publishes every <a href="TelemetryVerbosity.html#MID"><code>TelemetryVerbosity.MID</code></a> field under <code>
-YALL/&lt;camera name&gt;</code>.</div>
+<p>By default a camera publishes every <a href="TelemetryVerbosity.html#MID"><code>TelemetryVerbosity.MID</code></a> field to NetworkTables
+under <code>YALL/&lt;camera name&gt;</code>, and logs nothing to a DataLog. <a href="#withDataLog()"><code>withDataLog()</code></a> logs the
+same fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log, and <a href="#withNetworkTables(boolean)"><code>withNetworkTables(boolean)</code></a> turns NetworkTables off, such as at competition.</div>
 </div>
 </section>
 <section class="summary">
@@ -125,20 +132,42 @@ YALL/&lt;camera name&gt;</code>.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTablePath(java.lang.String)" class="member-name-link">getTablePath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;cameraName)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDataLogPath(java.lang.String)" class="member-name-link">getDataLogPath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;cameraName)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The path to log under, if logging to a DataLog.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTablePath(java.lang.String)" class="member-name-link">getTablePath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;cameraName)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">The table to publish under.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="TelemetryVerbosity.html" title="enum class in yall.telemetry">TelemetryVerbosity</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getVerbosity()" class="member-name-link">getVerbosity</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="TelemetryVerbosity.html" title="enum class in yall.telemetry">TelemetryVerbosity</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getVerbosity()" class="member-name-link">getVerbosity</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">How much to publish.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isEnabled(yall.telemetry.VisionTelemetryField)" class="member-name-link">isEnabled</a><wbr>(<a href="VisionTelemetryField.html" title="enum class in yall.telemetry">VisionTelemetryField</a>&nbsp;field)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isEnabled(yall.telemetry.VisionTelemetryField)" class="member-name-link">isEnabled</a><wbr>(<a href="VisionTelemetryField.html" title="enum class in yall.telemetry">VisionTelemetryField</a>&nbsp;field)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Whether a field is published.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isNetworkTablesEnabled()" class="member-name-link">isNetworkTablesEnabled</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Whether to publish to NetworkTables.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withDataLog()" class="member-name-link">withDataLog</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log, under the same path
+as NetworkTables (<code>YALL/&lt;camera name&gt;</code> unless <a href="#withTablePath(java.lang.String)"><code>withTablePath(String)</code></a> changes it).</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withDataLog(java.lang.String)" class="member-name-link">withDataLog</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;path)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log under a path of its
+own, such as <code>"Vision/front"</code>.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withField(yall.telemetry.VisionTelemetryField,boolean)" class="member-name-link">withField</a><wbr>(<a href="VisionTelemetryField.html" title="enum class in yall.telemetry">VisionTelemetryField</a>&nbsp;field,
@@ -147,13 +176,18 @@ YALL/&lt;camera name&gt;</code>.</div>
 <div class="block">Turns one field on or off, whatever the verbosity.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withTablePath(java.lang.String)" class="member-name-link">withTablePath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;path)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withNetworkTables(boolean)" class="member-name-link">withNetworkTables</a><wbr>(boolean&nbsp;enabled)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Sets the NetworkTables table to publish under, such as <code>"Vision/front"</code>.</div>
+<div class="block">Sets whether to publish to NetworkTables.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withVerbosity(yall.telemetry.TelemetryVerbosity)" class="member-name-link">withVerbosity</a><wbr>(<a href="TelemetryVerbosity.html" title="enum class in yall.telemetry">TelemetryVerbosity</a>&nbsp;verbosity)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withTablePath(java.lang.String)" class="member-name-link">withTablePath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;path)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Sets the NetworkTables table to publish under, such as <code>"Vision/front"</code>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withVerbosity(yall.telemetry.TelemetryVerbosity)" class="member-name-link">withVerbosity</a><wbr>(<a href="TelemetryVerbosity.html" title="enum class in yall.telemetry">TelemetryVerbosity</a>&nbsp;verbosity)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Sets how much to publish.</div>
 </div>
 </div>
@@ -234,6 +268,85 @@ YALL/&lt;camera name&gt;</code>.</div>
 <dd><code>path</code> - Table path, with <code>/</code> between tables.</dd>
 <dt>Returns:</dt>
 <dd>This config, for chaining.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withNetworkTables(boolean)">
+<h3>withNetworkTables</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></span>&nbsp;<span class="element-name">withNetworkTables</span><wbr><span class="parameters">(boolean&nbsp;enabled)</span></div>
+<div class="block">Sets whether to publish to NetworkTables. Defaults to true. With it off, a camera's fields only
+go to the DataLog, if <a href="#withDataLog()"><code>withDataLog()</code></a> is on, and <code>stats/reset</code> isn't available.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>enabled</code> - true to publish to NetworkTables.</dd>
+<dt>Returns:</dt>
+<dd>This config, for chaining.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withDataLog()">
+<h3>withDataLog</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></span>&nbsp;<span class="element-name">withDataLog</span>()</div>
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log, under the same path
+as NetworkTables (<code>YALL/&lt;camera name&gt;</code> unless <a href="#withTablePath(java.lang.String)"><code>withTablePath(String)</code></a> changes it). Each
+value is logged when it changes.
+
+<p><code>DataLogManager</code> also logs NetworkTables by default, under <code>NT:/</code>. To log each
+value once, turn one of them off: <a href="#withNetworkTables(boolean)"><code>withNetworkTables(boolean)</code></a> here, or <code>
+DataLogManager.logNetworkTables(false)</code>.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>This config, for chaining.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withDataLog(java.lang.String)">
+<h3>withDataLog</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="VisionTelemetryConfig.html" title="class in yall.telemetry">VisionTelemetryConfig</a></span>&nbsp;<span class="element-name">withDataLog</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;path)</span></div>
+<div class="block">Logs the enabled fields to <a href="https://github.wpilib.org/allwpilib/docs/development/java/wpilib.core/org/wpilib/system/DataLogManager.html" title="class or interface in org.wpilib.system" class="external-link"><code>DataLogManager</code></a>'s log under a path of its
+own, such as <code>"Vision/front"</code>. See <a href="#withDataLog()"><code>withDataLog()</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>path</code> - Log entry path, with <code>/</code> between names.</dd>
+<dt>Returns:</dt>
+<dd>This config, for chaining.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isNetworkTablesEnabled()">
+<h3>isNetworkTablesEnabled</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isNetworkTablesEnabled</span>()</div>
+<div class="block">Whether to publish to NetworkTables.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true to publish to NetworkTables.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getDataLogPath(java.lang.String)">
+<h3>getDataLogPath</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">getDataLogPath</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;cameraName)</span></div>
+<div class="block">The path to log under, if logging to a DataLog.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>cameraName</code> - The camera's name, for the default path.</dd>
+<dt>Returns:</dt>
+<dd>The log path, or empty if not logging to a DataLog.</dd>
 </dl>
 </div>
 </section>
