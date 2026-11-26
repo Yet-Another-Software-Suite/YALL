@@ -2,7 +2,7 @@
 
 A swerve robot built with [YAGSL](https://docs.yagsl.com) and [YAMS](https://github.com/Yet-Another-Software-Suite/YAMS)
 on WPILib's **Commands v3** framework, with two cameras that correct its pose with AprilTags through YALL. It's
-YAGSL's Commands v3 example plus a `Vision` class. Using **Commands v2** instead? See [`../yagsl-commands2`](../yagsl-commands2).
+YAGSL's Commands v3 example with the cameras added to its swerve drive. Using **Commands v2** instead? See [`../yagsl-commands2`](../yagsl-commands2).
 
 - **Front:** a PhotonVision camera (an Arducam OV9281), solving the pose from the tags alone.
 - **Back:** a Limelight 4 using MegaTag2 (`PoseEstimationMode.HEADING_ASSISTED`), which also uses the robot's
@@ -26,15 +26,18 @@ agree with where the simulated robot is.
 
 ## How the cameras correct the pose
 
-[`Vision`](src/main/java/frc/robot/vision/Vision.java) puts both cameras in a YALL `VisionSystem`. Commands v3
-mechanisms have no `periodic()` of their own, so `Robot.robotPeriodic()` updates the swerve drive, runs the
-scheduler, then calls `Vision.update()`:
+The cameras live in the swerve drive,
+[`SwerveDriveMechanism`](src/main/java/frc/robot/mechanisms/SwerveDriveMechanism.java), in a YALL `VisionSystem`.
+Commands v3 mechanisms have no `periodic()` of their own, so `Robot.robotPeriodic()` calls the mechanism's before
+running the scheduler. It updates the drive's odometry, then the cameras:
 
 ```java
-vision.setRobotOrientation(swerve.getHeading(), swerve.getYawRate());
+// Keep the Limelight 4 cool: skip frames while disabled, as Limelight recommends.
+backLimelight.setThrottle(RobotState.isDisabled() ? 150 : 0); // only sent when it changes
+vision.setRobotOrientation(getHeading(), getYawRate());
 vision.update();
 vision.forEachEstimatedPose(
-    estimate -> swerve.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
+    estimate -> drive.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
 ```
 
 - `getHeading()` is the robot's heading on the field from the drive's odometry, `drive.getRotation()`.
@@ -43,9 +46,12 @@ vision.forEachEstimatedPose(
 - `getYawRate()` lets YALL's pose filter throw out images taken while the robot spins too fast.
 - Every estimate that passed the pose filter goes to the drive's pose estimator, oldest first, each with the time
   its image was taken and its own standard deviations.
+- The Limelight 4 skips 150 frames between processed frames while the robot is disabled and none while enabled,
+  following [Limelight's thermal management advice](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-4),
+  so it doesn't heat up waiting in the queue.
 
-`Robot.simulationPeriodic()` calls `Vision.updateSimulation()`, which moves the simulated cameras with the simulated
-robot.
+Its `simulationPeriodic()`, called from `Robot.simulationPeriodic()`, steps the swerve simulation, then moves the
+simulated cameras with the simulated robot.
 
 ## Make it yours
 
@@ -56,9 +62,9 @@ robot.
    `https://Yet-Another-Software-Suite.github.io/YALL/yall.json`. `photonlib.json`, `LimelightLib-alpha7.json` and
    `SynapseLib.json` are already in `vendordeps/`. Keep the vendor libraries for the cameras you use; PhotonLib stays,
    since YALL simulates with it.
-4. In `Vision`, give each camera the name it has on the robot (the PhotonVision camera name, or the Limelight's
-   hostname) and its position on the robot in `withRobotToCamera(forward, left, up, roll, pitch, yaw)`. Negative
-   pitch tilts the camera up.
+4. In `SwerveDriveMechanism`, give each camera the name it has on the robot (the PhotonVision camera name in
+   `createCameras()`, and the Limelight's hostname in the `backLimelight` field) and its position on the robot in
+   `withRobotToCamera(forward, left, up, roll, pitch, yaw)`. Negative pitch tilts the camera up.
 5. Set up the swerve drive with [config.yagsl.com](https://config.yagsl.com) and YAGSL's
    [Commands v3 example README](https://github.com/Yet-Another-Software-Suite/YAGSL/tree/main/examples/commands3),
    which covers the opmodes and live tuning this project keeps.
@@ -73,9 +79,8 @@ YALL builds from this repository's source.
 
 ```
 src/main/java/frc/robot/
-  Robot.java                               # updates the swerve drive, runs the scheduler, then Vision.update()
-  mechanisms/SwerveDriveMechanism.java     # the YAGSL swerve drive
-  vision/Vision.java                       # the two YALL cameras
+  Robot.java                               # updates the swerve drive and its cameras, then runs the scheduler
+  mechanisms/SwerveDriveMechanism.java     # the YAGSL swerve drive and its two YALL cameras
   opmodes/teleop/                          # teleop opmodes and driver buttons
   opmodes/auto/                            # autonomous opmodes
 src/main/deploy/swerve/                    # YAGSL's swerve JSON configuration

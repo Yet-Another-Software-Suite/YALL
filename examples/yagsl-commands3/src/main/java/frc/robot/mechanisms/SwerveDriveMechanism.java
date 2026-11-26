@@ -8,20 +8,27 @@ import java.io.File;
 import java.util.List;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
+import org.wpilib.driverstation.RobotState;
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
-import org.wpilib.math.linalg.Matrix;
-import org.wpilib.math.numbers.N1;
-import org.wpilib.math.numbers.N3;
 import org.wpilib.smartdashboard.Field2d;
 import org.wpilib.system.Filesystem;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
+import com.limelightvision.Limelight;
+import org.photonvision.PhotonCamera;
+import yall.PoseEstimationMode;
+import yall.VisionCamera;
+import yall.VisionCameraConfig;
+import yall.VisionSystem;
+import yall.cameras.LimelightWrapper;
+import yall.cameras.PhotonVisionWrapper;
+import yall.sim.CameraModel;
 import swervelib.commands3.SwerveParser;
 import yams.commands3.config.SwerveDriveConfig;
 import yams.commands3.swerve.SwerveDrive;
@@ -44,7 +51,22 @@ public class SwerveDriveMechanism implements Mechanism
    */
   private static final Angle    POSE_ROTATION_TOLERANCE    = Degrees.of(5);
 
-  private final SwerveDrive drive;
+  /**
+   * Frames a Limelight 4 skips between processed frames while the robot is disabled. Limelight recommends 100 to 200
+   * while disabled, and 0 while enabled, to keep the Limelight 4 from heating up in the queue and before a match.
+   */
+  private static final int    LIMELIGHT_DISABLED_THROTTLE        = 150;
+  /**
+   * How old the Limelight's newest frame can be before it counts as disconnected, while throttled. At 150 skipped
+   * frames it processes one every few seconds.
+   */
+  private static final double LIMELIGHT_THROTTLED_STALE_SECONDS = 5;
+
+  private final SwerveDrive  drive;
+  private final Limelight    backLimelight = new Limelight("limelight-back");
+  private final VisionSystem vision;
+  /** Whether the back Limelight was last throttled, or null before the first loop. */
+  private       Boolean      limelightThrottled;
 
   /**
    * Parse the YAGSL configuration and create the swerve drive.
@@ -63,6 +85,7 @@ public class SwerveDriveMechanism implements Mechanism
 
     SwerveParser.parse(new File(Filesystem.getDeployDirectory(), "swerve/base"));
     drive = SwerveParser.createSwerveDrive(cfg);
+    vision = createCameras();
     // Use SwerveParser.createSwerveDriveDevices(cfg) instead to also get the raw vendor devices (motor controllers,
     // encoders, and the gyro) YAGSL created.
   }
@@ -201,17 +224,6 @@ public class SwerveDriveMechanism implements Mechanism
     return RadiansPerSecond.of(drive.getRobotRelativeSpeed().omega);
   }
 
-  /**
-   * Add a camera's pose estimate, from {@link frc.robot.vision.Vision}, to the drive's pose estimator.
-   *
-   * @param visionPose       Vision-measured {@link Pose2d}, field relative, blue-origin.
-   * @param timestampSeconds When the camera's image was taken.
-   * @param stdDevs          Standard deviations of x (meters), y (meters) and heading (radians): how much to trust it.
-   */
-  public void addVisionMeasurement(Pose2d visionPose, double timestampSeconds, Matrix<N3, N1> stdDevs)
-  {
-    drive.addVisionMeasurement(visionPose, timestampSeconds, stdDevs);
-  }
 
   /**
    * Get the simulated robot's true pose, for the simulated cameras.
@@ -234,18 +246,88 @@ public class SwerveDriveMechanism implements Mechanism
   }
 
   /**
-   * Update odometry and telemetry. Call every loop; Commands v3 mechanisms have no periodic() hook of their own.
+   * Update odometry and telemetry, then correct the pose with the cameras. Call every loop; Commands v3 mechanisms
+   * have no periodic() hook of their own.
    */
   public void periodic()
   {
     drive.updateTelemetry();
+    updateVision();
   }
 
   /**
-   * Step the swerve drive simulation. Call every loop in simulation.
+   * Step the swerve drive simulation and move the simulated cameras with it. Call every loop in simulation.
    */
   public void simulationPeriodic()
   {
     drive.simIterate();
+    vision.updateSimulation(drive.getSimPose());
   }
+  /**
+   * Create the cameras that correct the drive's pose with AprilTags. The front camera runs PhotonVision. The back
+   * camera is a Limelight 4 using MegaTag2, which also uses the robot's heading. In simulation both are simulated with
+   * PhotonVision's simulator, so the example runs without a camera.
+   *
+   * @return The cameras, in a {@link VisionSystem}.
+   */
+  private VisionSystem createCameras()
+  {
+    // A PhotonVision camera 12 in forward of the robot's center, 10 in up, tilted 15 degrees up.
+    VisionCamera front = new PhotonVisionWrapper(
+        new PhotonCamera("front"),
+        new VisionCameraConfig()
+            .withCameraModel(CameraModel.ARDUCAM_OV9281)
+            .withRobotToCamera(Inches.of(12), Inches.zero(), Inches.of(10),
+                               Degrees.zero(), Degrees.of(-15), Degrees.zero()));
+
+    // A Limelight 4 12 in behind the robot's center, 10 in up, facing backward and tilted 15 degrees up. MegaTag2
+    // (HEADING_ASSISTED) uses the heading given in updateVision().
+    VisionCamera back = new LimelightWrapper(
+        backLimelight,
+        new VisionCameraConfig()
+            .withCameraModel(CameraModel.LIMELIGHT_4)
+            .withPoseEstimationMode(PoseEstimationMode.HEADING_ASSISTED)
+            .withRobotToCamera(Inches.of(-12), Inches.zero(), Inches.of(10),
+                               Degrees.zero(), Degrees.of(-15), Degrees.of(180)));
+
+    return new VisionSystem(front, back);
+  }
+
+  /**
+   * Read the cameras and add their pose estimates to the drive's pose estimator. Runs every loop, right after the
+   * drive updates its odometry.
+   */
+  private void updateVision()
+  {
+    // Keep the Limelight 4 cool: skip most frames while disabled, process every frame while enabled. Only sent when
+    // the robot is enabled or disabled, not every loop.
+    boolean disabled = RobotState.isDisabled();
+    if (limelightThrottled == null || limelightThrottled != disabled)
+    {
+      backLimelight.setThrottle(disabled ? LIMELIGHT_DISABLED_THROTTLE : 0);
+      // So the throttled Limelight isn't reported as disconnected between its processed frames.
+      backLimelight.withStaleFrameThreshold(disabled ? LIMELIGHT_THROTTLED_STALE_SECONDS
+                                                     : Limelight.STALE_FRAME_SECONDS);
+      limelightThrottled = disabled;
+    }
+
+    // The heading is the drive's odometry heading, not the gyro's: resetting odometry (for an auto's starting pose,
+    // or with the zero gyro button) turns the odometry heading without turning the gyro.
+    vision.setRobotOrientation(getHeading(), getYawRate());
+    vision.update();
+    // Every estimate that passed the pose filter, oldest first, each with its own timestamp and standard deviations.
+    vision.forEachEstimatedPose(
+        estimate -> drive.addVisionMeasurement(estimate.pose2d(), estimate.timestampSeconds(), estimate.stdDevs()));
+  }
+
+  /**
+   * The cameras, for tests and dashboards.
+   *
+   * @return The {@link VisionSystem}.
+   */
+  public VisionSystem getVisionSystem()
+  {
+    return vision;
+  }
+
 }

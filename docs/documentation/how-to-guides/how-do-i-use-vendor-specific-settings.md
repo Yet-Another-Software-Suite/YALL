@@ -51,21 +51,23 @@ Clear them with `clearFiducialIDFiltersOverride()` and `clearPriorityTagIDOverri
 
 ### Less heat while disabled
 
-`setThrottle(n)` makes the Limelight skip `n` frames between processed ones. LimelightLib suggests 100 to 200 while disabled:
+`setThrottle(n)` makes the Limelight skip `n` frames between processed ones. Limelight recommends 100 to 200 while disabled and 0 while enabled, so a Limelight 4 doesn't heat up in the queue and before a match ([Limelight 4 thermal management](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-4)):
 
 ```java
 @Override
 public void disabledInit() {
   limelight.setThrottle(150);
+  limelight.withStaleFrameThreshold(5); // it processes a frame every few seconds
 }
 
 @Override
-public void teleopInit() {
+public void disabledExit() { // before autonomous and teleop
   limelight.setThrottle(0);
+  limelight.withStaleFrameThreshold(Limelight.STALE_FRAME_SECONDS);
 }
 ```
 
-Pair it with `limelight.withStaleFrameThreshold(seconds)` so a throttled camera isn't reported as stale: YALL's `isConnected()` uses LimelightLib's `isConnected()`.
+The stale frame threshold keeps a throttled camera from being reported as disconnected: YALL's `isConnected()` uses LimelightLib's `isConnected()`, which by default counts a frame older than a quarter second as stale. `disabledInit()` and `disabledExit()` work the same in Commands v2's `TimedRobot` and Commands v3's `OpModeRobot`. The [example robots](../example-robots.md) do this: the kitbot in `Robot.java`, and the YAGSL examples in the swerve drive, which check `RobotState.isDisabled()` every loop and send the throttle when it changes.
 
 ### Snapshots and rewind
 

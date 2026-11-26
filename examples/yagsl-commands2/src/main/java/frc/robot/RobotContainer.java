@@ -10,7 +10,6 @@ import static org.wpilib.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import frc.robot.subsystems.swervedrive.SwerveDriveSubsystem;
-import frc.robot.subsystems.vision.Vision;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandXboxController;
@@ -42,9 +41,8 @@ public class RobotContainer
   // deploy/pathplanner/autos (e.g. "New Auto") show up automatically.
   private final Selectable<Command> autoChooser;
 
+  // The swerve drive, with the cameras that correct its pose with AprilTags.
   private final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem();
-  // The cameras that correct the swerve drive's pose with AprilTags.
-  private final Vision               vision = new Vision(swerve);
 
   // Toggled with the A button to switch the drive stream between angular velocity control (right stick X spins the
   // robot) and heading control (the right stick points the way the robot should face).
@@ -123,33 +121,6 @@ public class RobotContainer
   private static double allianceSign()
   {
     return MatchState.getAlliance().orElse(Alliance.BLUE) == Alliance.RED ? -1 : 1;
-  }
-
-  /**
-   * Read the cameras and correct the swerve drive's pose. Called from {@link Robot#robotPeriodic()} after the
-   * scheduler runs.
-   */
-  public void updateVision()
-  {
-    vision.update();
-  }
-
-  /**
-   * Move the simulated cameras with the simulated robot. Called from {@link Robot#simulationPeriodic()}.
-   */
-  public void updateVisionSimulation()
-  {
-    vision.updateSimulation();
-  }
-
-  /**
-   * The cameras, for tests.
-   *
-   * @return The {@link Vision}.
-   */
-  public Vision getVision()
-  {
-    return vision;
   }
 
   /**

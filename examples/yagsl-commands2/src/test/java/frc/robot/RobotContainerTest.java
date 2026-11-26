@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.hardware.hal.HAL;
+import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.simulation.SimHooks;
 import yall.results.VisionPoseEstimate;
 
@@ -39,15 +41,15 @@ class RobotContainerTest
     assertDoesNotThrow(() -> {
       for (int i = 0; i < 100; i++)
       {
-        // What Robot.robotPeriodic() and Robot.simulationPeriodic() do every loop.
+        // Runs the swerve drive's periodic() and simulationPeriodic(), which update its cameras too.
         CommandScheduler.getInstance().run();
-        container.updateVision();
-        container.updateVisionSimulation();
-        estimates.addAll(container.getVision().getVisionSystem().getEstimatedPoses());
+        estimates.addAll(container.getSwerve().getVisionSystem().getEstimatedPoses());
         SimHooks.stepTiming(0.02);
       }
     });
     assertFalse(estimates.isEmpty(), "no camera saw a tag from the starting pose");
+    // The robot is disabled here, so the Limelight 4 skips frames to stay cool.
+    assertEquals(150, NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("throttle_set").getDouble(-1));
     var truth = container.getSwerve().getSimPose();
     for (VisionPoseEstimate estimate : estimates)
     {

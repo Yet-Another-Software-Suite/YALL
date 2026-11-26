@@ -8,7 +8,6 @@ import static org.wpilib.units.Units.MilliOhms;
 import static org.wpilib.units.Units.Volts;
 
 import frc.robot.mechanisms.SwerveDriveMechanism;
-import frc.robot.vision.Vision;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.driverstation.internal.DriverStationBackend;
 import org.wpilib.framework.OpModeRobot;
@@ -27,11 +26,6 @@ public class Robot extends OpModeRobot
    * Swerve drive built by YAGSL from {@code deploy/swerve/base}.
    */
   public final SwerveDriveMechanism  swerve     = new SwerveDriveMechanism();
-
-  /**
-   * The cameras that correct the swerve drive's pose with AprilTags.
-   */
-  public final Vision vision = new Vision(swerve);
 
   private final Scheduler scheduler = Scheduler.getDefault();
 
@@ -71,15 +65,13 @@ public class Robot extends OpModeRobot
 
   /**
    * This function is called every 20 ms, no matter the mode. Mechanisms have no periodic() hook in Commands v3, so
-   * the swerve drive's update runs here, before the scheduler. The cameras run after it, once the drive's odometry is
-   * up to date.
+   * the swerve drive's update, odometry and then its cameras, runs here, before the scheduler.
    */
   @Override
   public void robotPeriodic()
   {
     swerve.periodic();
     scheduler.run();
-    vision.update();
   }
 
   /**
@@ -89,6 +81,5 @@ public class Robot extends OpModeRobot
   public void simulationPeriodic()
   {
     swerve.simulationPeriodic();
-    vision.updateSimulation();
   }
 }

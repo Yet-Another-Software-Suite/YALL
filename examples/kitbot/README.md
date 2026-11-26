@@ -4,6 +4,10 @@ A simulated kitbot with one camera from each vendor: a Luma P1 running PhotonVis
 Limelight 4 on the back and a Synapse camera (an Arducam OV9281) on the left. Its wheels slip, so odometry alone drifts;
 the cameras pull the pose estimate back to the truth.
 
+While the robot is disabled, the Limelight 4 skips 150 frames between processed frames to stay cool, as
+[Limelight recommends](https://docs.limelightvision.io/docs/docs-limelight/getting-started/limelight-4), and
+processes every frame again when the robot is enabled (`disabledInit()` and `disabledExit()` in `Robot.java`).
+
 ## Run it
 
 ```
