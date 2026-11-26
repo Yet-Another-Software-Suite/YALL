@@ -2,6 +2,7 @@
 
 * [Welcome](README.md)
 * [Why YALL?](why-yall.md)
+* [Example Robots](example-robots.md)
 * [Migrating from YALL 2026](how-to-guides/migrating-from-yall-2026.md)
 
 ## Tutorials

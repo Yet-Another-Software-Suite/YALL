@@ -98,7 +98,7 @@ public void robotPeriodic() {
 
 This needs `import static org.wpilib.units.Units.RadiansPerSecond;` and `import org.wpilib.math.geometry.Rotation3d;`.
 
-For a complete YAGSL swerve robot with a PhotonVision camera and a MegaTag2 Limelight, see YALL's [Commands v2](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands2) and [Commands v3](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands3) YAGSL examples.
+For a complete YAGSL swerve robot with a PhotonVision camera and a MegaTag2 Limelight, see YALL's [Commands v2](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/examples/yagsl-commands2) and [Commands v3](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/examples/yagsl-commands3) YAGSL examples, described in [Example Robots](../example-robots.md).
 {% endtab %}
 {% endtabs %}
 
@@ -171,7 +171,7 @@ Then open `Field` in your dashboard.
 
 **Check it:** the robot and `Truth` stay on top of each other.
 
-Here's the same idea with three cameras from YALL's example robot. Black is where the robot really is. Red is wheels only: it drifts about 10 cm in 10 seconds. Blue is wheels plus cameras: it stays within about 2 cm. The dots are each camera's guesses.
+Here's the same idea with three cameras from YALL's [kitbot example](../example-robots.md). Black is where the robot really is. Red is wheels only: it drifts about 10 cm in 10 seconds. Blue is wheels plus cameras: it stays within about 2 cm. The dots are each camera's guesses.
 
 ![A robot drives a figure of eight. The red wheels-only path drifts away from the black true path, while the blue path with cameras stays on it.](../.gitbook/assets/vision-corrects-odometry.gif)
 {% endstep %}

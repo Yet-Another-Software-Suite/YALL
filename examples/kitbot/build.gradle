@@ -16,7 +16,7 @@ sourceSets {
             srcDirs 'src/main/java'
             // Build YALL from source so the example tracks this branch. Teams install the
             // YALL vendordep instead.
-            srcDirs '../yall/java'
+            srcDirs '../../yall/java'
         }
     }
 }

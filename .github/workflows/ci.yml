@@ -6,16 +6,14 @@ on:
     paths:
       - "yall/java/**"
       - "vendordep/**"
-      - "example/**"
-      - "yagsl-example/**"
+      - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
   pull_request:
     paths:
       - "yall/java/**"
       - "vendordep/**"
-      - "example/**"
-      - "yagsl-example/**"
+      - "examples/**"
       - ".github/workflows/ci.yml"
       - ".github/scripts/test_summary.py"
 
@@ -50,35 +48,35 @@ jobs:
         working-directory: vendordep
       - name: Build and test the example
         run: chmod a+x ./gradlew && ./gradlew build && ./gradlew test
-        working-directory: example
+        working-directory: examples/kitbot
       - name: Example test summary
         if: always()
-        run: python3 ../.github/scripts/test_summary.py "Example robot tests" build/test-results/test
-        working-directory: example
+        run: python3 ../../.github/scripts/test_summary.py "Example robot tests" build/test-results/test
+        working-directory: examples/kitbot
       # The YAGSL examples, on WPILib 2027.0.0-alpha-7 with the published YAGSL and YAMS vendordeps.
       - name: Build and test the YAGSL Commands v2 example
         run: chmod a+x ./gradlew && ./gradlew build
-        working-directory: yagsl-example/commands2
+        working-directory: examples/yagsl-commands2
       - name: YAGSL Commands v2 example test summary
         if: always()
         run: python3 ../../.github/scripts/test_summary.py "YAGSL Commands v2 example tests" build/test-results/test
-        working-directory: yagsl-example/commands2
+        working-directory: examples/yagsl-commands2
       - name: Build and test the YAGSL Commands v3 example
         run: chmod a+x ./gradlew && ./gradlew build
-        working-directory: yagsl-example/commands3
+        working-directory: examples/yagsl-commands3
       - name: YAGSL Commands v3 example test summary
         if: always()
         run: python3 ../../.github/scripts/test_summary.py "YAGSL Commands v3 example tests" build/test-results/test
-        working-directory: yagsl-example/commands3
+        working-directory: examples/yagsl-commands3
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports
           path: |
             vendordep/build/reports/tests
-            example/build/reports/tests
-            yagsl-example/commands2/build/reports/tests
-            yagsl-example/commands3/build/reports/tests
+            examples/kitbot/build/reports/tests
+            examples/yagsl-commands2/build/reports/tests
+            examples/yagsl-commands3/build/reports/tests
       - uses: actions/upload-artifact@v4
         with:
           name: Maven
