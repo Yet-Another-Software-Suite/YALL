@@ -98,7 +98,7 @@ public void robotPeriodic() {
 
 This needs `import static org.wpilib.units.Units.RadiansPerSecond;` and `import org.wpilib.math.geometry.Rotation3d;`.
 
-For a complete YAGSL swerve robot with a PhotonVision camera and a MegaTag2 Limelight, see YALL's [Commands v2](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands2) and [Commands v3](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/yagsl-example/commands3) YAGSL examples.
+For a complete YAGSL swerve robot with a PhotonVision camera and a MegaTag2 Limelight, see YALL's [Commands v2](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/examples/yagsl-commands2) and [Commands v3](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/examples/yagsl-commands3) YAGSL examples.
 {% endtab %}
 {% endtabs %}
 

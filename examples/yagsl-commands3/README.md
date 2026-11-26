@@ -1,8 +1,8 @@
-# YALL with YAGSL: Commands v2
+# YALL with YAGSL: Commands v3
 
-A swerve robot built with [YAGSL](https://docs.yagsl.com) and [YAMS](https://github.com/Yet-Another-Software-Suite/YAMS),
-with two cameras that correct its pose with AprilTags through YALL. It's YAGSL's Commands v2 example plus a
-`Vision` class. Using **Commands v3** instead? See [`../commands3`](../commands3).
+A swerve robot built with [YAGSL](https://docs.yagsl.com) and [YAMS](https://github.com/Yet-Another-Software-Suite/YAMS)
+on WPILib's **Commands v3** framework, with two cameras that correct its pose with AprilTags through YALL. It's
+YAGSL's Commands v3 example plus a `Vision` class. Using **Commands v2** instead? See [`../yagsl-commands2`](../yagsl-commands2).
 
 - **Front:** a PhotonVision camera (an Arducam OV9281), solving the pose from the tags alone.
 - **Back:** a Limelight 4 using MegaTag2 (`PoseEstimationMode.HEADING_ASSISTED`), which also uses the robot's
@@ -16,17 +16,19 @@ In simulation both cameras are simulated with PhotonVision's simulator, so the e
 ./gradlew simulateJava
 ```
 
-Drive with an Xbox controller on port 0 in teleop. The drive's field (`Mechanisms/swerve/field` in NetworkTables)
-shows the robot's pose with the cameras' corrections, and `VisionSystemSim-YALL/Sim Field` shows what the
-simulated cameras see. Each camera's telemetry is under `YALL/<camera name>`.
+Pick a teleop opmode on the driver station and drive with an Xbox controller on port 0. The drive's field
+(`Mechanisms/swerve/field` in NetworkTables) shows the robot's pose with the cameras' corrections, and
+`VisionSystemSim-YALL/Sim Field` shows what the simulated cameras see. Each camera's telemetry is under
+`YALL/<camera name>`.
 
 `./gradlew test` builds the robot, runs it for two seconds in simulation and checks that the cameras see tags and
 agree with where the simulated robot is.
 
 ## How the cameras correct the pose
 
-[`Vision`](src/main/java/frc/robot/subsystems/vision/Vision.java) puts both cameras in a YALL `VisionSystem`.
-`Robot.robotPeriodic()` calls `Vision.update()` after the scheduler runs, so the drive's odometry is up to date:
+[`Vision`](src/main/java/frc/robot/vision/Vision.java) puts both cameras in a YALL `VisionSystem`. Commands v3
+mechanisms have no `periodic()` of their own, so `Robot.robotPeriodic()` updates the swerve drive, runs the
+scheduler, then calls `Vision.update()`:
 
 ```java
 vision.setRobotOrientation(swerve.getHeading(), swerve.getYawRate());
@@ -58,8 +60,8 @@ robot.
    hostname) and its position on the robot in `withRobotToCamera(forward, left, up, roll, pitch, yaw)`. Negative
    pitch tilts the camera up.
 5. Set up the swerve drive with [config.yagsl.com](https://config.yagsl.com) and YAGSL's
-   [Commands v2 example README](https://github.com/Yet-Another-Software-Suite/YAGSL/tree/main/examples/commands2),
-   which covers the driver controls, PathPlanner and live tuning this project keeps.
+   [Commands v3 example README](https://github.com/Yet-Another-Software-Suite/YAGSL/tree/main/examples/commands3),
+   which covers the opmodes and live tuning this project keeps.
 
 ## Versions
 
@@ -71,13 +73,13 @@ YALL builds from this repository's source.
 
 ```
 src/main/java/frc/robot/
-  Robot.java                                        # runs the scheduler, then Vision.update()
-  RobotContainer.java                               # driver bindings, autos, the swerve drive and Vision
-  subsystems/swervedrive/SwerveDriveSubsystem.java  # the YAGSL swerve drive
-  subsystems/vision/Vision.java                     # the two YALL cameras
-src/main/deploy/swerve/                             # YAGSL's swerve JSON configuration
-src/main/deploy/pathplanner/                        # PathPlanner settings, paths and autos
-src/test/java/frc/robot/RobotContainerTest.java     # simulation smoke test
+  Robot.java                               # updates the swerve drive, runs the scheduler, then Vision.update()
+  mechanisms/SwerveDriveMechanism.java     # the YAGSL swerve drive
+  vision/Vision.java                       # the two YALL cameras
+  opmodes/teleop/                          # teleop opmodes and driver buttons
+  opmodes/auto/                            # autonomous opmodes
+src/main/deploy/swerve/                    # YAGSL's swerve JSON configuration
+src/test/java/frc/robot/RobotTest.java     # simulation smoke test
 ```
 
 ## Links

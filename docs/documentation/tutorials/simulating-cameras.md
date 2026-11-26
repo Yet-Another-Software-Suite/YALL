@@ -274,4 +274,4 @@ for (int i = 0; i < 50; i++) {
 }
 ```
 
-YALL's [example robot](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/example) has a test like this. PhotonVision's own simulation docs are at [Simulation](https://docs.photonvision.org/en/latest/docs/simulation/index.html).
+YALL's [example robot](https://github.com/Yet-Another-Software-Suite/YALL/tree/main/examples/kitbot) has a test like this. PhotonVision's own simulation docs are at [Simulation](https://docs.photonvision.org/en/latest/docs/simulation/index.html).

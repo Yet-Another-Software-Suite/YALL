@@ -319,12 +319,12 @@ alone) minus the robot's heading. Use it to check or zero the turret's encoder.
 
 ## Example
 
-[`example/`](example) is a simulated kitbot with one camera from each vendor. Its wheels slip, so
+[`examples/kitbot`](examples/kitbot) is a simulated kitbot with one camera from each vendor. Its wheels slip, so
 odometry alone drifts; drive it with a gamepad and compare the `Truth`, `Odometry` and `Robot`
 poses on the Field widget. Its test drives an arc and checks that vision keeps the estimate closer
 to the truth than odometry.
 
-[`yagsl-example/commands2`](yagsl-example/commands2) and [`yagsl-example/commands3`](yagsl-example/commands3) are
+[`examples/yagsl-commands2`](examples/yagsl-commands2) and [`examples/yagsl-commands3`](examples/yagsl-commands3) are
 YAGSL swerve robots, on Commands v2 and v3, with a PhotonVision camera on the front and a MegaTag2 Limelight on the
 back. Every loop they give the cameras the drive's odometry heading and add each accepted estimate to the drive with
 `addVisionMeasurement`. Both run in simulation.
