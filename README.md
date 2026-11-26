@@ -27,7 +27,7 @@ Coming from the Limelight-only YALL 2026? See [MIGRATION.md](MIGRATION.md).
 
 Install these vendordeps:
 
-1. YALL: `https://Yet-Another-Software-Suite.github.io/YALL/yall.json`
+1. YALL: `https://cdn.yassrobotics.com/yall.json`
 2. PhotonLib, which YALL simulates with.
 3. WPILib's **CameraServer** and **AprilTag** vendordeps, which ship with WPILib. PhotonVision's
    simulation needs them.
