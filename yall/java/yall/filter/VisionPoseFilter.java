@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.wpilib.fields.Field;
@@ -98,6 +99,8 @@ public class VisionPoseFilter {
   private double distanceDivisor = 30;
   private double headingAssistedThetaStdDev = 1e6;
   private DoubleSupplier xyStdDevScaleSupplier = () -> 1.0;
+  private Optional<Function<VisionPoseEstimate, Matrix<N3, N1>>> customStdDevCalculator =
+      Optional.empty();
   private Optional<Integer> highTagBoostMinTags = Optional.empty();
   private double highTagBoostXyScale = 1.0;
   private Optional<BooleanSupplier> robotEnabledSupplier = Optional.empty();
@@ -503,6 +506,68 @@ public class VisionPoseFilter {
   }
 
   /**
+   * Supplies a custom standard-deviation calculator that replaces the built-in {@code base * (1 +
+   * d² / distanceDivisor)} model for accepted estimates (for example, {@code d^1.5 / tagCount} or
+   * ambiguity-weighted covariance). If the calculator returns {@code null} or any non-finite /
+   * non-positive entry, the filter safely falls back to its built-in formula.
+   *
+   * @param calculator Function computing {@code [x, y, theta]} standard deviations for an accepted
+   *     estimate, or {@code null} to restore the built-in model.
+   * @return This filter, for chaining.
+   */
+  public VisionPoseFilter withStdDevCalculator(
+      Function<VisionPoseEstimate, Matrix<N3, N1>> calculator) {
+    this.customStdDevCalculator = Optional.ofNullable(calculator);
+    return this;
+  }
+
+  /**
+   * Applies {@link PoseFilterStats#getSuggestedBaseStdDevs(double)} as the multi-tag base standard
+   * deviations once at least {@code minSamples} accepted poses have been collected, clamping each
+   * axis into {@code [minBase, maxBase]} so noisy calibration runs cannot produce extreme weights.
+   *
+   * @param stats Collected pose-filter statistics from a stationary calibration run.
+   * @param minSamples Minimum accepted sample count required before applying (must be {@code >= 2}).
+   * @param minBase Per-axis lower clamp {@code [x, y, theta]} (all finite and positive).
+   * @param maxBase Per-axis upper clamp {@code [x, y, theta]} (all finite and {@code >= minBase}).
+   * @return {@code true} if the base standard deviations were updated, {@code false} if not enough
+   *     valid samples were available.
+   */
+  public boolean applySuggestedBaseStdDevs(
+      PoseFilterStats stats,
+      long minSamples,
+      Matrix<N3, N1> minBase,
+      Matrix<N3, N1> maxBase) {
+    Objects.requireNonNull(stats, "stats must not be null");
+    Objects.requireNonNull(minBase, "minBase must not be null");
+    Objects.requireNonNull(maxBase, "maxBase must not be null");
+    if (minSamples < 2) {
+      throw new IllegalArgumentException("minSamples must be >= 2");
+    }
+    for (int i = 0; i < 3; i++) {
+      double lo = minBase.get(i, 0);
+      double hi = maxBase.get(i, 0);
+      if (!Double.isFinite(lo) || !Double.isFinite(hi) || lo <= 0.0 || hi < lo) {
+        throw new IllegalArgumentException("minBase/maxBase must be finite, positive, and ordered");
+      }
+    }
+    if (stats.getAcceptedCount() < minSamples) {
+      return false;
+    }
+    Matrix<N3, N1> suggested = stats.getSuggestedBaseStdDevs(distanceDivisor);
+    double[] clamped = new double[3];
+    for (int i = 0; i < 3; i++) {
+      double v = suggested.get(i, 0);
+      if (!Double.isFinite(v) || v <= 0.0) {
+        return false;
+      }
+      clamped[i] = Math.max(minBase.get(i, 0), Math.min(maxBase.get(i, 0), v));
+    }
+    this.multiTagStdDevs = VecBuilder.fill(clamped[0], clamped[1], clamped[2]);
+    return true;
+  }
+
+  /**
    * Applies an extra X/Y standard deviation multiplier when an estimate sees at least {@code
    * minTags} AprilTags (for example, trusting a 3+ tag shooter-camera solve more tightly).
    *
@@ -740,6 +805,12 @@ public class VisionPoseFilter {
    * @return The estimate with {@link VisionPoseEstimate#stdDevs()} filled in.
    */
   public VisionPoseEstimate applyStdDevs(VisionPoseEstimate estimate) {
+    if (customStdDevCalculator.isPresent()) {
+      Matrix<N3, N1> custom = customStdDevCalculator.get().apply(estimate);
+      if (isValidStdDevs(custom)) {
+        return estimate.withStdDevs(custom);
+      }
+    }
     var base = estimate.tagCount() > 1 ? multiTagStdDevs : singleTagStdDevs;
     double distance = estimate.averageTagDistanceMeters();
     double scale = 1 + (Double.isFinite(distance) ? distance * distance / distanceDivisor : 0);
@@ -763,5 +834,18 @@ public class VisionPoseFilter {
     }
     return estimate.withStdDevs(
         VecBuilder.fill(base.get(0, 0) * xyScale, base.get(1, 0) * xyScale, theta));
+  }
+
+  private static boolean isValidStdDevs(Matrix<N3, N1> stdDevs) {
+    if (stdDevs == null) {
+      return false;
+    }
+    for (int i = 0; i < 3; i++) {
+      double v = stdDevs.get(i, 0);
+      if (!Double.isFinite(v) || v <= 0.0) {
+        return false;
+      }
+    }
+    return true;
   }
 }
