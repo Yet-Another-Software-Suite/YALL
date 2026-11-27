@@ -1,15 +1,22 @@
 package yall;
 
+import static org.wpilib.units.Units.Seconds;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.system.Timer;
 import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Time;
+import org.wpilib.util.Alert;
 import yall.results.VisionPoseEstimate;
 import yall.sim.VisionSim;
 
@@ -17,7 +24,11 @@ import yall.sim.VisionSim;
  * Several {@link VisionCamera}s working together, from any mix of vendors.
  *
  * <pre>{@code
- * VisionSystem vision = new VisionSystem(frontLimelight, backPhoton, sideSynapse);
+ * VisionSystem vision =
+ *     new VisionSystem(frontLimelight, backPhoton, sideSynapse)
+ *         .withDisconnectDebounce(VisionSystem.DEFAULT_DISCONNECT_DEBOUNCE)
+ *         .withDisconnectAlerts(true)
+ *         .onCameraDisconnected(cam -> sideSynapse.setPipelineIndex(APRILTAG_PIPELINE));
  *
  * public void periodic() {
  *   vision.setRobotOrientation(poseEstimator.getEstimatedPosition().getRotation(), gyro.getYawRate());
@@ -39,7 +50,20 @@ import yall.sim.VisionSim;
  */
 public class VisionSystem implements AutoCloseable {
 
+  /** Default debounce duration before a disconnected camera triggers alerts or failover callbacks. */
+  public static final Time DEFAULT_DISCONNECT_DEBOUNCE = Seconds.of(1.5);
+
+  /** Alert group name published to SmartDashboard / NetworkTables when disconnect alerts are on. */
+  private static final String ALERT_GROUP = "YALL";
+
   private final List<VisionCamera> cameras;
+  private final boolean[] reportedDisconnected;
+  private final double[] disconnectedSinceSeconds;
+  private final Alert[] disconnectAlerts;
+  private double disconnectDebounceSeconds = 0.0;
+  private boolean disconnectAlertsEnabled = false;
+  private Consumer<VisionCamera> onDisconnectedCallback = null;
+  private Consumer<VisionCamera> onReconnectedCallback = null;
   private List<VisionPoseEstimate> estimates = List.of();
 
   /**
@@ -49,17 +73,144 @@ public class VisionSystem implements AutoCloseable {
    */
   public VisionSystem(VisionCamera... cameras) {
     this.cameras = List.of(cameras);
+    int n = this.cameras.size();
+    this.reportedDisconnected = new boolean[n];
+    this.disconnectedSinceSeconds = new double[n];
+    this.disconnectAlerts = new Alert[n];
+    for (int i = 0; i < n; i++) {
+      this.disconnectedSinceSeconds[i] = Double.NaN;
+    }
   }
 
-  /** Updates every camera. Call once per loop. */
+  /**
+   * Sets how long a camera must remain disconnected before {@link #onCameraDisconnected(Consumer)}
+   * and {@link #withDisconnectAlerts(boolean)} activate, preventing brief NetworkTables hiccups
+   * from flapping failover logic.
+   *
+   * @param debounce Non-negative debounce duration (e.g. {@link #DEFAULT_DISCONNECT_DEBOUNCE}).
+   *     {@code null} disables debouncing (immediate reporting).
+   * @return This vision system, for chaining.
+   */
+  public VisionSystem withDisconnectDebounce(Time debounce) {
+    if (debounce == null) {
+      this.disconnectDebounceSeconds = 0.0;
+      return this;
+    }
+    double seconds = debounce.in(Seconds);
+    if (!Double.isFinite(seconds) || seconds < 0.0) {
+      throw new IllegalArgumentException("debounce must be finite and non-negative");
+    }
+    this.disconnectDebounceSeconds = seconds;
+    return this;
+  }
+
+  /**
+   * Enables or disables automatic WPILib {@link Alert}s when a camera disconnects.
+   *
+   * @param enabled {@code true} to publish a high-priority {@link Alert} per disconnected camera.
+   * @return This vision system, for chaining.
+   */
+  public VisionSystem withDisconnectAlerts(boolean enabled) {
+    this.disconnectAlertsEnabled = enabled;
+    if (enabled) {
+      for (int i = 0; i < cameras.size(); i++) {
+        if (disconnectAlerts[i] == null) {
+          disconnectAlerts[i] =
+              new Alert(
+                  ALERT_GROUP,
+                  "CameraDisconnected/" + cameras.get(i).getName(),
+                  "Vision camera '" + cameras.get(i).getName() + "' disconnected",
+                  Alert.Level.HIGH);
+        }
+        disconnectAlerts[i].set(reportedDisconnected[i]);
+      }
+    } else {
+      for (Alert alert : disconnectAlerts) {
+        if (alert != null) {
+          alert.set(false);
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Registers an edge-triggered callback invoked once when a camera transitions into the
+   * disconnected state (after any configured {@link #withDisconnectDebounce(Time)}). Useful for
+   * active multi-camera failover, such as switching a surviving game-piece camera to an AprilTag
+   * pipeline when the primary localization camera drops mid-match.
+   *
+   * @param callback Callback receiving the disconnected camera, or {@code null} to clear.
+   * @return This vision system, for chaining.
+   */
+  public VisionSystem onCameraDisconnected(Consumer<VisionCamera> callback) {
+    this.onDisconnectedCallback = callback;
+    return this;
+  }
+
+  /**
+   * Registers an edge-triggered callback invoked once when a previously disconnected camera
+   * reconnects.
+   *
+   * @param callback Callback receiving the reconnected camera, or {@code null} to clear.
+   * @return This vision system, for chaining.
+   */
+  public VisionSystem onCameraReconnected(Consumer<VisionCamera> callback) {
+    this.onReconnectedCallback = callback;
+    return this;
+  }
+
+  /** Updates every camera and evaluates connection health. Call once per loop. */
   public void update() {
+    update(Timer.getMonotonicTimestamp());
+  }
+
+  /**
+   * Updates every camera and evaluates connection health using an explicit monotonic timestamp
+   * (useful for deterministic unit tests and log replay).
+   *
+   * @param nowSeconds Current monotonic timestamp in seconds.
+   */
+  public void update(double nowSeconds) {
     var all = new ArrayList<VisionPoseEstimate>();
-    for (VisionCamera camera : cameras) {
+    for (int i = 0; i < cameras.size(); i++) {
+      VisionCamera camera = cameras.get(i);
       camera.update();
+      updateCameraHealth(i, camera, nowSeconds);
       all.addAll(camera.getEstimatedPoses());
     }
     all.sort(Comparator.comparingDouble(VisionPoseEstimate::timestampSeconds));
     estimates = List.copyOf(all);
+  }
+
+  private void updateCameraHealth(int index, VisionCamera camera, double nowSeconds) {
+    if (camera.isConnected()) {
+      disconnectedSinceSeconds[index] = Double.NaN;
+      if (reportedDisconnected[index]) {
+        reportedDisconnected[index] = false;
+        if (disconnectAlertsEnabled && disconnectAlerts[index] != null) {
+          disconnectAlerts[index].set(false);
+        }
+        if (onReconnectedCallback != null) {
+          onReconnectedCallback.accept(camera);
+        }
+      }
+      return;
+    }
+
+    if (Double.isNaN(disconnectedSinceSeconds[index])) {
+      disconnectedSinceSeconds[index] = nowSeconds;
+    }
+    double elapsed = nowSeconds - disconnectedSinceSeconds[index];
+    if (!reportedDisconnected[index] && elapsed >= disconnectDebounceSeconds) {
+      reportedDisconnected[index] = true;
+      if (disconnectAlertsEnabled && disconnectAlerts[index] != null) {
+        disconnectAlerts[index].set(true);
+      }
+      if (onDisconnectedCallback != null) {
+        onDisconnectedCallback.accept(camera);
+      }
+    }
   }
 
   /**
@@ -117,6 +268,89 @@ public class VisionSystem implements AutoCloseable {
   }
 
   /**
+   * Looks up a camera in this system by its configured name.
+   *
+   * @param name Camera name.
+   * @return Matching camera, or empty if not found.
+   */
+  public Optional<VisionCamera> getCamera(String name) {
+    Objects.requireNonNull(name, "name must not be null");
+    for (VisionCamera camera : cameras) {
+      if (camera.getName().equals(name)) {
+        return Optional.of(camera);
+      }
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * Switches the pipeline on a named camera in this system.
+   *
+   * @param cameraName Name of the camera to switch.
+   * @param pipelineIndex Target pipeline index.
+   * @return {@code true} if the camera was found and switched, {@code false} otherwise.
+   */
+  public boolean setPipelineIndex(String cameraName, int pipelineIndex) {
+    Optional<VisionCamera> match = getCamera(cameraName);
+    match.ifPresent(cam -> cam.setPipelineIndex(pipelineIndex));
+    return match.isPresent();
+  }
+
+  /**
+   * Cameras that are currently connected.
+   *
+   * @return Connected cameras in registration order.
+   */
+  public List<VisionCamera> getConnectedCameras() {
+    var connected = new ArrayList<VisionCamera>(cameras.size());
+    for (VisionCamera camera : cameras) {
+      if (camera.isConnected()) {
+        connected.add(camera);
+      }
+    }
+    return List.copyOf(connected);
+  }
+
+  /**
+   * Cameras that are currently disconnected.
+   *
+   * @return Disconnected cameras in registration order.
+   */
+  public List<VisionCamera> getDisconnectedCameras() {
+    var disconnected = new ArrayList<VisionCamera>(cameras.size());
+    for (VisionCamera camera : cameras) {
+      if (!camera.isConnected()) {
+        disconnected.add(camera);
+      }
+    }
+    return List.copyOf(disconnected);
+  }
+
+  /**
+   * Number of cameras currently reporting connected.
+   *
+   * @return Count of connected cameras.
+   */
+  public int getConnectedCameraCount() {
+    int count = 0;
+    for (VisionCamera camera : cameras) {
+      if (camera.isConnected()) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Whether at least one camera in this system is currently connected.
+   *
+   * @return {@code true} if one or more cameras are connected.
+   */
+  public boolean hasConnectedCamera() {
+    return getConnectedCameraCount() > 0;
+  }
+
+  /**
    * Every accepted estimate from every camera in the last {@link #update()}.
    *
    * @return The estimates, oldest first.
@@ -149,9 +383,14 @@ public class VisionSystem implements AutoCloseable {
         e -> poseEstimator.addVisionMeasurement(e.pose2d(), e.timestampSeconds(), e.stdDevs()));
   }
 
-  /** Closes every camera. */
+  /** Closes every camera and any active disconnect alerts. */
   @Override
   public void close() {
+    for (Alert alert : disconnectAlerts) {
+      if (alert != null) {
+        alert.close();
+      }
+    }
     cameras.forEach(VisionCamera::close);
   }
 }
